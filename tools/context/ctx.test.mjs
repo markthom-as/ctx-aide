@@ -162,11 +162,26 @@ assert.equal(noBackendDiscovery.ok, true);
 assert.equal(noBackendDiscovery.out, "docs/context/generated/discovery.none.json");
 assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/discovery.none.json")), true);
 
+const blockedOutsideOut = run(["export-agent", "--agent", "codex", "--out", path.join(os.tmpdir(), "repo-context-outside-agent.md")], { allowFailure: true });
+assert.equal(blockedOutsideOut.ok, false);
+assert.equal(blockedOutsideOut.errors[0].message.includes("escapes repo"), true);
+
 write("audit-pass.mjs", "process.exit(0);\n");
 write("audit-fail.mjs", "process.stderr.write('2 vulnerabilities found\\nSeverity: 1 moderate | 1 high\\n│ Package             │ next                                                   │\\n'); process.exit(1);\n");
 const clearedAudit = run(["dependency", "audit", "--repo", ".", "--command", `"${process.execPath}" audit-pass.mjs`]);
 assert.equal(clearedAudit.ok, true);
 assert.equal(clearedAudit.audit_cleared, true);
+assert.equal(clearedAudit.shell, false);
+assert.deepEqual(clearedAudit.command_argv, [process.execPath, "audit-pass.mjs"]);
+
+const shellAudit = run(["dependency", "audit", "--repo", ".", "--command", "exit 0", "--shell"]);
+assert.equal(shellAudit.ok, true);
+assert.equal(shellAudit.shell, true);
+assert.equal(shellAudit.command_argv, null);
+
+const blockedAuditOut = run(["dependency", "audit", "--repo", ".", "--command", `"${process.execPath}" audit-pass.mjs`, "--out", "../outside-audit.json"], { allowFailure: true });
+assert.equal(blockedAuditOut.ok, false);
+assert.equal(blockedAuditOut.errors[0].message.includes("escapes repo"), true);
 
 const failedAudit = run(["dependency", "audit", "--repo", ".", "--command", `"${process.execPath}" audit-fail.mjs`], { allowFailure: true });
 assert.equal(failedAudit.ok, false);

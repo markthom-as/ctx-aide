@@ -254,11 +254,79 @@ function boundedText(text, max = 4000) {
   return `${value.slice(0, max)}\n...[truncated ${value.length - max} chars]`;
 }
 
+function pathInside(basePath, targetPath) {
+  const base = path.resolve(basePath);
+  const target = path.resolve(targetPath);
+  return target === base || target.startsWith(`${base}${path.sep}`);
+}
+
+function displayPath(targetPath) {
+  const resolved = path.resolve(targetPath);
+  return pathInside(root, resolved) ? (path.relative(root, resolved) || ".") : resolved;
+}
+
+function resolveRepoWritePath(repoPath, candidate, options = {}) {
+  const allowOutsideRepo = Boolean(options.allowOutsideRepo);
+  const resolved = path.isAbsolute(candidate)
+    ? path.resolve(candidate)
+    : path.resolve(repoPath, candidate);
+  if (!allowOutsideRepo && !pathInside(repoPath, resolved)) {
+    return {
+      ok: false,
+      file: candidate,
+      message: "write path escapes repo; pass --allow-outside-repo to override",
+    };
+  }
+  return { ok: true, path: resolved };
+}
+
+function parseCommandLine(commandText) {
+  const words = [];
+  let current = "";
+  let quote = null;
+  let escaping = false;
+  for (const char of String(commandText)) {
+    if (escaping) {
+      current += char;
+      escaping = false;
+      continue;
+    }
+    if (char === "\\" && quote !== "'") {
+      escaping = true;
+      continue;
+    }
+    if (quote) {
+      if (char === quote) quote = null;
+      else current += char;
+      continue;
+    }
+    if (char === "'" || char === "\"") {
+      quote = char;
+      continue;
+    }
+    if (/\s/.test(char)) {
+      if (current) {
+        words.push(current);
+        current = "";
+      }
+      continue;
+    }
+    current += char;
+  }
+  if (escaping) current += "\\";
+  if (quote) return { ok: false, error: "unterminated quoted string in command" };
+  if (current) words.push(current);
+  if (words.length === 0) return { ok: false, error: "command must not be empty" };
+  return { ok: true, argv: words };
+}
+
 function dependencyAudit() {
   const repoArg = argValue("--repo", ".");
   const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
   const commandText = argValue("--command", "pnpm audit --prod");
   const out = argValue("--out", "");
+  const useShell = args.includes("--shell");
+  const allowOutsideRepo = args.includes("--allow-outside-repo");
   const startedAt = new Date().toISOString();
   if (!fs.existsSync(repoPath)) {
     return {
@@ -267,12 +335,45 @@ function dependencyAudit() {
       errors: [{ file: repoArg, message: "repo path does not exist" }],
     };
   }
-  const result = spawnSync(commandText, {
-    cwd: repoPath,
-    shell: true,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const outPath = out ? resolveRepoWritePath(repoPath, out, { allowOutsideRepo }) : null;
+  if (outPath && !outPath.ok) {
+    return {
+      ok: false,
+      scope: "dependency audit",
+      repo: displayPath(repoPath),
+      command: commandText,
+      shell: useShell,
+      checked_at: startedAt,
+      audit_cleared: false,
+      errors: [{ file: outPath.file, message: outPath.message }],
+    };
+  }
+  const parsed = useShell ? null : parseCommandLine(commandText);
+  if (!useShell && !parsed.ok) {
+    return {
+      ok: false,
+      scope: "dependency audit",
+      repo: displayPath(repoPath),
+      command: commandText,
+      shell: false,
+      checked_at: startedAt,
+      audit_cleared: false,
+      errors: [{ file: "dependency audit", message: parsed.error }],
+    };
+  }
+  const result = useShell
+    ? spawnSync(commandText, {
+        cwd: repoPath,
+        shell: true,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      })
+    : spawnSync(parsed.argv[0], parsed.argv.slice(1), {
+        cwd: repoPath,
+        shell: false,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
   const stdout = result.stdout ?? "";
   const stderr = result.stderr ?? "";
   const combined = `${stdout}\n${stderr}`;
@@ -287,8 +388,10 @@ function dependencyAudit() {
   const payload = {
     ok: result.status === 0,
     scope: "dependency audit",
-    repo: path.relative(root, repoPath) || ".",
+    repo: displayPath(repoPath),
     command: commandText,
+    shell: useShell,
+    command_argv: useShell ? null : parsed.argv,
     checked_at: startedAt,
     audit_cleared: result.status === 0,
     exit_code: result.status,
@@ -296,16 +399,16 @@ function dependencyAudit() {
     vulnerable_packages: packages,
     evidence: {
       command: commandText,
+      shell: useShell,
       stdout_excerpt: boundedText(stdout),
       stderr_excerpt: boundedText(stderr),
     },
-    errors: result.status === 0 ? [] : [{ file: path.relative(root, repoPath) || ".", message: "dependency audit did not clear" }],
+    errors: result.status === 0 ? [] : [{ file: displayPath(repoPath), message: "dependency audit did not clear" }],
   };
-  if (out) {
-    const outPath = path.isAbsolute(out) ? out : path.join(root, out);
-    fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);
-    payload.out = path.relative(root, outPath);
+  if (outPath) {
+    fs.mkdirSync(path.dirname(outPath.path), { recursive: true });
+    fs.writeFileSync(outPath.path, `${JSON.stringify(payload, null, 2)}\n`);
+    payload.out = displayPath(outPath.path);
   }
   return payload;
 }
@@ -691,10 +794,21 @@ function workflowDeps() {
         .map((check) => ({ file: workflow.file, message: `${workflow.id}: ${check.issues.join("; ")}` }))),
   };
   if (out) {
-    const outPath = path.isAbsolute(out) ? out : path.join(root, out);
-    fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);
-    payload.out = path.relative(root, outPath);
+    const outPath = resolveRepoWritePath(repoPath, out, { allowOutsideRepo: args.includes("--allow-outside-repo") });
+    if (!outPath.ok) {
+      return {
+        ok: false,
+        scope: "workflow deps",
+        repo: displayPath(repoPath),
+        write,
+        package_manager: packageManager,
+        workflows: workflowRows,
+        errors: [{ file: outPath.file, message: outPath.message }],
+      };
+    }
+    fs.mkdirSync(path.dirname(outPath.path), { recursive: true });
+    fs.writeFileSync(outPath.path, `${JSON.stringify(payload, null, 2)}\n`);
+    payload.out = displayPath(outPath.path);
   }
   return payload;
 }
@@ -761,13 +875,13 @@ function credentialStatus(profileId, repoPath, options = {}) {
       },
       env_file: {
         ok: fileReady,
-        path: path.relative(root, envFilePath) || envFile,
+        path: displayPath(envFilePath),
         exists: fs.existsSync(envFilePath),
         keys: file,
       },
       browser_storage_state: {
         ok: storageStateExists,
-        path: path.relative(root, storageStatePath) || storageState,
+        path: displayPath(storageStatePath),
         exists: storageStateExists,
       },
     },
@@ -884,7 +998,15 @@ function credentialsImportBrowserState() {
     };
   }
   const sourcePath = path.isAbsolute(sourceArg) ? sourceArg : path.join(root, sourceArg);
-  const outPath = path.isAbsolute(outArg) ? outArg : path.join(repoPath, outArg);
+  const resolvedOutPath = resolveRepoWritePath(repoPath, outArg, { allowOutsideRepo: args.includes("--allow-outside-repo") });
+  if (!resolvedOutPath.ok) {
+    return {
+      ok: false,
+      scope: "credentials import-browser-state",
+      errors: [{ file: resolvedOutPath.file, message: resolvedOutPath.message }],
+    };
+  }
+  const outPath = resolvedOutPath.path;
   const validation = validateStorageStateFile(sourcePath);
   if (!validation.ok) {
     return {
@@ -897,7 +1019,7 @@ function credentialsImportBrowserState() {
     return {
       ok: false,
       scope: "credentials import-browser-state",
-      errors: [{ file: path.relative(root, outPath) || outArg, message: "destination exists; pass --force to overwrite" }],
+    errors: [{ file: displayPath(outPath), message: "destination exists; pass --force to overwrite" }],
     };
   }
   if (write) {
@@ -907,11 +1029,11 @@ function credentialsImportBrowserState() {
   return {
     ok: true,
     scope: "credentials import-browser-state",
-    repo: path.relative(root, repoPath) || ".",
+    repo: displayPath(repoPath),
     profile: profileId,
     write,
-    source: path.relative(root, sourcePath) || sourceArg,
-    out: path.relative(root, outPath) || outArg,
+    source: displayPath(sourcePath),
+    out: displayPath(outPath),
     storage_state: {
       cookies: validation.cookies,
       origins: validation.origins,
@@ -1525,14 +1647,22 @@ function exportAgent() {
   }
   const out = argValue("--out", defaultOut);
   const entries = readContextEntries();
-  const outPath = path.isAbsolute(out) ? out : path.join(root, out);
-  fs.mkdirSync(path.dirname(outPath), { recursive: true });
-  fs.writeFileSync(outPath, agentPackMarkdown(agent, entries));
+  const outPath = resolveRepoWritePath(root, out, { allowOutsideRepo: args.includes("--allow-outside-repo") });
+  if (!outPath.ok) {
+    return {
+      ok: false,
+      scope: "export-agent",
+      agent,
+      errors: [{ file: outPath.file, message: outPath.message }],
+    };
+  }
+  fs.mkdirSync(path.dirname(outPath.path), { recursive: true });
+  fs.writeFileSync(outPath.path, agentPackMarkdown(agent, entries));
   return {
     ok: true,
     scope: "export-agent",
     agent,
-    out: path.relative(root, outPath),
+    out: displayPath(outPath.path),
     entry_count: entries.length,
   };
 }
@@ -1799,9 +1929,19 @@ function customize() {
   };
   const out = argValue("--out", "docs/config/repo-context.profile.json");
   if (!dryRun) {
-    const outPath = path.isAbsolute(out) ? out : path.join(root, out);
-    fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    fs.writeFileSync(outPath, `${JSON.stringify(config, null, 2)}\n`);
+    const outPath = resolveRepoWritePath(root, out, { allowOutsideRepo: args.includes("--allow-outside-repo") });
+    if (!outPath.ok) {
+      return {
+        ok: false,
+        scope: "customize",
+        dry_run: false,
+        out,
+        config,
+        errors: [{ file: outPath.file, message: outPath.message }],
+      };
+    }
+    fs.mkdirSync(path.dirname(outPath.path), { recursive: true });
+    fs.writeFileSync(outPath.path, `${JSON.stringify(config, null, 2)}\n`);
   }
   return {
     ok: true,
@@ -1909,7 +2049,11 @@ const adoptionContextDirs = [
 ];
 
 function writeFileIfAllowed(repoPath, relativePath, text, options) {
-  const full = path.join(repoPath, relativePath);
+  const resolved = resolveRepoWritePath(repoPath, relativePath, {
+    allowOutsideRepo: Boolean(options.allowOutsideRepo),
+  });
+  if (!resolved.ok) return { action: "blocked", file: relativePath, reason: resolved.message };
+  const full = resolved.path;
   if (fs.existsSync(full) && !options.force) {
     return { action: "skipped", file: relativePath, reason: "exists" };
   }
@@ -2734,17 +2878,26 @@ function discover() {
 
 function writeDiscoveryResult(result, out) {
   if (!out) return result;
-  const outPath = path.isAbsolute(out) ? out : path.join(root, out);
-  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  const repoPath = path.isAbsolute(result.repo) ? result.repo : path.join(root, result.repo);
+  const outPath = resolveRepoWritePath(repoPath, out, { allowOutsideRepo: args.includes("--allow-outside-repo") });
+  if (!outPath.ok) {
+    return {
+      ...result,
+      ok: false,
+      warnings: [...result.warnings, outPath.message],
+      errors: [{ file: outPath.file, message: outPath.message }],
+    };
+  }
+  fs.mkdirSync(path.dirname(outPath.path), { recursive: true });
   const payload = {
     ...result,
     generated_by: "tools/context/ctx.mjs discover",
     source: "bounded code-discovery metadata",
   };
-  fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);
+  fs.writeFileSync(outPath.path, `${JSON.stringify(payload, null, 2)}\n`);
   return {
     ...result,
-    out: path.relative(root, outPath),
+    out: displayPath(outPath.path),
   };
 }
 
