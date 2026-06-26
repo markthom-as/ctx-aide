@@ -32,11 +32,13 @@ Provide an agent-native local CLI that indexes markdown context into SQLite and 
 - Scanner excludes markdown files with first-line `<!-- repo-context: ignore -->`.
 - Scanner excludes markdown files whose frontmatter has `context_scan: false`.
 - Excluded files do not appear in SQLite, generated manifests, FTS search, agent packs, ticket hydration, or context query results.
+- Query, ticket hydration, and agent-pack export preserve `positive_rules` and `negative_rules` as separate fields/sections.
 
 ## Verification
 
 - Unit tests for frontmatter parsing and ranking.
 - Unit tests for first-line sentinel and `context_scan: false` exclusion.
+- Unit tests showing positive and negative rules are not flattened together.
 - CLI tests with stdin detached.
 - Snapshot test for query output on the example context set.
 

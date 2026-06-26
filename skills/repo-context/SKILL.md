@@ -13,6 +13,7 @@ Use this skill to turn rough product or implementation intent into a hardened re
 - SQLite indexes and generated agent packs are rebuildable artifacts.
 - Markdown is loaded progressively; detailed files should not enter agent context unless selected by scope/query or explicitly requested.
 - Files with first-line `<!-- repo-context: ignore -->` or frontmatter `context_scan: false` must be excluded from scans and generated agent context.
+- Preserve rule polarity: positive rules describe what to prefer or preserve; negative rules describe what to avoid or escalate before doing.
 - Specs come before tickets.
 - Tickets belong to ticket packs.
 - Tickets must be atomic, parallelizable where practical, and committed individually when complete.
@@ -68,6 +69,15 @@ Use only these pack statuses:
 - Best practices: framework idioms, performance, accessibility, observability, error handling.
 - Testing: unit/component/e2e coverage, smoke tests, screenshots, regression checks.
 - Parallelization: independent lanes, shared-file conflicts, dependency ordering, worktree suitability.
+
+## Positive and Negative Rules
+
+When hydrating specs, tickets, or agent packs, keep positive and negative rules separate.
+
+- Positive rules: preserve, prefer, reuse, continue, follow.
+- Negative rules: do not, avoid, never, stop and escalate, supersede only with explicit decision.
+
+Do not flatten negative rules into generic guidance. If implementation appears to require violating a negative rule, stop and harden the ticket unless the ticket explicitly supersedes the rule.
 
 ## Long Runs
 
