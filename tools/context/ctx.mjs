@@ -653,6 +653,45 @@ function hydrateTicket(ticketPath) {
   };
 }
 
+function impact() {
+  const changedPaths = args
+    .flatMap((arg, index) => (arg === "--path" && args[index + 1] ? [args[index + 1]] : []))
+    .concat(argValue("--changed", "") ? [argValue("--changed", "")] : [])
+    .filter(Boolean);
+  const task = argValue("--task", "impact regression check");
+  const entries = readContextEntries()
+    .map((entry) => {
+      const scores = changedPaths.map((changedPath) => scoreEntry(entry, changedPath, task));
+      const score = scores.length > 0 ? Math.max(...scores.map((ranked) => ranked.score)) : 0;
+      const reasons = unique(scores.flatMap((ranked) => ranked.reasons));
+      return { ...entry, score, reasons };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+  return {
+    ok: true,
+    scope: "impact",
+    changed_paths: changedPaths,
+    affected: {
+      routes: unique(entries.flatMap((entry) => entry.routes)),
+      files: unique(entries.flatMap((entry) => entry.files)),
+      components: unique(entries.flatMap((entry) => entry.components)),
+      flows: unique(entries.flatMap((entry) => entry.flows)),
+      context_ids: entries.map((entry) => entry.id),
+    },
+    entries: entries.map((entry) => ({
+      id: entry.id,
+      kind: entry.kind,
+      status: entry.status,
+      markdown_path: entry.markdown_path,
+      score: entry.score,
+      reasons: entry.reasons,
+      positive_rules: entry.positive_rules,
+      negative_rules: entry.negative_rules,
+    })),
+  };
+}
+
 function doctor() {
   const errors = [];
   validateDirs(errors);
@@ -1216,6 +1255,8 @@ if (command === "lint") {
   printResult(componentsList());
 } else if (command === "components" && subcommand === "get") {
   printResult(componentGet(args[2] ?? ""));
+} else if (command === "impact") {
+  printResult(impact());
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
@@ -1257,6 +1298,7 @@ if (command === "lint") {
       "ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json",
       "ctx components list --json",
       "ctx components get component.Button --json",
+      "ctx impact --path components/Button.tsx --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",

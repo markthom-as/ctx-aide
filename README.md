@@ -582,6 +582,7 @@ ctx ticket hydrate docs/tickets/draft/TICKET.md --agent codex --json
 ctx ticket harden docs/tickets/draft/TICKET.md --json
 ctx components list --json
 ctx components get component.Button --json
+ctx impact --path components/ui/button.tsx --json
 ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json
 ctx export-agent --agent claude --out docs/context/generated/agent-pack.claude.md --json
 ctx export-agent --agent cursor --out .cursor/rules/generated/repo-context.mdc --json

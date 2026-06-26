@@ -1,6 +1,6 @@
 ---
 id: ticket.context.006
-status: draft
+status: needs-review
 title: Add impact and regression checks
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -123,7 +123,10 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs impact --path docs/context/components/context-entry-card.md --json`
+  - `node tools/context/ctx.mjs impact --path tools/context/ctx.mjs --json`
+  - `make validate`
 - Follow-up tickets: pending
