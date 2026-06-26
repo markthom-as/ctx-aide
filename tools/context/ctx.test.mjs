@@ -246,6 +246,40 @@ assert.equal(fs.existsSync(path.join(fixture, ".repo-context/browser/browser-tes
 const readyViewCredentials = run(["workflow", "views", "--workflow", "workflow.browser-validation", "--repo", "."]);
 assert.equal(readyViewCredentials.ok, true);
 
+const defaultValidationPlan = run(["workflow", "validation-plan", "--workflow", "workflow.browser-validation", "--repo", "."]);
+assert.equal(defaultValidationPlan.ok, true);
+assert.equal(defaultValidationPlan.workflows[0].breakpoints.length, 4);
+assert.equal(defaultValidationPlan.workflows[0].matrix.length, 8);
+assert.equal(defaultValidationPlan.workflows[0].matrix.some((item) => item.id === "logged-in:desktop"), true);
+
+write("docs/config/repo-context.validation.json", `${JSON.stringify({
+  config_version: 1,
+  workflows: {
+    "workflow.browser-validation": {
+      views: ["logged-out"],
+      breakpoints: ["mobile", { id: "compact", width: 500, height: 700, purpose: "Custom compact viewport" }],
+    },
+  },
+}, null, 2)}\n`);
+const configuredValidationPlan = run(["workflow", "validation-plan", "--workflow", "workflow.browser-validation", "--repo", "."]);
+assert.equal(configuredValidationPlan.ok, true);
+assert.equal(configuredValidationPlan.config.exists, true);
+assert.equal(configuredValidationPlan.workflows[0].views.length, 1);
+assert.equal(configuredValidationPlan.workflows[0].breakpoints.length, 2);
+assert.equal(configuredValidationPlan.workflows[0].matrix.map((item) => item.id).join(","), "logged-out:mobile,logged-out:compact");
+
+write("docs/config/repo-context.validation.json", `${JSON.stringify({
+  config_version: 1,
+  workflows: {
+    "workflow.browser-validation": {
+      breakpoints: [{ id: "broken", width: 0, height: 700 }],
+    },
+  },
+}, null, 2)}\n`);
+const invalidValidationPlan = run(["workflow", "validation-plan", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
+assert.equal(invalidValidationPlan.ok, false);
+assert.equal(invalidValidationPlan.errors.some((error) => error.message.includes("invalid width")), true);
+
 write("docs/specs/dependency-upgrade.md", `---
 id: spec.dependency-upgrade
 status: draft

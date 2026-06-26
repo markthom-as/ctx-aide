@@ -1,0 +1,21 @@
+{
+  "config_version": 1,
+  "workflows": {
+    "workflow.browser-validation": {
+      "views": [
+        "logged-out",
+        "logged-in"
+      ],
+      "breakpoints": [
+        "mobile",
+        "tablet",
+        "desktop",
+        "wide"
+      ]
+    }
+  },
+  "tui": {
+    "planned": true,
+    "writes_config_file": "docs/config/repo-context.validation.json"
+  }
+}

@@ -115,9 +115,8 @@ function parseValue(value) {
   return trimmed.replace(/^["']|["']$/g, "");
 }
 
-function readDoc(file) {
-  const text = fs.readFileSync(path.join(root, file), "utf8");
-  if (text.startsWith("<!-- repo-context: ignore -->")) {
+function parseDocText(file, text) {
+  if (text.replace(/^\uFEFF/, "").startsWith("<!-- repo-context: ignore -->")) {
     return { file, ignored: true, frontmatter: {}, body: text };
   }
   const match = text.match(/^---\n([\s\S]*?)\n---\n?/);
@@ -155,6 +154,14 @@ function readDoc(file) {
     frontmatterText: match[1],
     body: text.slice(match[0].length),
   };
+}
+
+function readDoc(file) {
+  return parseDocText(file, fs.readFileSync(path.join(root, file), "utf8"));
+}
+
+function readDocAt(baseRoot, file) {
+  return parseDocText(file, fs.readFileSync(path.join(baseRoot, file), "utf8"));
 }
 
 function nestedFrontmatterValue(doc, parent, key) {
@@ -343,6 +350,47 @@ const workflowViewCatalog = {
     auth_required: true,
     credential_profile: "browser-test-user",
     purpose: "Validate authenticated surfaces with a reusable test identity or browser storage state.",
+  },
+};
+
+const workflowBreakpointCatalog = {
+  mobile: {
+    width: 390,
+    height: 844,
+    device_scale_factor: 2,
+    is_mobile: true,
+    purpose: "Default modern phone portrait viewport.",
+  },
+  tablet: {
+    width: 820,
+    height: 1180,
+    device_scale_factor: 2,
+    is_mobile: true,
+    purpose: "Default tablet portrait viewport.",
+  },
+  desktop: {
+    width: 1440,
+    height: 900,
+    device_scale_factor: 1,
+    is_mobile: false,
+    purpose: "Default desktop viewport.",
+  },
+  wide: {
+    width: 1920,
+    height: 1080,
+    device_scale_factor: 1,
+    is_mobile: false,
+    purpose: "Default wide desktop viewport.",
+  },
+};
+
+const defaultWorkflowValidationConfig = {
+  config_version: 1,
+  workflows: {
+    "workflow.browser-validation": {
+      views: ["logged-out", "logged-in"],
+      breakpoints: ["mobile", "tablet", "desktop", "wide"],
+    },
   },
 };
 
@@ -705,28 +753,7 @@ function workflowViews() {
     };
   }
   const workflows = selected.map((workflow) => {
-    const viewIds = Array.isArray(workflow.frontmatter.workflow_views)
-      ? workflow.frontmatter.workflow_views
-      : [];
-    const profileIds = Array.isArray(workflow.frontmatter.credential_profiles)
-      ? workflow.frontmatter.credential_profiles
-      : [];
-    const defaultProfile = profileIds[0] ?? "browser-test-user";
-    const views = viewIds.map((viewId) => {
-      const view = workflowViewCatalog[viewId] ?? { auth_required: true, purpose: "Custom workflow view." };
-      const credentialProfile = view.credential_profile ?? defaultProfile;
-      const credentials = view.auth_required ? credentialStatus(credentialProfile, repoPath) : null;
-      const ready = view.auth_required ? credentials.ok : true;
-      return {
-        id: viewId,
-        purpose: view.purpose,
-        auth_required: view.auth_required,
-        credential_profile: view.auth_required ? credentialProfile : null,
-        ready,
-        credentials,
-        issues: ready ? [] : [`view ${viewId} needs env credentials, env file credentials, or browser storage state`],
-      };
-    });
+    const views = workflowViewRows(workflow, repoPath);
     return {
       id: workflow.frontmatter.id,
       title: workflow.frontmatter.title,
@@ -851,6 +878,199 @@ function credentialsImportBrowserState() {
       "storage state can contain live session cookies; keep destination untracked and rotate if exposed",
       "repo-context does not scrape browser password stores",
     ],
+  };
+}
+
+function readValidationConfig(repoPath, configArg) {
+  const defaultPath = path.join(repoPath, "docs/config/repo-context.validation.json");
+  const configPath = configArg
+    ? (path.isAbsolute(configArg) ? configArg : path.join(repoPath, configArg))
+    : defaultPath;
+  if (!fs.existsSync(configPath)) {
+    return {
+      ok: true,
+      path: path.relative(root, configPath) || "docs/config/repo-context.validation.json",
+      exists: false,
+      config: defaultWorkflowValidationConfig,
+      source: "built-in defaults",
+      errors: [],
+    };
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    return {
+      ok: true,
+      path: path.relative(root, configPath) || configArg,
+      exists: true,
+      config: parsed,
+      source: "config file",
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      path: path.relative(root, configPath) || configArg,
+      exists: true,
+      config: null,
+      source: "config file",
+      errors: [{ file: path.relative(root, configPath) || configArg, message: `invalid JSON: ${error.message}` }],
+    };
+  }
+}
+
+function workflowValidationOverride(config, workflowId) {
+  return config?.workflows?.[workflowId]
+    ?? config?.workflow_overrides?.[workflowId]
+    ?? {};
+}
+
+function normalizeBreakpointEntry(entry) {
+  if (typeof entry === "string") {
+    const preset = workflowBreakpointCatalog[entry];
+    if (!preset) {
+      return {
+        ok: false,
+        error: `unknown validation breakpoint: ${entry}`,
+      };
+    }
+    return {
+      ok: true,
+      breakpoint: {
+        id: entry,
+        ...preset,
+        source: "preset",
+      },
+    };
+  }
+  if (!entry || typeof entry !== "object") {
+    return { ok: false, error: "breakpoint entries must be preset ids or objects" };
+  }
+  const id = String(entry.id ?? "").trim();
+  const width = Number.parseInt(entry.width, 10);
+  const height = Number.parseInt(entry.height, 10);
+  if (!id) return { ok: false, error: "custom breakpoint is missing id" };
+  if (!Number.isFinite(width) || width <= 0) return { ok: false, error: `breakpoint ${id} has invalid width` };
+  if (!Number.isFinite(height) || height <= 0) return { ok: false, error: `breakpoint ${id} has invalid height` };
+  return {
+    ok: true,
+    breakpoint: {
+      id,
+      width,
+      height,
+      device_scale_factor: Number(entry.device_scale_factor ?? entry.deviceScaleFactor ?? 1),
+      is_mobile: Boolean(entry.is_mobile ?? entry.isMobile ?? false),
+      purpose: String(entry.purpose ?? "Custom validation viewport."),
+      source: "config",
+    },
+  };
+}
+
+function workflowViewRows(workflow, repoPath, configuredViews = null) {
+  const workflowViewIds = Array.isArray(workflow.frontmatter.workflow_views)
+    ? workflow.frontmatter.workflow_views
+    : [];
+  const viewIds = Array.isArray(configuredViews) && configuredViews.length > 0
+    ? configuredViews
+    : workflowViewIds;
+  const profileIds = Array.isArray(workflow.frontmatter.credential_profiles)
+    ? workflow.frontmatter.credential_profiles
+    : [];
+  const defaultProfile = profileIds[0] ?? "browser-test-user";
+  return viewIds.map((viewId) => {
+    const view = workflowViewCatalog[viewId] ?? { auth_required: true, purpose: "Custom workflow view." };
+    const credentialProfile = view.credential_profile ?? defaultProfile;
+    const credentials = view.auth_required ? credentialStatus(credentialProfile, repoPath) : null;
+    const ready = view.auth_required ? credentials.ok : true;
+    return {
+      id: viewId,
+      purpose: view.purpose,
+      auth_required: view.auth_required,
+      credential_profile: view.auth_required ? credentialProfile : null,
+      ready,
+      credentials,
+      issues: ready ? [] : [`view ${viewId} needs env credentials, env file credentials, or browser storage state`],
+    };
+  });
+}
+
+function workflowValidationPlan() {
+  const workflowArg = argValue("--workflow", args[2] && !args[2].startsWith("--") ? args[2] : "");
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  const configArg = argValue("--config", "");
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "workflow validation-plan",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  const selected = targetWorkflows(workflowArg);
+  if (selected.length === 0) {
+    return {
+      ok: false,
+      scope: "workflow validation-plan",
+      errors: [{ file: "docs/workflows", message: `unknown workflow: ${workflowArg}` }],
+    };
+  }
+  const configResult = readValidationConfig(repoPath, configArg);
+  if (!configResult.ok) {
+    return {
+      ok: false,
+      scope: "workflow validation-plan",
+      errors: configResult.errors,
+    };
+  }
+  const errors = [];
+  const workflows = selected.map((workflow) => {
+    const override = workflowValidationOverride(configResult.config, workflow.frontmatter.id);
+    const configuredBreakpoints = Array.isArray(override.breakpoints)
+      ? override.breakpoints
+      : (Array.isArray(workflow.frontmatter.validation_breakpoints)
+          ? workflow.frontmatter.validation_breakpoints
+          : defaultWorkflowValidationConfig.workflows["workflow.browser-validation"].breakpoints);
+    const normalizedBreakpoints = configuredBreakpoints.map(normalizeBreakpointEntry);
+    for (const normalized of normalizedBreakpoints) {
+      if (!normalized.ok) errors.push({ file: configResult.path, message: normalized.error });
+    }
+    const breakpoints = normalizedBreakpoints
+      .filter((normalized) => normalized.ok)
+      .map((normalized) => normalized.breakpoint);
+    const views = workflowViewRows(workflow, repoPath, override.views);
+    const matrix = views.flatMap((view) => breakpoints.map((breakpoint) => ({
+      id: `${view.id}:${breakpoint.id}`,
+      view: view.id,
+      breakpoint: breakpoint.id,
+      viewport: {
+        width: breakpoint.width,
+        height: breakpoint.height,
+        device_scale_factor: breakpoint.device_scale_factor,
+        is_mobile: breakpoint.is_mobile,
+      },
+      auth_required: view.auth_required,
+      ready: view.ready,
+    })));
+    return {
+      id: workflow.frontmatter.id,
+      title: workflow.frontmatter.title,
+      file: workflow.file,
+      views,
+      breakpoints,
+      matrix,
+      ready: matrix.every((item) => item.ready),
+    };
+  });
+  return {
+    ok: errors.length === 0,
+    scope: "workflow validation-plan",
+    repo: path.relative(root, repoPath) || ".",
+    config: {
+      path: configResult.path,
+      exists: configResult.exists,
+      source: configResult.source,
+    },
+    workflows,
+    errors,
   };
 }
 
@@ -1468,6 +1688,347 @@ function customize() {
   };
 }
 
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function slugify(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "work";
+}
+
+function splitCsv(value) {
+  if (!value) return [];
+  return String(value).split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function argValues(name) {
+  const values = [];
+  for (let index = 0; index < args.length; index += 1) {
+    if (args[index] === name && args[index + 1]) values.push(args[index + 1]);
+  }
+  return values.flatMap(splitCsv);
+}
+
+function yamlKeyList(key, values, indent = "") {
+  const clean = unique(values);
+  if (clean.length === 0) return `${indent}${key}: []`;
+  return `${indent}${key}:\n${clean.map((value) => `${indent}  - ${value}`).join("\n")}`;
+}
+
+function targetRepoPath() {
+  const repoArg = argValue("--repo", ".");
+  return path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+}
+
+function detectAdoptionProfile(repoPath, explicitProfile = "auto") {
+  const base = path.basename(repoPath);
+  const profile = explicitProfile === "auto"
+    ? (fs.existsSync(path.join(repoPath, "docs/domain-redesign/tickets")) || base.includes("astrotechne")
+        ? "astrotechne"
+        : (base.includes("wetware") ? "wetware" : "default"))
+    : explicitProfile;
+  const pkg = readPackageJson(repoPath);
+  const profiles = {
+    default: {
+      profile: "default",
+      ticket_root: "docs/tickets",
+      ticket_status_command: null,
+      package_manager: detectPackageManager(repoPath, pkg),
+      recommended_validation: [],
+      preserved_ticket_system: "repo-context target tickets",
+    },
+    wetware: {
+      profile: "wetware",
+      ticket_root: "docs/tickets",
+      ticket_status_command: null,
+      package_manager: "pnpm",
+      recommended_validation: [
+        "npx pnpm@10.34.4 test",
+        "npx pnpm@10.34.4 typecheck",
+        "npx pnpm@10.34.4 lint",
+        "npx pnpm@10.34.4 build",
+      ],
+      preserved_ticket_system: "flat Wetware docs/tickets markdown",
+    },
+    astrotechne: {
+      profile: "astrotechne",
+      ticket_root: "docs/domain-redesign/tickets",
+      ticket_status_command: "npm run tickets:status",
+      package_manager: "npm",
+      recommended_validation: ["npm run tickets:status", "npx biome check", "npm run build"],
+      preserved_ticket_system: "Astrotechne domain-redesign ticket tree",
+    },
+  };
+  return profiles[profile] ?? { ...profiles.default, profile };
+}
+
+const adoptionContextDirs = [
+  "docs/context/routes",
+  "docs/context/files",
+  "docs/context/dirs",
+  "docs/context/components",
+  "docs/context/flows",
+  "docs/context/design",
+  "docs/context/architecture",
+  "docs/context/feedback",
+  "docs/context/generated",
+  "docs/context/schema",
+  "docs/config",
+  "docs/specs",
+  "docs/ticket-packs",
+  "docs/workflows",
+];
+
+function writeFileIfAllowed(repoPath, relativePath, text, options) {
+  const full = path.join(repoPath, relativePath);
+  if (fs.existsSync(full) && !options.force) {
+    return { action: "skipped", file: relativePath, reason: "exists" };
+  }
+  if (options.write) {
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.writeFileSync(full, text);
+  }
+  return { action: options.write ? "created" : "planned", file: relativePath };
+}
+
+function adoptionBootstrap() {
+  const repoPath = targetRepoPath();
+  const write = args.includes("--write");
+  const force = args.includes("--force");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "adoption bootstrap", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
+  const changes = [];
+  for (const dir of [...adoptionContextDirs, profile.ticket_root]) {
+    const full = path.join(repoPath, dir);
+    if (fs.existsSync(full)) changes.push({ action: "skipped", file: dir, reason: "exists" });
+    else {
+      if (write) fs.mkdirSync(full, { recursive: true });
+      changes.push({ action: write ? "created" : "planned", file: dir });
+    }
+  }
+  const config = {
+    config_version: 1,
+    generated_by: "repo-context adoption bootstrap",
+    profile: profile.profile,
+    ticket_root: profile.ticket_root,
+    ticket_status_command: profile.ticket_status_command,
+    package_manager: profile.package_manager,
+    recommended_validation: profile.recommended_validation,
+    preserved_ticket_system: profile.preserved_ticket_system,
+    context_loading: {
+      default: "explicit",
+      command: "ctx adoption implementation-plan --repo <repo> --ticket <ticket> --json",
+    },
+    updated: todayDate(),
+  };
+  changes.push(writeFileIfAllowed(repoPath, "docs/config/repo-context.profile.json", `${JSON.stringify(config, null, 2)}\n`, { write, force }));
+  changes.push(writeFileIfAllowed(
+    repoPath,
+    "docs/context/README.md",
+    "# Repo Context\n\nRepo-local context is loaded explicitly with `ctx adoption implementation-plan` or targeted queries. Do not bulk-load this directory by default.\n",
+    { write, force },
+  ));
+  return {
+    ok: true,
+    scope: "adoption bootstrap",
+    repo: repoPath,
+    write,
+    force,
+    profile,
+    changes,
+    next_commands: [
+      `ctx adoption context --repo ${repoPath} --kind flow --title "<flow>" --path "<path>" --task "<task>" --write --json`,
+      `ctx adoption ticket --repo ${repoPath} --title "<ticket>" --task "<task>" --context "<context-id>" --write --json`,
+    ],
+    errors: [],
+  };
+}
+
+function adoptionContext() {
+  const repoPath = targetRepoPath();
+  const write = args.includes("--write");
+  const force = args.includes("--force");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "adoption context", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const kind = argValue("--kind", "flow");
+  const folderByKind = { route: "routes", file: "files", dir: "dirs", component: "components", flow: "flows", design: "design", architecture: "architecture" };
+  if (!Object.hasOwn(folderByKind, kind)) {
+    return { ok: false, scope: "adoption context", errors: [{ file: "adoption context", message: `unsupported --kind ${kind}` }] };
+  }
+  const title = argValue("--title", argValue("--task", "Adopted Context"));
+  const slug = slugify(argValue("--slug", title));
+  const paths = unique([...argValues("--path"), ...argValues("--file")]);
+  const routes = argValues("--route");
+  const components = argValues("--component");
+  const taskTerms = unique([...splitCsv(argValue("--task", "")), ...argValues("--task-term")]);
+  const positiveRules = argValues("--positive-rule");
+  const negativeRules = argValues("--negative-rule");
+  const id = `${kind}.${slug}`;
+  const relativePath = `docs/context/${folderByKind[kind]}/${slug}.md`;
+  const positive = positiveRules.length > 0 ? positiveRules : ["Load this context only when the task or scoped files match."];
+  const negative = negativeRules.length > 0 ? negativeRules : ["Do not bulk-load unrelated context entries."];
+  const text = `---\nid: ${id}\nkind: ${kind}\ncontext_scan: true\nstatus: active\ntitle: ${title}\n${yamlKeyList("routes", routes)}\n${yamlKeyList("files", paths)}\n${yamlKeyList("components", components)}\n${yamlKeyList("flows", kind === "flow" ? [id] : [])}\ntags:\n  - repo-context-adoption\n${yamlKeyList("positive_rules", positive)}\n${yamlKeyList("negative_rules", negative)}\nload_when:\n${yamlKeyList("path_matches", paths, "  ")}\n${yamlKeyList("task_terms", taskTerms, "  ")}\nupdated: ${todayDate()}\n---\n\n# ${title}\n\n## Purpose\n\nCapture repo-local context for ${argValue("--task", title)}.\n\n## Current Decisions\n\n- Context is loaded explicitly for matching tickets or implementation plans.\n\n## Positive Rules\n\n${positive.map((rule) => `- ${rule}`).join("\n")}\n\n## Negative Rules\n\n${negative.map((rule) => `- ${rule}`).join("\n")}\n\n## Implementation Rules\n\n- Use this entry as bounded guidance for tickets that cite \`${id}\`.\n- Run \`ctx adoption implementation-plan\` before implementation to hydrate only relevant context.\n`;
+  const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
+  return {
+    ok: change.action !== "skipped" || !write,
+    scope: "adoption context",
+    repo: repoPath,
+    write,
+    context: { id, kind, title, file: relativePath },
+    changes: [change],
+    errors: change.action === "skipped" && write ? [{ file: relativePath, message: "context file exists; pass --force to overwrite" }] : [],
+  };
+}
+
+function adoptionTicket() {
+  const repoPath = targetRepoPath();
+  const write = args.includes("--write");
+  const force = args.includes("--force");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "adoption ticket", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
+  const title = argValue("--title", argValue("--task", "Adopted Ticket"));
+  const task = argValue("--task", title);
+  const slug = slugify(argValue("--slug", title));
+  const contexts = unique([...argValues("--context"), ...argValues("--context-id")]);
+  const files = unique([...argValues("--file"), ...argValues("--path")]);
+  const routes = argValues("--route");
+  const components = argValues("--component");
+  const flows = argValues("--flow");
+  const validations = unique([...argValues("--validation"), ...profile.recommended_validation]);
+  const relativePath = path.join(profile.ticket_root, `${slug}.md`);
+  const text = `---\nid: ${argValue("--id", `ticket.${slug}`)}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctx adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
+  const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
+  return {
+    ok: change.action !== "skipped" || !write,
+    scope: "adoption ticket",
+    repo: repoPath,
+    write,
+    profile,
+    ticket: { id: argValue("--id", `ticket.${slug}`), title, file: relativePath, status: "ready" },
+    changes: [change],
+    next_commands: [`ctx adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json`],
+    errors: change.action === "skipped" && write ? [{ file: relativePath, message: "ticket file exists; pass --force to overwrite" }] : [],
+  };
+}
+
+function targetContextEntries(repoPath) {
+  const contextRoot = path.join(repoPath, "docs/context");
+  if (!fs.existsSync(contextRoot)) return [];
+  return walk(contextRoot)
+    .filter((file) => file.endsWith(".md") && !file.includes("/schema/") && !file.includes("/generated/"))
+    .map((file) => {
+      const relative = path.relative(repoPath, file);
+      return { file: relative, doc: readDocAt(repoPath, relative) };
+    })
+    .filter(({ doc }) => !doc.ignored)
+    .map(({ file, doc }) => contextEntryFromDoc(file, doc))
+    .filter((entry) => typeof entry.id === "string")
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function bodySectionLines(body, heading) {
+  const lines = body.split("\n");
+  const start = lines.findIndex((line) => line.trim() === `## ${heading}`);
+  if (start === -1) return [];
+  const out = [];
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (/^##\s+/.test(lines[index])) break;
+    out.push(lines[index]);
+  }
+  return out;
+}
+
+function implementationPlan() {
+  const repoPath = targetRepoPath();
+  const ticketArg = argValue("--ticket", args[2] && !args[2].startsWith("--") ? args[2] : "");
+  const includeBody = args.includes("--include-body");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "adoption implementation-plan", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  if (!ticketArg) {
+    return { ok: false, scope: "adoption implementation-plan", errors: [{ file: "adoption implementation-plan", message: "missing --ticket <path>" }] };
+  }
+  const ticketPath = path.isAbsolute(ticketArg) ? path.relative(repoPath, ticketArg) : ticketArg;
+  if (!fs.existsSync(path.join(repoPath, ticketPath))) {
+    return { ok: false, scope: "adoption implementation-plan", errors: [{ file: ticketArg, message: "ticket file does not exist" }] };
+  }
+  const doc = readDocAt(repoPath, ticketPath);
+  const task = nestedFrontmatterValue(doc, "context_query", "task") ?? doc.frontmatter.title ?? "";
+  const explicitContextIds = unique([
+    ...(Array.isArray(doc.frontmatter.context_ids) ? doc.frontmatter.context_ids : []),
+    ...nestedFrontmatterList(doc, "context_query", "context_ids"),
+  ]);
+  const targetPaths = unique([
+    ...nestedFrontmatterList(doc, "scope", "files"),
+    ...nestedFrontmatterList(doc, "scope", "directories"),
+    ...nestedFrontmatterList(doc, "scope", "routes"),
+  ]);
+  const entries = targetContextEntries(repoPath)
+    .map((entry) => {
+      const explicit = explicitContextIds.includes(entry.id);
+      const scores = targetPaths.length > 0 ? targetPaths.map((targetPath) => scoreEntry(entry, targetPath, task)) : [scoreEntry(entry, "", task)];
+      const score = (explicit ? 1000 : 0) + Math.max(...scores.map((ranked) => ranked.score));
+      const reasons = unique([...(explicit ? ["explicit context id"] : []), ...scores.flatMap((ranked) => ranked.reasons)]);
+      return { ...entry, score, reasons };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+    .slice(0, Number.parseInt(argValue("--limit", "8"), 10))
+    .map((entry) => ({
+      id: entry.id,
+      kind: entry.kind,
+      status: entry.status,
+      title: entry.title,
+      markdown_path: entry.markdown_path,
+      score: entry.score,
+      reasons: entry.reasons,
+      summary: entry.summary,
+      positive_rules: entry.positive_rules,
+      negative_rules: entry.negative_rules,
+      body: includeBody ? boundedText(entry.body, 2000) : undefined,
+    }));
+  const validationCommands = unique([
+    ...nestedFrontmatterList(doc, "validation", "automated"),
+    ...bodySectionLines(doc.body, "Validation")
+      .map((line) => line.match(/`([^`]+)`/)?.[1] ?? line.replace(/^-\s*/, "").trim())
+      .filter((line) => line && !line.endsWith(":")),
+  ]);
+  return {
+    ok: true,
+    scope: "adoption implementation-plan",
+    repo: repoPath,
+    explicit_context_loading: true,
+    ticket: {
+      file: ticketPath,
+      id: doc.frontmatter.id ?? null,
+      title: doc.frontmatter.title ?? null,
+      status: doc.frontmatter.status ?? null,
+      work_type: doc.frontmatter.work_type ?? null,
+    },
+    task,
+    target_paths: targetPaths,
+    context_ids: entries.map((entry) => entry.id),
+    entries,
+    validation_commands: validationCommands,
+    stop_conditions: [
+      "Stop if implementation needs a product, design, architecture, or security decision missing from the ticket/context.",
+      "Stop if validation requires paid infrastructure changes that were not costed before implementation.",
+      "Stop before marking done unless commit metadata and validation evidence are recorded.",
+    ],
+    errors: [],
+  };
+}
+
 function doctor() {
   const errors = [];
   validateDirs(errors);
@@ -1907,6 +2468,10 @@ function validateWorkflows(errors) {
     for (const profileId of profileIds) {
       assert(Object.hasOwn(credentialProfileCatalog, profileId), errors, file, `unknown credential profile: ${profileId}`);
     }
+    const breakpointIds = Array.isArray(fm.validation_breakpoints) ? fm.validation_breakpoints : [];
+    for (const breakpointId of breakpointIds) {
+      assert(Object.hasOwn(workflowBreakpointCatalog, breakpointId), errors, file, `unknown validation breakpoint: ${breakpointId}`);
+    }
   }
 }
 
@@ -2094,6 +2659,8 @@ if (command === "lint") {
   printResult(workflowDeps());
 } else if (command === "workflow" && subcommand === "views") {
   printResult(workflowViews());
+} else if (command === "workflow" && subcommand === "validation-plan") {
+  printResult(workflowValidationPlan());
 } else if (command === "credentials" && subcommand === "check") {
   printResult(credentialsCheck());
 } else if (command === "credentials" && subcommand === "import-browser-state") {
@@ -2144,6 +2711,7 @@ if (command === "lint") {
       "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
       "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
       "ctx workflow views --workflow workflow.browser-validation --repo . --json",
+      "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",
       "ctx credentials check --profile browser-test-user --repo . --json",
       "ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
       "ctx ticket check --json",

@@ -609,8 +609,13 @@ ctx dependency audit --repo . --command "pnpm audit --prod" --out docs/context/g
 ctx workflow deps --workflow workflow.browser-validation --repo . --json
 ctx workflow deps --workflow workflow.browser-validation --repo . --write --json
 ctx workflow views --workflow workflow.browser-validation --repo . --json
+ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json
 ctx credentials check --profile browser-test-user --repo . --json
 ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json
+ctx adoption bootstrap --repo /path/to/app --profile wetware --write --json
+ctx adoption context --repo /path/to/app --kind flow --title "Dependency Audit Clearance" --path package.json --task "dependency audit" --write --json
+ctx adoption ticket --repo /path/to/app --title "Clear Dependency Audit" --task "dependency audit" --context flow.dependency-audit-clearance --write --json
+ctx adoption implementation-plan --repo /path/to/app --ticket docs/tickets/clear-dependency-audit.md --json
 ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json
 ctx export-agent --agent claude --out docs/context/generated/agent-pack.claude.md --json
 ctx export-agent --agent cursor --out .cursor/rules/generated/repo-context.mdc --json
@@ -628,6 +633,67 @@ Output rules:
 Pack status returns the pack metadata, ticket count, per-status totals, and ordered ticket rows. Use it before dispatching parallel agents and after merging ticket commits.
 
 Ticket hydration returns a bounded context snapshot for a ticket's scoped paths, directories, routes, and task. It preserves positive and negative rules as separate arrays so implementation agents can distinguish preferences from constraints.
+
+### Adoption Lifecycle Commands
+
+Use the `adoption` commands when repo-context is managing another repo's daily workflow without replacing that repo's existing ticket system.
+
+```bash
+node /path/to/repo-context/tools/context/ctx.mjs adoption bootstrap \
+  --repo /path/to/app \
+  --profile wetware \
+  --write \
+  --json
+```
+
+`adoption bootstrap` creates only repo-local scaffolding: `docs/context`, `docs/config/repo-context.profile.json`, specs, ticket packs, workflows, and the detected or configured ticket root. It does not overwrite existing files unless `--force` is passed. Without `--write`, it returns the planned changes.
+
+```bash
+node /path/to/repo-context/tools/context/ctx.mjs adoption context \
+  --repo /path/to/app \
+  --kind flow \
+  --title "Dependency Audit Clearance" \
+  --slug dependency-audit-clearance \
+  --path package.json,pnpm-lock.yaml \
+  --task "dependency audit clearance" \
+  --positive-rule "Preserve lockfile integrity." \
+  --negative-rule "Do not mark dependency work done until the audit clears." \
+  --write \
+  --json
+```
+
+`adoption context` writes a scoped context entry that can be loaded later by id, matching path, or matching task terms. Positive and negative rules stay separate.
+
+```bash
+node /path/to/repo-context/tools/context/ctx.mjs adoption ticket \
+  --repo /path/to/app \
+  --profile wetware \
+  --title "Clear Dependency Audit" \
+  --task "dependency audit clearance" \
+  --work-type dependency-upgrade \
+  --context flow.dependency-audit-clearance \
+  --file package.json,pnpm-lock.yaml \
+  --validation "ctx dependency audit --repo . --command 'pnpm audit --prod' --json" \
+  --write \
+  --json
+```
+
+`adoption ticket` creates a full-fat implementation ticket in the target repo's configured ticket root. The ticket explicitly tells implementers to run an implementation plan before coding.
+
+```bash
+node /path/to/repo-context/tools/context/ctx.mjs adoption implementation-plan \
+  --repo /path/to/app \
+  --ticket docs/tickets/clear-dependency-audit.md \
+  --json
+```
+
+`adoption implementation-plan` is the daily context-loading boundary. It returns ticket metadata, scoped paths, relevant context ids, positive and negative rules, validation commands, and stop conditions. It does not include full context bodies unless `--include-body` is passed.
+
+Built-in profiles:
+
+- `default`: use `docs/tickets`, detected package manager, and repo-context-style tickets.
+- `wetware`: preserve flat `docs/tickets` markdown and pnpm validation conventions.
+- `astrotechne`: preserve `docs/domain-redesign/tickets`, use `npm run tickets:status`, `npx biome check`, and `npm run build` as default validation guidance.
 
 ### Dependency Audit Gate
 
@@ -691,6 +757,44 @@ node tools/context/ctx.mjs workflow deps \
 This updates `package.json` with an exact `@playwright/test` dev dependency pin. It does not install packages or create paid infrastructure. The operator still runs the repo's package-manager install command so the lockfile records the resolved tree.
 
 Codex native browser plugins are treated as optional external runtime tools. They can help with interactive validation, but they are not the pinned source of truth for browser workflow readiness.
+
+### Validation Breakpoints
+
+Browser validation has default breakpoints so target repos get useful coverage without configuration:
+
+- `mobile`: `390x844`
+- `tablet`: `820x1180`
+- `desktop`: `1440x900`
+- `wide`: `1920x1080`
+
+Generate the view-by-breakpoint matrix with:
+
+```bash
+node tools/context/ctx.mjs workflow validation-plan \
+  --workflow workflow.browser-validation \
+  --repo /path/to/app \
+  --json
+```
+
+Target repos can override the matrix in `docs/config/repo-context.validation.json`:
+
+```json
+{
+  "config_version": 1,
+  "workflows": {
+    "workflow.browser-validation": {
+      "views": ["logged-out", "logged-in"],
+      "breakpoints": [
+        "mobile",
+        "desktop",
+        { "id": "small-height", "width": 1280, "height": 720 }
+      ]
+    }
+  }
+}
+```
+
+The command works when the config file is absent by using built-in defaults. A future smart TUI should edit this same config file so CLI, agents, and humans share one source of truth.
 
 ### Browser Views and Credentials
 
