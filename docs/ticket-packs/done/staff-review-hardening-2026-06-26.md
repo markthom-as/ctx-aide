@@ -1,6 +1,6 @@
 ---
 id: pack.repo-context-staff-review-hardening-2026-06-26
-status: active
+status: done
 title: Staff Review Hardening
 milestones:
   - milestone.repo-context-staff-review-hardening
@@ -28,8 +28,11 @@ parallel_groups:
 blocked_by: []
 created: 2026-06-26
 completion:
-  completed_at: null
-  final_validation: []
+  completed_at: 2026-06-26
+  final_validation:
+    - make validate
+    - make smoke
+    - node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json
 ---
 
 # Staff Review Hardening
@@ -47,7 +50,7 @@ Prepare repo-context for staff-engineering review and harsh public scrutiny by h
 
 - `ticket.context.024`: done
 - `ticket.context.025`: done
-- `ticket.context.026`: ready
+- `ticket.context.026`: done
 
 ## Execution Plan
 
@@ -72,6 +75,9 @@ Prepare repo-context for staff-engineering review and harsh public scrutiny by h
 
 ## Completion
 
-- Completed tickets: `ticket.context.024`, `ticket.context.025`.
-- Remaining tickets: `ticket.context.026`.
-- Final validation: pending.
+- Completed tickets: `ticket.context.024`, `ticket.context.025`, `ticket.context.026`.
+- Remaining tickets: none.
+- Final validation:
+  - `make validate`
+  - `make smoke`
+  - `node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json`

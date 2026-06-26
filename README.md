@@ -147,6 +147,28 @@ Recommended flow:
 
 The implementation agent contract is strict: if a ticket contains an unresolved design, architecture, product, or security decision, the agent should stop and escalate rather than inventing policy during implementation.
 
+## Staff Review Hardening Gates
+
+Before treating a milestone as ready for staff-engineering review, run the repo-context flow as a visible pack, not as chat-only analysis.
+
+Minimum gates:
+
+```sh
+node tools/context/ctx.mjs scan --json
+node tools/context/ctx.mjs ticket check --json
+node tools/context/ctx.mjs pack check --json
+node tools/context/ctx.mjs doctor --json
+make validate
+make smoke
+```
+
+Security and truthfulness rules:
+
+- Dependency audit commands run without shell evaluation by default; pass `--shell` only for commands that require shell syntax.
+- Generated output writes stay inside the active repo or target repo by default; pass `--allow-outside-repo` only when the destination is intentionally outside that boundary.
+- `ctx workflow validation-plan` is a readiness gate. It returns the full matrix even when blocked, but top-level `ok` is false when a required view lacks credentials or browser storage state.
+- Browser validation plans must keep deploy cost policy explicit; deploy-enabled configs must keep `cost_estimate_required: true`.
+
 ## Agent Operating Rules
 
 Repo-context should preserve the daily operating rules that make agent work reviewable and parallelizable.

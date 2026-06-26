@@ -1,6 +1,6 @@
 ---
 id: ticket.context.026
-status: ready
+status: done
 title: Close the staff review dogfood path
 ticket_pack: pack.repo-context-staff-review-hardening-2026-06-26
 milestones:
@@ -20,8 +20,8 @@ scope:
   routes: []
   files:
     - README.md
-    - docs/ticket-packs/active/staff-review-hardening-2026-06-26.md
-    - docs/tickets/ready/026-dogfood-closeout.md
+    - docs/ticket-packs/done/staff-review-hardening-2026-06-26.md
+    - docs/tickets/done/026-dogfood-closeout.md
   directories: []
   components: []
   flows:
@@ -42,8 +42,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: staff-review-dogfood-closeout
+  completed_at: 2026-06-26
 ---
 
 # Close the Staff Review Dogfood Path
@@ -108,7 +108,10 @@ This ticket should be the final commit in the hardening pack.
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending.
+- Status: done
+- Commit: staff-review-dogfood-closeout
+- Verification evidence:
+  - `make validate`
+  - `make smoke`
+  - `node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json`
 - Follow-up tickets: none.
