@@ -1,7 +1,7 @@
 ---
-id: ticket.context.004
-status: needs-review
-title: Add lightweight component and design catalog
+id: ticket.context.005
+status: done
+title: Hydrate markdown tickets with scoped context
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,13 +12,14 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: component-catalog-a
+parallel_group: ticketing-a
 depends_on:
-  - ticket.context.001
   - ticket.context.002
+  - ticket.context.007
 blocks:
   - ticket.context.006
-phase: 2
+  - ticket.context.008
+phase: 3
 scope:
   routes: []
   files: []
@@ -29,7 +30,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Add lightweight component and design catalog"
+  task: "Hydrate markdown tickets with scoped context"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -39,22 +40,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - CLI component list/get tests.
+  - Run ticket check before and after completion metadata is filled.
   smoke:
-  - CLI component list/get tests.
-  - Visual smoke for catalog route if implemented.
-  - Query test showing route pulls component context.
+  - Create a ticket from example feedback.
+  - Hydrate it with route/component/design context.
+  - Run ticket check before and after completion metadata is filled.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 1abf9c1
+  completed_at: 2026-06-26
 ---
 
-# Add lightweight component and design catalog
+# Hydrate markdown tickets with scoped context
 
 ## Outcome
 
-Create a repo-local inventory of reusable components, variants, composition rules, design tokens, examples, and anti-patterns.
+Ensure each implementation ticket starts with relevant context ids, rules, decisions, scope, and validation requirements.
 
 ## Context
 
@@ -94,38 +95,38 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add component context entries under `docs/context/components/`.
-  - Add design-system entries under `docs/context/design/`.
-  - Add `ctx components list --json` and `ctx components get <id> --json`.
-  - Optionally add local context-lab examples.
+  - Add `ctx ticket create --from-feedback <id> --json`.
+  - Add `ctx ticket hydrate <ticket-path> --agent codex --json`.
+  - Add `ctx ticket check --json`.
+  - Populate canonical ticket fields from query results.
 - Out:
-  - Adopt full Storybook as a dependency.
+  - Implement code changes from hydrated tickets.
 
 ## Acceptance Criteria
 
-- Core components have ids, import paths, variants, and composition rules.
-- Component entries include positive and negative rules.
-- Agent queries for affected routes include relevant component contracts.
+- Tickets include context snapshots generated from `ctx query`.
+- Tickets preserve source ids rather than untraceable prose only.
+- Ticket check fails on missing or stale context ids.
+- Completion records final commit hash.
 
 ## Validation
 
-- CLI component list/get tests.
-- Visual smoke for catalog route if implemented.
-- Query test showing route pulls component context.
+- Create a ticket from example feedback.
+- Hydrate it with route/component/design context.
+- Run ticket check before and after completion metadata is filled.
 
 ## Implementation Notes
 
-- Parallel group: `component-catalog-a`.
-- Dependencies: `ticket.context.001`, `ticket.context.002`.
-- Expected commit message: `Add component context catalog`.
+- Parallel group: `ticketing-a`.
+- Dependencies: `ticket.context.002`, `ticket.context.007`.
+- Expected commit message: `Hydrate tickets with repo context`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 1abf9c1
 - Verification evidence:
-  - `node tools/context/ctx.mjs components list --json`
-  - `node tools/context/ctx.mjs components get component.ContextEntryCard --json`
-  - `node tools/context/ctx.mjs query --path docs/context/components/context-entry-card.md --task "component catalog design token" --agent codex --budget 1200 --json`
+  - `node tools/context/ctx.mjs ticket hydrate docs/tickets/done/005-ticket-hydration.md --json`
+  - `node tools/context/ctx.mjs ticket check --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

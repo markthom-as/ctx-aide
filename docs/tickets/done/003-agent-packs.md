@@ -1,7 +1,7 @@
 ---
-id: ticket.context.009
-status: needs-review
-title: Add milestone run orchestration
+id: ticket.context.003
+status: done
+title: Generate Codex Claude and Cursor context packs
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,12 +12,12 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: runs-a
+parallel_group: agent-packs-a
 depends_on:
-  - ticket.context.007
+  - ticket.context.002
 blocks:
-  - ticket.context.008
-phase: 4
+  []
+phase: 2
 scope:
   routes: []
   files: []
@@ -28,7 +28,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Add milestone run orchestration"
+  task: "Generate Codex Claude and Cursor context packs"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -38,23 +38,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  []
+  - Run exports from clean markdown source.
   smoke:
-  - Create sample run with three tickets and two agents.
-  - Mark one agent stale and demonstrate recovery fields.
-  - Requeue one ticket after preserving stale worktree state.
-  - Show pack validation remains pending while merge queue has work.
+  - Run exports from clean markdown source.
+  - Confirm deterministic outputs.
+  - Confirm lint fails after source mutation and passes after regeneration.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 0147ebc
+  completed_at: 2026-06-26
 ---
 
-# Add milestone run orchestration
+# Generate Codex Claude and Cursor context packs
 
 ## Outcome
 
-Support long milestone-level runs with parallel agents, worktrees, leases, heartbeats, cleanup, merge queues, and validation.
+Generate agent-specific context packs without maintaining divergent instructions by hand.
 
 ## Context
 
@@ -94,39 +93,39 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `docs/runs/` conventions.
-  - Add run statuses and lease statuses.
-  - Add run frontmatter and markdown template.
-  - Extend ticket packs with run policy fields.
-  - Define coordinator merge queue behavior and stale-agent recovery.
+  - Add `ctx export-agent --agent codex`.
+  - Add `ctx export-agent --agent claude`.
+  - Add `ctx export-agent --agent cursor`.
+  - Add generated `.cursor/rules/generated/*.mdc` summaries.
 - Out:
-  - Implement hosted orchestration infrastructure.
+  - Implement Idvisor plugin orchestration.
 
 ## Acceptance Criteria
 
-- Packs declare max parallel agents, stale threshold, worktree strategy, and merge strategy.
-- Runs record agents, tickets, worktrees, branches, leases, heartbeat, merge queue, blocked tickets, and completed tickets.
-- Dead-agent cleanup requires explicit salvage, preserve-patch, requeue, discard, or block decision.
+- Codex pack emphasizes ticket hydration and implementation-time context queries.
+- Claude pack emphasizes design intent and critique checklists.
+- Cursor rules are summary-oriented.
+- Generated packs include source manifest hash.
 
 ## Validation
 
-- Create sample run with three tickets and two agents.
-- Mark one agent stale and demonstrate recovery fields.
-- Requeue one ticket after preserving stale worktree state.
-- Show pack validation remains pending while merge queue has work.
+- Run exports from clean markdown source.
+- Confirm deterministic outputs.
+- Confirm lint fails after source mutation and passes after regeneration.
 
 ## Implementation Notes
 
-- Parallel group: `runs-a`.
-- Dependencies: `ticket.context.007`.
-- Expected commit message: `Add milestone run orchestration`.
+- Parallel group: `agent-packs-a`.
+- Dependencies: `ticket.context.002`.
+- Expected commit message: `Generate agent context packs`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 0147ebc
 - Verification evidence:
-  - `node tools/context/ctx.mjs run status docs/runs/repo-context-mvp.md --json`
-  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/context/ctx.mjs export-agent --agent codex --json`
+  - `node tools/context/ctx.mjs export-agent --agent claude --json`
+  - `node tools/context/ctx.mjs export-agent --agent cursor --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

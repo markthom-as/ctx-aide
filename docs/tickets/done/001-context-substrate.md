@@ -1,7 +1,7 @@
 ---
-id: ticket.context.005
-status: needs-review
-title: Hydrate markdown tickets with scoped context
+id: ticket.context.001
+status: done
+title: Add repo-local context markdown substrate
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,14 +12,13 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: ticketing-a
+parallel_group: substrate-a
 depends_on:
-  - ticket.context.002
-  - ticket.context.007
+  - ticket.context.000
 blocks:
-  - ticket.context.006
-  - ticket.context.008
-phase: 3
+  - ticket.context.002
+  - ticket.context.004
+phase: 1
 scope:
   routes: []
   files: []
@@ -30,7 +29,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Hydrate markdown tickets with scoped context"
+  task: "Add repo-local context markdown substrate"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -40,22 +39,21 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run ticket check before and after completion metadata is filled.
+  - Run `node tools/context/ctx.mjs lint --json`.
   smoke:
-  - Create a ticket from example feedback.
-  - Hydrate it with route/component/design context.
-  - Run ticket check before and after completion metadata is filled.
+  - Run `node tools/context/ctx.mjs lint --json`.
+  - Review example entries against README schema.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 408b8b1
+  completed_at: 2026-06-26
 ---
 
-# Hydrate markdown tickets with scoped context
+# Add Repo-Local Context Markdown Substrate
 
 ## Outcome
 
-Ensure each implementation ticket starts with relevant context ids, rules, decisions, scope, and validation requirements.
+Create the committed markdown structure for route, file, directory, component, flow, design, architecture, and feedback context.
 
 ## Context
 
@@ -95,38 +93,35 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx ticket create --from-feedback <id> --json`.
-  - Add `ctx ticket hydrate <ticket-path> --agent codex --json`.
-  - Add `ctx ticket check --json`.
-  - Populate canonical ticket fields from query results.
+  - Add `docs/context/` directory structure.
+  - Add schemas for context and feedback entries.
+  - Add examples for one route, component, flow, and feedback item.
 - Out:
-  - Implement code changes from hydrated tickets.
+  - Implement SQLite indexing.
+  - Implement agent-pack export.
 
 ## Acceptance Criteria
 
-- Tickets include context snapshots generated from `ctx query`.
-- Tickets preserve source ids rather than untraceable prose only.
-- Ticket check fails on missing or stale context ids.
-- Completion records final commit hash.
+- Context files use stable ids and frontmatter.
+- Feedback entries include status, severity, source, and `applies_to`.
+- Markdown remains source of truth and SQLite remains generated.
 
 ## Validation
 
-- Create a ticket from example feedback.
-- Hydrate it with route/component/design context.
-- Run ticket check before and after completion metadata is filled.
+- Run `node tools/context/ctx.mjs lint --json`.
+- Review example entries against README schema.
 
 ## Implementation Notes
 
-- Parallel group: `ticketing-a`.
-- Dependencies: `ticket.context.002`, `ticket.context.007`.
-- Expected commit message: `Hydrate tickets with repo context`.
+- Parallel group: `substrate-a`.
+- Dependencies: `ticket.context.000`.
+- Expected commit message: `Add repo context markdown substrate`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 408b8b1
 - Verification evidence:
-  - `node tools/context/ctx.mjs ticket hydrate docs/tickets/needs-review/005-ticket-hydration.md --json`
+  - `node tools/context/ctx.mjs lint --json`
   - `node tools/context/ctx.mjs ticket check --json`
-  - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

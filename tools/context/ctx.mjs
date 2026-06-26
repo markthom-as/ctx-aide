@@ -1101,6 +1101,12 @@ function validateTickets(errors, specs = new Map()) {
     if (typeof fm.source_spec === "string") {
       assert(specs.has(fm.source_spec), errors, file, `ticket references missing spec: ${fm.source_spec}`);
     }
+    if (fm.status === "done") {
+      const commit = nestedFrontmatterValue(doc, "completion", "commit");
+      const completedAt = nestedFrontmatterValue(doc, "completion", "completed_at");
+      assert(Boolean(commit && commit !== "pending"), errors, file, "done ticket must record completion commit");
+      assert(Boolean(completedAt && completedAt !== "null"), errors, file, "done ticket must record completed_at");
+    }
     for (const heading of ["Outcome", "Context", "Positive Rules", "Negative Rules", "Axioms", "Frozen Decisions", "Implementation Rules", "Scope", "Acceptance Criteria", "Validation", "Completion"]) {
       assert(sectionPresent(doc.body, heading), errors, file, `missing ticket section: ${heading}`);
     }
@@ -1149,6 +1155,10 @@ function validatePacks(errors, tickets, specs = new Map()) {
           assert(ticketDoc.frontmatter.ticket_pack === fm.id, errors, ticketDoc.file, `ticket_pack ${ticketDoc.frontmatter.ticket_pack} does not match containing pack ${fm.id}`);
         }
       }
+    }
+    if (fm.status === "done") {
+      const completedAt = nestedFrontmatterValue(doc, "completion", "completed_at");
+      assert(Boolean(completedAt && completedAt !== "null"), errors, file, "done pack must record completed_at");
     }
     for (const heading of ["Outcome", "Scope", "Tickets", "Execution Plan", "Run Policy", "Pack Validation", "Completion"]) {
       assert(sectionPresent(doc.body, heading), errors, file, `missing pack section: ${heading}`);

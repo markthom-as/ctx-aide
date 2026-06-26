@@ -1,7 +1,7 @@
 ---
-id: ticket.context.010
-status: needs-review
-title: Add Semble-backed code discovery
+id: ticket.context.007
+status: done
+title: Add canonical ticket statuses and ticket packs
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,13 +12,12 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: discovery-a
+parallel_group: ticketing-b
 depends_on:
-  - ticket.context.002
-blocks:
   - ticket.context.005
-  - ticket.context.006
-phase: 2
+blocks:
+  - ticket.context.009
+phase: 3
 scope:
   routes: []
   files: []
@@ -29,7 +28,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Add Semble-backed code discovery"
+  task: "Add canonical ticket statuses and ticket packs"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -39,22 +38,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run discovery against a fixture repo.
+  - Run `ctx ticket check --json` and `ctx pack check --json`.
   smoke:
-  - Run discovery against a fixture repo.
-  - Test PATH and uvx fallback behavior.
-  - Confirm ticket hydration stores only bounded discovery metadata.
+  - Create one sample pack with at least three tickets.
+  - Include parallel and dependent tickets.
+  - Run `ctx ticket check --json` and `ctx pack check --json`.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: e3d72ee
+  completed_at: 2026-06-26
 ---
 
-# Add Semble-backed code discovery
+# Add canonical ticket statuses and ticket packs
 
 ## Outcome
 
-Integrate Semble as an optional code-discovery backend for behavioral tasks and ticket hydration.
+Introduce canonical ticket template, fixed statuses, and ticket packs for milestone-shaped work.
 
 ## Context
 
@@ -94,40 +93,39 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx discover --backend semble --task <text> --repo <path> --json`.
-  - Fall back to `uvx --from "semble[mcp]" semble` when `semble` is not on PATH.
-  - Persist bounded code discovery metadata in ticket hydration.
-  - Document when agents should use Semble versus exact path context queries.
+  - Maintain `docs/tickets/templates/canonical-ticket.md`.
+  - Maintain `docs/ticket-packs/` structure and template.
+  - Add fixed ticket and pack status vocabularies.
+  - Add pack membership fields to generated tickets.
+  - Add `ctx pack check --json`.
 - Out:
-  - Treat Semble as canonical product/design truth.
-  - Paste large Semble result bodies into tickets.
+  - Implement Idvisor plugin dispatch.
 
 ## Acceptance Criteria
 
-- Discovery returns bounded file/line/reason/query metadata.
-- Ticket hydration can include a compact Code Discovery section.
-- Agents inspect files before changing code.
-- Semble failures degrade to explicit no-discovery output, not silent success.
+- Every ticket has status, pack, milestone, parallel group, validation plan, and completion metadata.
+- Packs can contain tickets from one or more milestones.
+- Packs describe parallel groups, dependencies, shared-file coordination, and validation.
 
 ## Validation
 
-- Run discovery against a fixture repo.
-- Test PATH and uvx fallback behavior.
-- Confirm ticket hydration stores only bounded discovery metadata.
+- Create one sample pack with at least three tickets.
+- Include parallel and dependent tickets.
+- Run `ctx ticket check --json` and `ctx pack check --json`.
 
 ## Implementation Notes
 
-- Parallel group: `discovery-a`.
-- Dependencies: `ticket.context.002`.
-- Expected commit message: `Add Semble code discovery integration`.
+- Parallel group: `ticketing-b`.
+- Dependencies: `ticket.context.005`.
+- Expected commit message: `Add canonical ticket packs and statuses`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: e3d72ee
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs discover --backend none --task "known path" --repo . --out docs/context/generated/discovery.none.json --json`
-  - `node tools/context/ctx.mjs discover --backend semble --task "repo context dogfood" --repo . --limit 2 --json`
+  - `node tools/context/ctx.mjs ticket check --json`
+  - `node tools/context/ctx.mjs pack check --json`
+  - `node tools/context/ctx.mjs pack status pack.repo-context-mvp --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

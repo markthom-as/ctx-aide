@@ -1,7 +1,7 @@
 ---
-id: ticket.context.001
-status: needs-review
-title: Add repo-local context markdown substrate
+id: ticket.context.000
+status: done
+title: Define high-effort spec to ticket workflow
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,13 +12,13 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: substrate-a
+parallel_group: planning-a
 depends_on:
-  - ticket.context.000
+  []
 blocks:
-  - ticket.context.002
-  - ticket.context.004
-phase: 1
+  - ticket.context.001
+  - ticket.context.005
+phase: 0
 scope:
   routes: []
   files: []
@@ -29,7 +29,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Add repo-local context markdown substrate"
+  task: "Define high-effort spec to ticket workflow"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -39,21 +39,21 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run `node tools/context/ctx.mjs lint --json`.
+  []
   smoke:
-  - Run `node tools/context/ctx.mjs lint --json`.
-  - Review example entries against README schema.
+  - Review README workflow sections.
+  - Create at least one sample spec in a fixture or follow-up ticket.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 0ac461b
+  completed_at: 2026-06-26
 ---
 
-# Add Repo-Local Context Markdown Substrate
+# Define High-Effort Spec to Ticket Workflow
 
 ## Outcome
 
-Create the committed markdown structure for route, file, directory, component, flow, design, architecture, and feedback context.
+Define the spec-to-ticket workflow that turns rough intent into hardened implementation-ready tickets.
 
 ## Context
 
@@ -93,35 +93,35 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `docs/context/` directory structure.
-  - Add schemas for context and feedback entries.
-  - Add examples for one route, component, flow, and feedback item.
+  - Define `docs/specs/` conventions and spec sections.
+  - Document question-pass and hardening rules.
+  - Define Codex and Claude planning roles.
 - Out:
-  - Implement SQLite indexing.
-  - Implement agent-pack export.
+  - Implement CLI commands.
+  - Create production app context entries.
 
 ## Acceptance Criteria
 
-- Context files use stable ids and frontmatter.
-- Feedback entries include status, severity, source, and `applies_to`.
-- Markdown remains source of truth and SQLite remains generated.
+- Specs distinguish assumptions, frozen decisions, open questions, and blockers.
+- Question passes only ask about gaps that change implementation behavior.
+- Tickets generated from a hardened spec can be implemented without design decisions.
 
 ## Validation
 
-- Run `node tools/context/ctx.mjs lint --json`.
-- Review example entries against README schema.
+- Review README workflow sections.
+- Create at least one sample spec in a fixture or follow-up ticket.
 
 ## Implementation Notes
 
-- Parallel group: `substrate-a`.
-- Dependencies: `ticket.context.000`.
-- Expected commit message: `Add repo context markdown substrate`.
+- Parallel group: `planning-a`.
+- Dependencies: none.
+- Expected commit message: `Define spec to ticket workflow`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 0ac461b
 - Verification evidence:
-  - `node tools/context/ctx.mjs lint --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-- Follow-up tickets: pending
+  - `node tools/context/ctx.mjs spec check --json`
+  - `make validate`
+- Follow-up tickets: none

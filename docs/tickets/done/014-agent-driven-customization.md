@@ -1,6 +1,6 @@
 ---
 id: ticket.context.014
-status: needs-review
+status: done
 title: Add agent-driven workflow customization
 ticket_pack: pack.repo-context-post-v0.1
 milestones:
@@ -45,8 +45,8 @@ validation:
     - Verify generated config toggles only documented settings.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 40e0375
+  completed_at: 2026-06-26
 ---
 
 # Add Agent-Driven Workflow Customization
@@ -123,11 +123,11 @@ This is future, post-v0.1 work. The MVP should first prove canonical tickets, pa
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 40e0375
 - Verification evidence:
   - `node tools/context/ctx.mjs customize --profile strict --dry-run --json`
   - `node tools/context/ctx.mjs customize --profile web-app --dry-run --json`
   - `node tools/context/ctx.mjs lint --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

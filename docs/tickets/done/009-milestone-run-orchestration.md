@@ -1,7 +1,7 @@
 ---
-id: ticket.context.007
-status: needs-review
-title: Add canonical ticket statuses and ticket packs
+id: ticket.context.009
+status: done
+title: Add milestone run orchestration
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,12 +12,12 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: ticketing-b
+parallel_group: runs-a
 depends_on:
-  - ticket.context.005
+  - ticket.context.007
 blocks:
-  - ticket.context.009
-phase: 3
+  - ticket.context.008
+phase: 4
 scope:
   routes: []
   files: []
@@ -28,7 +28,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Add canonical ticket statuses and ticket packs"
+  task: "Add milestone run orchestration"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -38,22 +38,23 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run `ctx ticket check --json` and `ctx pack check --json`.
+  []
   smoke:
-  - Create one sample pack with at least three tickets.
-  - Include parallel and dependent tickets.
-  - Run `ctx ticket check --json` and `ctx pack check --json`.
+  - Create sample run with three tickets and two agents.
+  - Mark one agent stale and demonstrate recovery fields.
+  - Requeue one ticket after preserving stale worktree state.
+  - Show pack validation remains pending while merge queue has work.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 9488b57
+  completed_at: 2026-06-26
 ---
 
-# Add canonical ticket statuses and ticket packs
+# Add milestone run orchestration
 
 ## Outcome
 
-Introduce canonical ticket template, fixed statuses, and ticket packs for milestone-shaped work.
+Support long milestone-level runs with parallel agents, worktrees, leases, heartbeats, cleanup, merge queues, and validation.
 
 ## Context
 
@@ -93,39 +94,39 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Maintain `docs/tickets/templates/canonical-ticket.md`.
-  - Maintain `docs/ticket-packs/` structure and template.
-  - Add fixed ticket and pack status vocabularies.
-  - Add pack membership fields to generated tickets.
-  - Add `ctx pack check --json`.
+  - Add `docs/runs/` conventions.
+  - Add run statuses and lease statuses.
+  - Add run frontmatter and markdown template.
+  - Extend ticket packs with run policy fields.
+  - Define coordinator merge queue behavior and stale-agent recovery.
 - Out:
-  - Implement Idvisor plugin dispatch.
+  - Implement hosted orchestration infrastructure.
 
 ## Acceptance Criteria
 
-- Every ticket has status, pack, milestone, parallel group, validation plan, and completion metadata.
-- Packs can contain tickets from one or more milestones.
-- Packs describe parallel groups, dependencies, shared-file coordination, and validation.
+- Packs declare max parallel agents, stale threshold, worktree strategy, and merge strategy.
+- Runs record agents, tickets, worktrees, branches, leases, heartbeat, merge queue, blocked tickets, and completed tickets.
+- Dead-agent cleanup requires explicit salvage, preserve-patch, requeue, discard, or block decision.
 
 ## Validation
 
-- Create one sample pack with at least three tickets.
-- Include parallel and dependent tickets.
-- Run `ctx ticket check --json` and `ctx pack check --json`.
+- Create sample run with three tickets and two agents.
+- Mark one agent stale and demonstrate recovery fields.
+- Requeue one ticket after preserving stale worktree state.
+- Show pack validation remains pending while merge queue has work.
 
 ## Implementation Notes
 
-- Parallel group: `ticketing-b`.
-- Dependencies: `ticket.context.005`.
-- Expected commit message: `Add canonical ticket packs and statuses`.
+- Parallel group: `runs-a`.
+- Dependencies: `ticket.context.007`.
+- Expected commit message: `Add milestone run orchestration`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 9488b57
 - Verification evidence:
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
-  - `node tools/context/ctx.mjs pack status pack.repo-context-mvp --json`
+  - `node tools/context/ctx.mjs run status docs/runs/repo-context-mvp.md --json`
+  - `node tools/context/ctx.mjs lint --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

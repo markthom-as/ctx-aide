@@ -1,7 +1,7 @@
 ---
-id: ticket.context.011
-status: needs-review
-title: Add daily usability tooling
+id: ticket.context.008
+status: done
+title: Define Idvisor repo-context plugin integration
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,12 +12,16 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: tooling-a
+parallel_group: idvisor-a
 depends_on:
-  - ticket.context.000
+  - ticket.context.002
+  - ticket.context.003
+  - ticket.context.005
+  - ticket.context.007
+  - ticket.context.009
 blocks:
   []
-phase: 1
+phase: 5
 scope:
   routes: []
   files: []
@@ -28,7 +32,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Add daily usability tooling"
+  task: "Define Idvisor repo-context plugin integration"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -38,24 +42,23 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run `make validate`.
-  - Run skill validator.
-  - Run `node tools/context/ctx.mjs lint --json`.
+  - Run workflow against fixture repo.
   smoke:
-  - Run `make validate`.
-  - Run skill validator.
-  - Run `node tools/context/ctx.mjs lint --json`.
+  - Create sample Idvisor workflow template.
+  - Run workflow against fixture repo.
+  - Confirm blocked states prevent dispatch.
+  - Confirm ready tickets assign to Codex implementation runs.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 9f64e7d
+  completed_at: 2026-06-26
 ---
 
-# Add Daily Usability Tooling
+# Define Idvisor repo-context plugin integration
 
 ## Outcome
 
-Make the repo usable every day with validation, skill install, and smoke commands.
+Define how repo-context runs as an Idvisor plugin or workflow pack while markdown remains source of truth.
 
 ## Context
 
@@ -95,37 +98,39 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `make validate`.
-  - Add `make install-skill`.
-  - Add fixture smoke command.
-  - Ensure skill validation is part of daily validation.
+  - Define repo-context plugin responsibilities versus `ctx`.
+  - Add Idvisor workflow template for describe/spec/questions/harden/tickets/implementation/validation/report.
+  - Define plugin commands for init, scan, harden, pack create/status, and dispatch.
+  - Define concrete event, gate, lease, and progress-report expectations.
 - Out:
-  - Implement full `ctx query` ranking.
+  - Move app-specific context truth into Idvisor core.
 
 ## Acceptance Criteria
 
-- A clean checkout can run `make validate`.
-- The Codex skill can be installed into `~/.codex/skills`.
-- Validation fails on malformed canonical tickets or packs.
+- Plugin treats target repo markdown as source of truth.
+- Idvisor records workflow runs, gates, progress reports, and audit events.
+- Initial implementation can shell out to `ctx` as governed local tool.
+- Tickets dispatch only when ready.
 
 ## Validation
 
-- Run `make validate`.
-- Run skill validator.
-- Run `node tools/context/ctx.mjs lint --json`.
+- Create sample Idvisor workflow template.
+- Run workflow against fixture repo.
+- Confirm blocked states prevent dispatch.
+- Confirm ready tickets assign to Codex implementation runs.
 
 ## Implementation Notes
 
-- Parallel group: `tooling-a`.
-- Dependencies: `ticket.context.000`.
-- Expected commit message: `Add daily usability tooling`.
+- Parallel group: `idvisor-a`.
+- Dependencies: `ticket.context.002`, `ticket.context.003`, `ticket.context.005`, `ticket.context.007`, `ticket.context.009`.
+- Expected commit message: `Define Idvisor repo context plugin`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 9f64e7d
 - Verification evidence:
+  - `node tools/context/ctx.mjs idvisor workflow --json`
+  - `node tools/context/ctx.mjs lint --json`
   - `make validate`
-  - `make smoke`
-  - `node tools/context/ctx.mjs doctor --json`
-- Follow-up tickets: pending
+- Follow-up tickets: none

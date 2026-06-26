@@ -1,7 +1,7 @@
 ---
-id: ticket.context.006
-status: needs-review
-title: Add impact and regression checks
+id: ticket.context.010
+status: done
+title: Add Semble-backed code discovery
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,14 +12,13 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: impact-a
+parallel_group: discovery-a
 depends_on:
   - ticket.context.002
-  - ticket.context.004
-  - ticket.context.005
 blocks:
-  []
-phase: 4
+  - ticket.context.005
+  - ticket.context.006
+phase: 2
 scope:
   routes: []
   files: []
@@ -30,7 +29,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Add impact and regression checks"
+  task: "Add Semble-backed code discovery"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -40,22 +39,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run changed-context against a synthetic branch.
+  - Run discovery against a fixture repo.
   smoke:
-  - Test impact output for route, shared component, and design-token changes.
-  - Run changed-context against a synthetic branch.
-  - Confirm CI command works from clean checkout.
+  - Run discovery against a fixture repo.
+  - Test PATH and uvx fallback behavior.
+  - Confirm ticket hydration stores only bounded discovery metadata.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 494758c
+  completed_at: 2026-06-26
 ---
 
-# Add impact and regression checks
+# Add Semble-backed code discovery
 
 ## Outcome
 
-Show affected routes, components, flows, feedback, and design rules for proposed changes.
+Integrate Semble as an optional code-discovery backend for behavioral tasks and ticket hydration.
 
 ## Context
 
@@ -95,38 +94,40 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx impact --path <file> --json`.
-  - Add `ctx changed-context --base main --json`.
-  - Generate PR or ticket summaries listing affected context ids.
-  - Add CI checks for malformed or stale context.
+  - Add `ctx discover --backend semble --task <text> --repo <path> --json`.
+  - Fall back to `uvx --from "semble[mcp]" semble` when `semble` is not on PATH.
+  - Persist bounded code discovery metadata in ticket hydration.
+  - Document when agents should use Semble versus exact path context queries.
 - Out:
-  - Replace project test suites.
+  - Treat Semble as canonical product/design truth.
+  - Paste large Semble result bodies into tickets.
 
 ## Acceptance Criteria
 
-- Impact output is bounded and parseable.
-- Changed files map to affected context ids.
-- CI can fail without network access.
-- PR summaries list context ids reviewers should inspect.
+- Discovery returns bounded file/line/reason/query metadata.
+- Ticket hydration can include a compact Code Discovery section.
+- Agents inspect files before changing code.
+- Semble failures degrade to explicit no-discovery output, not silent success.
 
 ## Validation
 
-- Test impact output for route, shared component, and design-token changes.
-- Run changed-context against a synthetic branch.
-- Confirm CI command works from clean checkout.
+- Run discovery against a fixture repo.
+- Test PATH and uvx fallback behavior.
+- Confirm ticket hydration stores only bounded discovery metadata.
 
 ## Implementation Notes
 
-- Parallel group: `impact-a`.
-- Dependencies: `ticket.context.002`, `ticket.context.004`, `ticket.context.005`.
-- Expected commit message: `Add context impact checks`.
+- Parallel group: `discovery-a`.
+- Dependencies: `ticket.context.002`.
+- Expected commit message: `Add Semble code discovery integration`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 494758c
 - Verification evidence:
-  - `node tools/context/ctx.mjs impact --path docs/context/components/context-entry-card.md --json`
-  - `node tools/context/ctx.mjs impact --path tools/context/ctx.mjs --json`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs discover --backend none --task "known path" --repo . --out docs/context/generated/discovery.none.json --json`
+  - `node tools/context/ctx.mjs discover --backend semble --task "repo context dogfood" --repo . --limit 2 --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

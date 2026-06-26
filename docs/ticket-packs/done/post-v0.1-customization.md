@@ -1,6 +1,6 @@
 ---
 id: pack.repo-context-post-v0.1
-status: draft
+status: done
 title: Repo Context Post-v0.1 Customization
 milestones:
   - milestone.post-v0.1-customization
@@ -21,7 +21,7 @@ blocked_by:
   - pack.repo-context-mvp
 created: 2026-06-25
 completion:
-  completed_at: null
+  completed_at: 2026-06-26
   final_validation: []
 ---
 
@@ -45,7 +45,7 @@ Add an agent-guided customization process that lets users tune optional repo-con
 
 ## Tickets
 
-- `ticket.context.014`: needs-review - Add agent-driven workflow customization
+- `ticket.context.014`: done - Add agent-driven workflow customization
 
 ## Execution Plan
 
@@ -73,6 +73,6 @@ Add an agent-guided customization process that lets users tune optional repo-con
 
 ## Completion
 
-- Completed tickets: pending.
-- Remaining tickets: `ticket.context.014`.
-- Final validation: pending.
+- Completed tickets: ticket.context.014.
+- Remaining tickets: none.
+- Final validation: `make validate`; `node tools/context/ctx.mjs pack status pack.repo-context-post-v0.1 --json`.

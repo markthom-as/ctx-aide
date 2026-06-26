@@ -1,7 +1,7 @@
 ---
-id: ticket.context.002
-status: needs-review
-title: Implement ctx scan query lint CLI foundation
+id: ticket.context.004
+status: done
+title: Add lightweight component and design catalog
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,14 +12,13 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: cli-a
+parallel_group: component-catalog-a
 depends_on:
   - ticket.context.001
+  - ticket.context.002
 blocks:
-  - ticket.context.003
-  - ticket.context.005
   - ticket.context.006
-phase: 1
+phase: 2
 scope:
   routes: []
   files: []
@@ -30,7 +29,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Implement ctx scan query lint CLI foundation"
+  task: "Add lightweight component and design catalog"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -40,22 +39,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Unit tests for frontmatter parsing, ranking, scan exclusion, and rule polarity.
-  - CLI tests with stdin detached.
+  - CLI component list/get tests.
   smoke:
-  - CLI tests with stdin detached.
-  - Snapshot test for query output.
+  - CLI component list/get tests.
+  - Visual smoke for catalog route if implemented.
+  - Query test showing route pulls component context.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 45c61ac
+  completed_at: 2026-06-26
 ---
 
-# Implement Ctx Scan Query Lint CLI Foundation
+# Add lightweight component and design catalog
 
 ## Outcome
 
-Provide an agent-native local CLI foundation for scan, query, lint, and checks.
+Create a repo-local inventory of reusable components, variants, composition rules, design tokens, examples, and anti-patterns.
 
 ## Context
 
@@ -95,41 +94,38 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Implement `ctx scan --json`.
-  - Implement `ctx query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
-  - Implement `ctx lint --json`, `ctx ticket check --json`, and `ctx pack check --json`.
-  - Generate `docs/context/generated/context-manifest.json`.
-  - Preserve positive and negative rule polarity.
+  - Add component context entries under `docs/context/components/`.
+  - Add design-system entries under `docs/context/design/`.
+  - Add `ctx components list --json` and `ctx components get <id> --json`.
+  - Optionally add local context-lab examples.
 - Out:
-  - Implement run orchestration commands.
-  - Implement Idvisor plugin.
+  - Adopt full Storybook as a dependency.
 
 ## Acceptance Criteria
 
-- CLI is non-interactive by default.
-- JSON mode writes parseable stdout and diagnostics to stderr.
-- Scanner excludes ignored markdown files.
-- Query, hydration, and agent-pack export keep positive and negative rules separate.
+- Core components have ids, import paths, variants, and composition rules.
+- Component entries include positive and negative rules.
+- Agent queries for affected routes include relevant component contracts.
 
 ## Validation
 
-- Unit tests for frontmatter parsing, ranking, scan exclusion, and rule polarity.
-- CLI tests with stdin detached.
-- Snapshot test for query output.
+- CLI component list/get tests.
+- Visual smoke for catalog route if implemented.
+- Query test showing route pulls component context.
 
 ## Implementation Notes
 
-- Parallel group: `cli-a`.
-- Dependencies: `ticket.context.001`.
-- Expected commit message: `Implement repo context CLI foundation`.
+- Parallel group: `component-catalog-a`.
+- Dependencies: `ticket.context.001`, `ticket.context.002`.
+- Expected commit message: `Add component context catalog`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 45c61ac
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs scan --json`
-  - `node tools/context/ctx.mjs query --path tools/context/ctx.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json`
+  - `node tools/context/ctx.mjs components list --json`
+  - `node tools/context/ctx.mjs components get component.ContextEntryCard --json`
+  - `node tools/context/ctx.mjs query --path docs/context/components/context-entry-card.md --task "component catalog design token" --agent codex --budget 1200 --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

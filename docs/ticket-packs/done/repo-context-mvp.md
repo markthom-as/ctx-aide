@@ -1,6 +1,6 @@
 ---
 id: pack.repo-context-mvp
-status: draft
+status: done
 title: Repo Context MVP
 milestones:
   - milestone.repo-context-mvp
@@ -72,7 +72,7 @@ parallel_groups:
 blocked_by: []
 created: 2026-06-25
 completion:
-  completed_at: null
+  completed_at: 2026-06-26
   final_validation: []
 ---
 
@@ -97,20 +97,20 @@ Make this repository its own first usable fixture for repo-local context, canoni
 
 ## Tickets
 
-- `ticket.context.013`: needs-review - Implement scan and query index
-- `ticket.context.012`: needs-review - Implement ctx init bootstrap
-- `ticket.context.000`: needs-review - Define high-effort spec to ticket workflow
-- `ticket.context.001`: needs-review - Add repo-local context markdown substrate
-- `ticket.context.002`: needs-review - Implement ctx scan query lint CLI foundation
-- `ticket.context.003`: needs-review - Generate Codex Claude and Cursor context packs
-- `ticket.context.004`: needs-review - Add lightweight component and design catalog
-- `ticket.context.005`: needs-review - Hydrate markdown tickets with scoped context
-- `ticket.context.006`: needs-review - Add impact and regression checks
-- `ticket.context.007`: needs-review - Add canonical ticket statuses and ticket packs
-- `ticket.context.008`: needs-review - Define Idvisor repo-context plugin integration
-- `ticket.context.009`: needs-review - Add milestone run orchestration
-- `ticket.context.010`: needs-review - Add Semble-backed code discovery
-- `ticket.context.011`: needs-review - Add daily usability tooling
+- `ticket.context.013`: done - Implement scan and query index
+- `ticket.context.012`: done - Implement ctx init bootstrap
+- `ticket.context.000`: done - Define high-effort spec to ticket workflow
+- `ticket.context.001`: done - Add repo-local context markdown substrate
+- `ticket.context.002`: done - Implement ctx scan query lint CLI foundation
+- `ticket.context.003`: done - Generate Codex Claude and Cursor context packs
+- `ticket.context.004`: done - Add lightweight component and design catalog
+- `ticket.context.005`: done - Hydrate markdown tickets with scoped context
+- `ticket.context.006`: done - Add impact and regression checks
+- `ticket.context.007`: done - Add canonical ticket statuses and ticket packs
+- `ticket.context.008`: done - Define Idvisor repo-context plugin integration
+- `ticket.context.009`: done - Add milestone run orchestration
+- `ticket.context.010`: done - Add Semble-backed code discovery
+- `ticket.context.011`: done - Add daily usability tooling
 
 ## Execution Plan
 
@@ -140,6 +140,6 @@ Make this repository its own first usable fixture for repo-local context, canoni
 
 ## Completion
 
-- Completed tickets: pending.
-- Remaining tickets: all tickets initially draft.
-- Final validation: pending.
+- Completed tickets: ticket.context.013, ticket.context.012, ticket.context.000, ticket.context.001, ticket.context.002, ticket.context.003, ticket.context.004, ticket.context.005, ticket.context.006, ticket.context.007, ticket.context.008, ticket.context.009, ticket.context.010, ticket.context.011.
+- Remaining tickets: none.
+- Final validation: `make validate`; `node tools/context/ctx.mjs pack status pack.repo-context-mvp --json`.

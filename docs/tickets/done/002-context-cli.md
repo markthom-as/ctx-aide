@@ -1,7 +1,7 @@
 ---
-id: ticket.context.000
-status: needs-review
-title: Define high-effort spec to ticket workflow
+id: ticket.context.002
+status: done
+title: Implement ctx scan query lint CLI foundation
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,13 +12,14 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: planning-a
+parallel_group: cli-a
 depends_on:
-  []
-blocks:
   - ticket.context.001
+blocks:
+  - ticket.context.003
   - ticket.context.005
-phase: 0
+  - ticket.context.006
+phase: 1
 scope:
   routes: []
   files: []
@@ -29,7 +30,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Define high-effort spec to ticket workflow"
+  task: "Implement ctx scan query lint CLI foundation"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -39,21 +40,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  []
+  - Unit tests for frontmatter parsing, ranking, scan exclusion, and rule polarity.
+  - CLI tests with stdin detached.
   smoke:
-  - Review README workflow sections.
-  - Create at least one sample spec in a fixture or follow-up ticket.
+  - CLI tests with stdin detached.
+  - Snapshot test for query output.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 5059008
+  completed_at: 2026-06-26
 ---
 
-# Define High-Effort Spec to Ticket Workflow
+# Implement Ctx Scan Query Lint CLI Foundation
 
 ## Outcome
 
-Define the spec-to-ticket workflow that turns rough intent into hardened implementation-ready tickets.
+Provide an agent-native local CLI foundation for scan, query, lint, and checks.
 
 ## Context
 
@@ -93,35 +95,41 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Define `docs/specs/` conventions and spec sections.
-  - Document question-pass and hardening rules.
-  - Define Codex and Claude planning roles.
+  - Implement `ctx scan --json`.
+  - Implement `ctx query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
+  - Implement `ctx lint --json`, `ctx ticket check --json`, and `ctx pack check --json`.
+  - Generate `docs/context/generated/context-manifest.json`.
+  - Preserve positive and negative rule polarity.
 - Out:
-  - Implement CLI commands.
-  - Create production app context entries.
+  - Implement run orchestration commands.
+  - Implement Idvisor plugin.
 
 ## Acceptance Criteria
 
-- Specs distinguish assumptions, frozen decisions, open questions, and blockers.
-- Question passes only ask about gaps that change implementation behavior.
-- Tickets generated from a hardened spec can be implemented without design decisions.
+- CLI is non-interactive by default.
+- JSON mode writes parseable stdout and diagnostics to stderr.
+- Scanner excludes ignored markdown files.
+- Query, hydration, and agent-pack export keep positive and negative rules separate.
 
 ## Validation
 
-- Review README workflow sections.
-- Create at least one sample spec in a fixture or follow-up ticket.
+- Unit tests for frontmatter parsing, ranking, scan exclusion, and rule polarity.
+- CLI tests with stdin detached.
+- Snapshot test for query output.
 
 ## Implementation Notes
 
-- Parallel group: `planning-a`.
-- Dependencies: none.
-- Expected commit message: `Define spec to ticket workflow`.
+- Parallel group: `cli-a`.
+- Dependencies: `ticket.context.001`.
+- Expected commit message: `Implement repo context CLI foundation`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 5059008
 - Verification evidence:
-  - `node tools/context/ctx.mjs spec check --json`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs scan --json`
+  - `node tools/context/ctx.mjs query --path tools/context/ctx.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none

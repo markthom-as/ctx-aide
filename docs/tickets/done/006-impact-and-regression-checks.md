@@ -1,7 +1,7 @@
 ---
-id: ticket.context.003
-status: needs-review
-title: Generate Codex Claude and Cursor context packs
+id: ticket.context.006
+status: done
+title: Add impact and regression checks
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,12 +12,14 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: agent-packs-a
+parallel_group: impact-a
 depends_on:
   - ticket.context.002
+  - ticket.context.004
+  - ticket.context.005
 blocks:
   []
-phase: 2
+phase: 4
 scope:
   routes: []
   files: []
@@ -28,7 +30,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Generate Codex Claude and Cursor context packs"
+  task: "Add impact and regression checks"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -38,22 +40,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run exports from clean markdown source.
+  - Run changed-context against a synthetic branch.
   smoke:
-  - Run exports from clean markdown source.
-  - Confirm deterministic outputs.
-  - Confirm lint fails after source mutation and passes after regeneration.
+  - Test impact output for route, shared component, and design-token changes.
+  - Run changed-context against a synthetic branch.
+  - Confirm CI command works from clean checkout.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: 8dc9b97
+  completed_at: 2026-06-26
 ---
 
-# Generate Codex Claude and Cursor context packs
+# Add impact and regression checks
 
 ## Outcome
 
-Generate agent-specific context packs without maintaining divergent instructions by hand.
+Show affected routes, components, flows, feedback, and design rules for proposed changes.
 
 ## Context
 
@@ -93,39 +95,38 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx export-agent --agent codex`.
-  - Add `ctx export-agent --agent claude`.
-  - Add `ctx export-agent --agent cursor`.
-  - Add generated `.cursor/rules/generated/*.mdc` summaries.
+  - Add `ctx impact --path <file> --json`.
+  - Add `ctx changed-context --base main --json`.
+  - Generate PR or ticket summaries listing affected context ids.
+  - Add CI checks for malformed or stale context.
 - Out:
-  - Implement Idvisor plugin orchestration.
+  - Replace project test suites.
 
 ## Acceptance Criteria
 
-- Codex pack emphasizes ticket hydration and implementation-time context queries.
-- Claude pack emphasizes design intent and critique checklists.
-- Cursor rules are summary-oriented.
-- Generated packs include source manifest hash.
+- Impact output is bounded and parseable.
+- Changed files map to affected context ids.
+- CI can fail without network access.
+- PR summaries list context ids reviewers should inspect.
 
 ## Validation
 
-- Run exports from clean markdown source.
-- Confirm deterministic outputs.
-- Confirm lint fails after source mutation and passes after regeneration.
+- Test impact output for route, shared component, and design-token changes.
+- Run changed-context against a synthetic branch.
+- Confirm CI command works from clean checkout.
 
 ## Implementation Notes
 
-- Parallel group: `agent-packs-a`.
-- Dependencies: `ticket.context.002`.
-- Expected commit message: `Generate agent context packs`.
+- Parallel group: `impact-a`.
+- Dependencies: `ticket.context.002`, `ticket.context.004`, `ticket.context.005`.
+- Expected commit message: `Add context impact checks`.
 
 ## Completion
 
-- Status: needs-review
-- Commit: pending
+- Status: done
+- Commit: 8dc9b97
 - Verification evidence:
-  - `node tools/context/ctx.mjs export-agent --agent codex --json`
-  - `node tools/context/ctx.mjs export-agent --agent claude --json`
-  - `node tools/context/ctx.mjs export-agent --agent cursor --json`
+  - `node tools/context/ctx.mjs impact --path docs/context/components/context-entry-card.md --json`
+  - `node tools/context/ctx.mjs impact --path tools/context/ctx.mjs --json`
   - `make validate`
-- Follow-up tickets: pending
+- Follow-up tickets: none
