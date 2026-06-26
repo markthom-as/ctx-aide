@@ -99,6 +99,12 @@ For milestone-level runs, track:
 
 Stale work should be inspected before deletion. Salvage commits or patches when useful, then record whether the ticket was completed, requeued, blocked, or abandoned.
 
+## Future Customization
+
+Post-v0.1, support agent-guided workflow customization. Keep the default profile conservative. Customization may recommend profiles such as `minimal`, `web-app`, `ui-heavy`, `idvisor-orchestrated`, or `strict`, but it must not disable required axioms or silently weaken readiness gates.
+
+When asked about customization before the CLI exists, document the desired profile/toggles in a future ticket rather than inventing hidden behavior.
+
 ## Templates
 
 Use the repo templates when available:

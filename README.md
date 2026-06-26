@@ -910,6 +910,38 @@ ctx run finish <run-id> --json
 
 Idvisor is the stronger long-run backend once available because it can own heartbeats, queues, leases, events, and dead-agent cleanup as runtime truth. The repo-local markdown form is still useful as an exportable progress artifact and a fallback when Idvisor is not running.
 
+### Future Customization
+
+Post-v0.1, repo-context should support an agent-driven customization flow. The default workflow should remain conservative and usable without setup, but users should be able to tune optional behavior through a guided skill flow and eventually a CLI dry run.
+
+Example future command surface:
+
+```bash
+ctx customize --profile minimal --dry-run --json
+ctx customize --profile web-app --dry-run --json
+ctx customize --profile ui-heavy --dry-run --json
+ctx customize --profile idvisor-orchestrated --dry-run --json
+ctx customize --profile strict --dry-run --json
+```
+
+Candidate toggles:
+
+- Enable or disable Semble-backed discovery.
+- Generate Codex, Claude, and Cursor packs independently.
+- Require Claude UI/design audit for UI-impacting specs.
+- Require screenshots for frontend tickets.
+- Enable Idvisor orchestration and milestone-run exports.
+- Choose strict or advisory enforcement for optional checks.
+- Select component-catalog mode: markdown-only, local route, or Storybook-compatible export.
+
+Customization rules:
+
+- Required axioms cannot be disabled.
+- Customization must produce reviewable repo-local config or markdown.
+- Dry-run output must show exactly which commands, exports, rules, and gates would change.
+- Profiles should be named and diffable, not hidden agent memory.
+- Customization is post-v0.1 and should not block the MVP pack.
+
 ```markdown
 ---
 id: ticket.2026-06-25.reports-chart-helper-copy
