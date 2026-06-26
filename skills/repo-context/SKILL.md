@@ -14,6 +14,7 @@ Use this skill to turn rough product or implementation intent into a hardened re
 - Markdown is loaded progressively; detailed files should not enter agent context unless selected by scope/query or explicitly requested.
 - Files with first-line `<!-- repo-context: ignore -->` or frontmatter `context_scan: false` must be excluded from scans and generated agent context.
 - Preserve rule polarity: positive rules describe what to prefer or preserve; negative rules describe what to avoid or escalate before doing.
+- Prefer enforceable axioms over prose-only rules whenever a deterministic check can prove the rule.
 - Specs come before tickets.
 - Tickets belong to ticket packs.
 - Tickets must be atomic, parallelizable where practical, and committed individually when complete.
@@ -79,6 +80,10 @@ When hydrating specs, tickets, or agent packs, keep positive and negative rules 
 
 Do not flatten negative rules into generic guidance. If implementation appears to require violating a negative rule, stop and harden the ticket unless the ticket explicitly supersedes the rule.
 
+## Axioms
+
+Use axioms for programmatically enforceable rules. Each axiom needs a stable id, statement, check command or assertion name, and severity. Tickets should list the axioms they depend on. If a rule cannot be checked, keep it as a positive or negative rule and create a follow-up to make it enforceable.
+
 ## Long Runs
 
 For milestone-level runs, track:
@@ -108,6 +113,8 @@ If this skill is installed outside this repo, copy the bundled assets from `asse
 If a `ctx` CLI exists in the target repo, prefer it:
 
 ```sh
+node tools/context/ctx.mjs lint --json
+node tools/context/ctx.mjs discover --backend semble --task "<task>" --repo . --json
 ctx scan --json
 ctx query --path <path> --task "<task>" --agent codex --budget 6000 --json
 ctx spec harden docs/specs/SPEC.md --json

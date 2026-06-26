@@ -2,42 +2,126 @@
 id: ticket.context.007
 status: draft
 title: Add canonical ticket statuses and ticket packs
-phase: 3
+ticket_pack: pack.repo-context-mvp
+milestones:
+  - milestone.repo-context-mvp
+source_spec: spec.repo-context-mvp
+source_feedback: []
+implementation_agent: codex
+planning_agents:
+  - codex-high-effort
+  - claude-high-effort
+ui_review_agent: claude-high-effort
+parallel_group: ticketing-b
 depends_on:
   - ticket.context.005
+blocks:
+  - ticket.context.009
+phase: 3
+scope:
+  routes: []
+  files: []
+  directories:
+    - docs
+    - skills/repo-context
+  components: []
+  flows:
+    - flow.repo-context-dogfood
+context_query:
+  task: "Add canonical ticket statuses and ticket packs"
+  generated_at: 2026-06-25
+  context_ids:
+    - pack.repo-context-mvp
+axioms:
+  - axiom.markdown-source-of-truth
+  - axiom.ticket-done-requires-commit
+  - axiom.rule-polarity-preserved
+validation:
+  automated:
+  - Run `ctx ticket check --json` and `ctx pack check --json`.
+  smoke:
+  - Create one sample pack with at least three tickets.
+  - Include parallel and dependent tickets.
+  - Run `ctx ticket check --json` and `ctx pack check --json`.
+  screenshots: []
+completion:
+  commit: pending
+  completed_at: null
 ---
 
-# Add Canonical Ticket Statuses and Ticket Packs
+# Add canonical ticket statuses and ticket packs
 
-## Goal
+## Outcome
 
-Introduce a canonical ticket template, fixed ticket statuses, and ticket packs that usually represent milestones and sometimes span multiple milestones.
+Introduce canonical ticket template, fixed statuses, and ticket packs for milestone-shaped work.
+
+## Context
+
+This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+
+## Positive Rules
+
+- Preserve markdown as the source of truth.
+- Keep outputs deterministic and reviewable in git.
+- Prefer small, independently committable changes.
+
+## Negative Rules
+
+- Do not make SQLite the canonical authoring surface.
+- Do not flatten positive and negative rules into undifferentiated guidance.
+- Stop and harden this ticket if implementation requires a product, architecture, security, or workflow decision not captured here.
+
+## Axioms
+
+- `axiom.markdown-source-of-truth`: Markdown remains the canonical authoring surface.
+- `axiom.ticket-done-requires-commit`: Completion requires commit and verification evidence.
+- `axiom.rule-polarity-preserved`: Positive and negative rules remain separate.
+
+## Frozen Decisions
+
+- Codex is the default implementation agent.
+- Claude is preferred for UI/design audit passes.
+- Ticket completion requires validation evidence and a commit hash.
+
+## Implementation Rules
+
+- Required approach: implement only the scope listed in this ticket.
+- Existing components/helpers to use: reuse the canonical ticket and pack templates.
+- Anti-patterns to avoid: broad rewrites, undocumented status changes, and unbounded generated context.
+- Stop and escalate if: this ticket conflicts with the pack plan or requires changing status vocabulary.
 
 ## Scope
 
-- Add `docs/tickets/templates/canonical-ticket.md`.
-- Add `docs/ticket-packs/` structure.
-- Add pack frontmatter and markdown template.
-- Add fixed ticket and pack status vocabularies.
-- Add ticket pack membership fields to every generated ticket.
-- Add pack-level parallel groups and validation sections.
-- Add `ctx pack check --json`.
+- In:
+  - Maintain `docs/tickets/templates/canonical-ticket.md`.
+  - Maintain `docs/ticket-packs/` structure and template.
+  - Add fixed ticket and pack status vocabularies.
+  - Add pack membership fields to generated tickets.
+  - Add `ctx pack check --json`.
+- Out:
+  - Implement Idvisor plugin dispatch.
 
 ## Acceptance Criteria
 
-- Every ticket has a valid status, ticket pack, milestone, parallel group, validation plan, and completion metadata.
-- Ticket statuses distinguish draft, question, hardening, ready, in-progress, blocked, review, done, and superseded states.
-- Ticket packs can contain tickets from one or more milestones.
-- Ticket packs explicitly describe parallel groups, dependencies, shared-file coordination, and pack-level validation.
-- `ctx lint` fails when tickets or packs drift from the canonical templates.
+- Every ticket has status, pack, milestone, parallel group, validation plan, and completion metadata.
+- Packs can contain tickets from one or more milestones.
+- Packs describe parallel groups, dependencies, shared-file coordination, and validation.
 
-## Verification
+## Validation
 
 - Create one sample pack with at least three tickets.
-- Include two tickets that can run in parallel and one dependent ticket.
+- Include parallel and dependent tickets.
 - Run `ctx ticket check --json` and `ctx pack check --json`.
-- Confirm a ticket cannot be marked `done` without commit and verification evidence.
 
-## Commit
+## Implementation Notes
 
-One commit when complete: `Add canonical ticket packs and statuses`
+- Parallel group: `ticketing-b`.
+- Dependencies: `ticket.context.005`.
+- Expected commit message: `Add canonical ticket packs and statuses`.
+
+## Completion
+
+- Status: draft
+- Commit: pending
+- Verification evidence: pending
+- Follow-up tickets: pending

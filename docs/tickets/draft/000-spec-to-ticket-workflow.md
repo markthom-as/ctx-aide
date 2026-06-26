@@ -2,42 +2,124 @@
 id: ticket.context.000
 status: draft
 title: Define high-effort spec to ticket workflow
+ticket_pack: pack.repo-context-mvp
+milestones:
+  - milestone.repo-context-mvp
+source_spec: spec.repo-context-mvp
+source_feedback: []
+implementation_agent: codex
+planning_agents:
+  - codex-high-effort
+  - claude-high-effort
+ui_review_agent: claude-high-effort
+parallel_group: planning-a
+depends_on:
+  []
+blocks:
+  - ticket.context.001
+  - ticket.context.005
 phase: 0
+scope:
+  routes: []
+  files: []
+  directories:
+    - docs
+    - skills/repo-context
+  components: []
+  flows:
+    - flow.repo-context-dogfood
+context_query:
+  task: "Define high-effort spec to ticket workflow"
+  generated_at: 2026-06-25
+  context_ids:
+    - pack.repo-context-mvp
+axioms:
+  - axiom.markdown-source-of-truth
+  - axiom.ticket-done-requires-commit
+  - axiom.rule-polarity-preserved
+validation:
+  automated:
+  []
+  smoke:
+  - Review README workflow sections.
+  - Create at least one sample spec in a fixture or follow-up ticket.
+  screenshots: []
+completion:
+  commit: pending
+  completed_at: null
 ---
 
-# Define High-Effort Spec to Ticket Workflow
+# Define high-effort spec to ticket workflow
 
-## Goal
+## Outcome
 
-Make the user's preferred workflow explicit: describe the goal, build a markdown spec, ask targeted questions, harden the spec through multiple review lenses, then create full-fat atomic tickets that Codex can execute without making design decisions.
+Define the spec-to-ticket workflow that turns rough intent into hardened implementation-ready tickets.
+
+## Context
+
+This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+
+## Positive Rules
+
+- Preserve markdown as the source of truth.
+- Keep outputs deterministic and reviewable in git.
+- Prefer small, independently committable changes.
+
+## Negative Rules
+
+- Do not make SQLite the canonical authoring surface.
+- Do not flatten positive and negative rules into undifferentiated guidance.
+- Stop and harden this ticket if implementation requires a product, architecture, security, or workflow decision not captured here.
+
+## Axioms
+
+- `axiom.markdown-source-of-truth`: Markdown remains the canonical authoring surface.
+- `axiom.ticket-done-requires-commit`: Completion requires commit and verification evidence.
+- `axiom.rule-polarity-preserved`: Positive and negative rules remain separate.
+
+## Frozen Decisions
+
+- Codex is the default implementation agent.
+- Claude is preferred for UI/design audit passes.
+- Ticket completion requires validation evidence and a commit hash.
+
+## Implementation Rules
+
+- Required approach: implement only the scope listed in this ticket.
+- Existing components/helpers to use: reuse the canonical ticket and pack templates.
+- Anti-patterns to avoid: broad rewrites, undocumented status changes, and unbounded generated context.
+- Stop and escalate if: this ticket conflicts with the pack plan or requires changing status vocabulary.
 
 ## Scope
 
-- Add `docs/specs/` conventions.
-- Add spec frontmatter and section templates.
-- Add question-pass rules.
-- Add architecture, design, security, best-practices, testing, and parallelization hardening checklists.
-- Define when a ticket is ready for Codex implementation.
-- Define Codex and Claude planning roles, with Claude preferred for UI design and audit passes.
-- Define when an implementation agent must stop and escalate.
+- In:
+  - Define `docs/specs/` conventions and spec sections.
+  - Document question-pass and hardening rules.
+  - Define Codex and Claude planning roles.
+- Out:
+  - Implement CLI commands.
+  - Create production app context entries.
 
 ## Acceptance Criteria
 
-- A spec can distinguish assumptions, frozen decisions, open questions, and blockers.
+- Specs distinguish assumptions, frozen decisions, open questions, and blockers.
 - Question passes only ask about gaps that change implementation behavior.
-- Hardening passes produce concrete edits to the spec, not generic review notes.
-- Tickets generated from a hardened spec include context, frozen decisions, implementation rules, acceptance criteria, validation steps, screenshot or smoke-test requirements, and commit expectations.
-- Specs support both Codex and Claude hardening passes, with Claude-oriented UI review captured before tickets are marked ready.
-- Tickets are labeled for parallel execution where possible.
-- Tickets that still require product, design, architecture, or security decisions are not considered ready.
+- Tickets generated from a hardened spec can be implemented without design decisions.
 
-## Verification
+## Validation
 
-- Create one sample spec from rough feedback.
-- Run the hardening checklist against it.
-- Generate at least two atomic tickets from the spec.
-- Confirm one ticket can be implemented without making design decisions.
+- Review README workflow sections.
+- Create at least one sample spec in a fixture or follow-up ticket.
 
-## Commit
+## Implementation Notes
 
-One commit when complete: `Define spec to ticket workflow`
+- Parallel group: `planning-a`.
+- Dependencies: none.
+- Expected commit message: `Define spec to ticket workflow`.
+
+## Completion
+
+- Status: draft
+- Commit: pending
+- Verification evidence: pending
+- Follow-up tickets: pending

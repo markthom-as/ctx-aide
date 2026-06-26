@@ -1,7 +1,7 @@
 ---
-id: ticket.context.008
+id: ticket.context.010
 status: draft
-title: Define Idvisor repo-context plugin integration
+title: Add Semble-backed code discovery
 ticket_pack: pack.repo-context-mvp
 milestones:
   - milestone.repo-context-mvp
@@ -12,16 +12,13 @@ planning_agents:
   - codex-high-effort
   - claude-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: idvisor-a
+parallel_group: discovery-a
 depends_on:
   - ticket.context.002
-  - ticket.context.003
-  - ticket.context.005
-  - ticket.context.007
-  - ticket.context.009
 blocks:
-  []
-phase: 5
+  - ticket.context.005
+  - ticket.context.006
+phase: 2
 scope:
   routes: []
   files: []
@@ -32,7 +29,7 @@ scope:
   flows:
     - flow.repo-context-dogfood
 context_query:
-  task: "Define Idvisor repo-context plugin integration"
+  task: "Add Semble-backed code discovery"
   generated_at: 2026-06-25
   context_ids:
     - pack.repo-context-mvp
@@ -42,23 +39,22 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run workflow against fixture repo.
+  - Run discovery against a fixture repo.
   smoke:
-  - Create sample Idvisor workflow template.
-  - Run workflow against fixture repo.
-  - Confirm blocked states prevent dispatch.
-  - Confirm ready tickets assign to Codex implementation runs.
+  - Run discovery against a fixture repo.
+  - Test PATH and uvx fallback behavior.
+  - Confirm ticket hydration stores only bounded discovery metadata.
   screenshots: []
 completion:
   commit: pending
   completed_at: null
 ---
 
-# Define Idvisor repo-context plugin integration
+# Add Semble-backed code discovery
 
 ## Outcome
 
-Define how repo-context runs as an Idvisor plugin or workflow pack while markdown remains source of truth.
+Integrate Semble as an optional code-discovery backend for behavioral tasks and ticket hydration.
 
 ## Context
 
@@ -98,32 +94,32 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Define repo-context plugin responsibilities versus `ctx`.
-  - Add Idvisor workflow template for describe/spec/questions/harden/tickets/implementation/validation/report.
-  - Define plugin commands for init, scan, harden, pack create/status, and dispatch.
-  - Define concrete event, gate, lease, and progress-report expectations.
+  - Add `ctx discover --backend semble --task <text> --repo <path> --json`.
+  - Fall back to `uvx --from "semble[mcp]" semble` when `semble` is not on PATH.
+  - Persist bounded code discovery metadata in ticket hydration.
+  - Document when agents should use Semble versus exact path context queries.
 - Out:
-  - Move app-specific context truth into Idvisor core.
+  - Treat Semble as canonical product/design truth.
+  - Paste large Semble result bodies into tickets.
 
 ## Acceptance Criteria
 
-- Plugin treats target repo markdown as source of truth.
-- Idvisor records workflow runs, gates, progress reports, and audit events.
-- Initial implementation can shell out to `ctx` as governed local tool.
-- Tickets dispatch only when ready.
+- Discovery returns bounded file/line/reason/query metadata.
+- Ticket hydration can include a compact Code Discovery section.
+- Agents inspect files before changing code.
+- Semble failures degrade to explicit no-discovery output, not silent success.
 
 ## Validation
 
-- Create sample Idvisor workflow template.
-- Run workflow against fixture repo.
-- Confirm blocked states prevent dispatch.
-- Confirm ready tickets assign to Codex implementation runs.
+- Run discovery against a fixture repo.
+- Test PATH and uvx fallback behavior.
+- Confirm ticket hydration stores only bounded discovery metadata.
 
 ## Implementation Notes
 
-- Parallel group: `idvisor-a`.
-- Dependencies: `ticket.context.002`, `ticket.context.003`, `ticket.context.005`, `ticket.context.007`, `ticket.context.009`.
-- Expected commit message: `Define Idvisor repo context plugin`.
+- Parallel group: `discovery-a`.
+- Dependencies: `ticket.context.002`.
+- Expected commit message: `Add Semble code discovery integration`.
 
 ## Completion
 
