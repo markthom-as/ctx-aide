@@ -1,6 +1,6 @@
 ---
 id: ticket.context.005
-status: draft
+status: needs-review
 title: Hydrate markdown tickets with scoped context
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -123,7 +123,10 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs ticket hydrate docs/tickets/needs-review/005-ticket-hydration.md --json`
+  - `node tools/context/ctx.mjs ticket check --json`
+  - `make validate`
 - Follow-up tickets: pending

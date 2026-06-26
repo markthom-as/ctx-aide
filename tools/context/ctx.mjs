@@ -591,6 +591,68 @@ function componentGet(id) {
   };
 }
 
+function hydrateTicket(ticketPath) {
+  const file = ticketPath || args[2] || argValue("--ticket", "");
+  if (!file) {
+    return {
+      ok: false,
+      scope: "ticket hydrate",
+      errors: [{ file: "docs/tickets", message: "missing ticket path" }],
+    };
+  }
+  const doc = readDoc(file);
+  if (doc.ignored || !doc.frontmatter.id) {
+    return {
+      ok: false,
+      scope: "ticket hydrate",
+      errors: [{ file, message: "ticket is ignored or missing frontmatter id" }],
+    };
+  }
+  const task = nestedFrontmatterValue(doc, "context_query", "task") ?? doc.frontmatter.title ?? "";
+  const scopeFiles = nestedFrontmatterList(doc, "scope", "files");
+  const scopeDirs = nestedFrontmatterList(doc, "scope", "directories");
+  const scopeRoutes = nestedFrontmatterList(doc, "scope", "routes");
+  const targetPaths = unique([...scopeFiles, ...scopeDirs, ...scopeRoutes]);
+  const entries = readContextEntries()
+    .map((entry) => {
+      const scores = targetPaths.length > 0
+        ? targetPaths.map((targetPath) => scoreEntry(entry, targetPath, task))
+        : [scoreEntry(entry, "", task)];
+      const score = Math.max(...scores.map((ranked) => ranked.score));
+      const reasons = unique(scores.flatMap((ranked) => ranked.reasons));
+      return { ...entry, score, reasons };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+    .slice(0, 8)
+    .map((entry) => ({
+      id: entry.id,
+      kind: entry.kind,
+      status: entry.status,
+      markdown_path: entry.markdown_path,
+      score: entry.score,
+      reasons: entry.reasons,
+      summary: entry.summary,
+      positive_rules: entry.positive_rules,
+      negative_rules: entry.negative_rules,
+    }));
+  return {
+    ok: true,
+    scope: "ticket hydrate",
+    ticket: {
+      id: doc.frontmatter.id,
+      title: doc.frontmatter.title,
+      file,
+    },
+    query: {
+      task,
+      target_paths: targetPaths,
+    },
+    context_ids: entries.map((entry) => entry.id),
+    entries,
+  };
+}
+
 function doctor() {
   const errors = [];
   validateDirs(errors);
@@ -1162,6 +1224,8 @@ if (command === "lint") {
   const specs = validateSpecs(errors);
   validateTickets(errors, specs);
   printResult({ ok: errors.length === 0, scope: "ticket check", errors });
+} else if (command === "ticket" && subcommand === "hydrate") {
+  printResult(hydrateTicket(args[2] ?? ""));
 } else if (command === "pack" && subcommand === "check") {
   const errors = [];
   const specs = validateSpecs(errors);
@@ -1195,6 +1259,7 @@ if (command === "lint") {
       "ctx components get component.Button --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
+      "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",
       "ctx pack check --json",
       "ctx pack status <pack-id> --json",
       "ctx spec check --json",

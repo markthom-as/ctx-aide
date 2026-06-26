@@ -598,6 +598,8 @@ Output rules:
 
 Pack status returns the pack metadata, ticket count, per-status totals, and ordered ticket rows. Use it before dispatching parallel agents and after merging ticket commits.
 
+Ticket hydration returns a bounded context snapshot for a ticket's scoped paths, directories, routes, and task. It preserves positive and negative rules as separate arrays so implementation agents can distinguish preferences from constraints.
+
 ## Daily Commands
 
 Use these commands while shaping or implementing tickets:
