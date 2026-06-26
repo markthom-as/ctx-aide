@@ -1,6 +1,6 @@
 ---
 id: ticket.context.010
-status: draft
+status: needs-review
 title: Add Semble-backed code discovery
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -123,7 +123,11 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs discover --backend none --task "known path" --repo . --out docs/context/generated/discovery.none.json --json`
+  - `node tools/context/ctx.mjs discover --backend semble --task "repo context dogfood" --repo . --limit 2 --json`
+  - `make validate`
 - Follow-up tickets: pending

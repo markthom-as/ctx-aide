@@ -945,11 +945,13 @@ function discover() {
   const task = argValue("--task", "");
   const repo = argValue("--repo", ".");
   const limit = Number.parseInt(argValue("--limit", "10"), 10);
+  const out = argValue("--out", "");
   const result = {
     ok: true,
     backend,
     task,
     repo,
+    limit,
     matches: [],
     warnings: [],
   };
@@ -957,10 +959,10 @@ function discover() {
   if (!task.trim()) {
     result.ok = false;
     result.warnings.push("missing --task");
-    return result;
+    return writeDiscoveryResult(result, out);
   }
 
-  if (backend === "none") return result;
+  if (backend === "none") return writeDiscoveryResult(result, out);
 
   if (backend === "ripgrep") {
     try {
@@ -978,7 +980,7 @@ function discover() {
       result.ok = false;
       result.warnings.push(`ripgrep failed: ${error.message}`);
     }
-    return result;
+    return writeDiscoveryResult(result, out);
   }
 
   if (backend !== "semble") {
@@ -1009,7 +1011,23 @@ function discover() {
     result.ok = false;
     result.warnings.push(`semble discovery failed: ${error.message}`);
   }
-  return result;
+  return writeDiscoveryResult(result, out);
+}
+
+function writeDiscoveryResult(result, out) {
+  if (!out) return result;
+  const outPath = path.isAbsolute(out) ? out : path.join(root, out);
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  const payload = {
+    ...result,
+    generated_by: "tools/context/ctx.mjs discover",
+    source: "bounded code-discovery metadata",
+  };
+  fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);
+  return {
+    ...result,
+    out: path.relative(root, outPath),
+  };
 }
 
 function printResult(result) {

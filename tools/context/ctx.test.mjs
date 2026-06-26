@@ -92,6 +92,7 @@ write("docs/context/routes/ignored.md", `<!-- repo-context: ignore -->
 
 # Ignored
 `);
+write("src/auth.js", "export function authenticateUser() { return true; }\n");
 
 const scan = run(["scan"]);
 assert.equal(scan.ok, true);
@@ -140,6 +141,18 @@ assert.equal(secondInit.skipped.includes("docs/tickets/templates/canonical-ticke
 
 const fixtureLint = run(["lint"]);
 assert.equal(fixtureLint.ok, true);
+
+const noBackendDiscovery = run(["discover", "--backend", "none", "--task", "known path", "--out", "docs/context/generated/discovery.none.json"]);
+assert.equal(noBackendDiscovery.ok, true);
+assert.equal(noBackendDiscovery.out, "docs/context/generated/discovery.none.json");
+assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/discovery.none.json")), true);
+
+if (commandExists("rg")) {
+  const rgDiscovery = run(["discover", "--backend", "ripgrep", "--task", "authenticateUser", "--repo", ".", "--limit", "2"]);
+  assert.equal(rgDiscovery.ok, true);
+  assert.equal(rgDiscovery.matches.length, 1);
+  assert.equal(rgDiscovery.matches[0].file.replace(/^\.\//, ""), "src/auth.js");
+}
 
 fs.rmSync(fixture, { recursive: true, force: true });
 process.stdout.write("ctx tests passed\n");

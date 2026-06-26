@@ -621,6 +621,7 @@ Use Semble as an optional code-discovery backend when target files are unknown.
 node tools/context/ctx.mjs discover --backend semble --task "fix chart selection flow" --repo . --json
 node tools/context/ctx.mjs discover --backend ripgrep --task "ChartStep" --repo . --json
 node tools/context/ctx.mjs discover --backend none --task "known path only" --repo . --json
+node tools/context/ctx.mjs discover --backend semble --task "auth flow" --repo . --out docs/context/generated/discovery.auth.json --json
 ```
 
 Discovery output should be bounded and should feed `ctx query` and ticket hydration. It should store the query, backend, file path, line, and short reason, not large code excerpts. Semble is not product truth; agents must inspect files before editing.
