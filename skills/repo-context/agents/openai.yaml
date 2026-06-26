@@ -1,0 +1,7 @@
+interface:
+  display_name: "Repo Context"
+  short_description: "Plan and harden repo-local agent tickets."
+  default_prompt: "Use $repo-context to turn this request into a hardened spec, ticket pack, or implementation-ready ticket."
+policy:
+  allow_implicit_invocation: true
+
