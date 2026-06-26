@@ -1036,6 +1036,7 @@ Example future command surface:
 ctx customize --profile minimal --dry-run --json
 ctx customize --profile web-app --dry-run --json
 ctx customize --profile ui-heavy --dry-run --json
+ctx customize --profile astrotechne --dry-run --json
 ctx customize --profile idvisor-orchestrated --dry-run --json
 ctx customize --profile strict --dry-run --json
 ```
@@ -1049,6 +1050,7 @@ Candidate toggles:
 - Enable Idvisor orchestration and milestone-run exports.
 - Choose strict or advisory enforcement for optional checks.
 - Select component-catalog mode: markdown-only, local route, or Storybook-compatible export.
+- Enable a legacy ticket adapter for mature repos that already have a ticket tree, status command, and packet README convention.
 
 Customization rules:
 
@@ -1058,6 +1060,31 @@ Customization rules:
 - Profiles should be named and diffable, not hidden agent memory.
 - Customization is post-v0.1 and should not block the MVP pack.
 - Capture customization requests first as future work, then promote them into a spec/ticket pack when the MVP workflow is stable.
+
+### Astrotechne Adoption Profile
+
+Astrotechne should use repo-context as an overlay first, not as a replacement for its existing ticket system.
+
+Observed Astrotechne conventions to preserve:
+
+- Executable tickets live under `docs/domain-redesign/tickets`.
+- Ticket files use compact frontmatter such as `status`, `ticket_id`, `milestone`, `group`, `priority`, `depends_on`, `source_docs`, `created`, and `updated`.
+- Packet directories use a `README.md` as the milestone or ticket-pack truth surface.
+- `npm run tickets:status` is the authoritative executable-ticket audit. It treats `todo`, `blocked`, `in_progress`, and `review` as open; it treats `done`, `wont_do`, `template`, `completed`, `complete`, `implemented`, `planned`, `accepted`, and `implemented_pending_production_smoke` as closed or non-executable.
+- No-status markdown under the ticket tree is historical or supporting documentation, not automatically executable work.
+- Large public-surface packs work best as disjoint worker lanes plus a coordinator closeout commit.
+
+Recommended rollout:
+
+1. Add repo-context directories and generated agent packs without moving historical Astrotechne tickets.
+2. Add high-value context entries for the surfaces that most often regress: public copy, chart workspace, report generation, Labs, billing/entitlements, engine-bound timing reports, deploy/runbooks, and design-system primitives.
+3. Configure the `astrotechne` profile so `ctx` preserves the existing ticket root, status vocabulary, and `npm run tickets:status` gate.
+4. Use Semble discovery to connect new context entries to existing files and packet README examples.
+5. For new work, write repo-context-style specs and hydrated implementation tickets, but let them cite Astrotechne packet READMEs and existing ticket examples as source documents.
+6. For legacy tickets, index them as references unless they are explicitly promoted into new repo-context tickets.
+7. Keep completion truth strict: implementation tickets need validation evidence, screenshots when UI changes, and one clean commit per completed ticket.
+
+The first Astrotechne pass should be a read-only bootstrap plus context capture. It should not rewrite the historical ticket tree or normalize 1,000+ older markdown files just to satisfy the new schema.
 
 ```markdown
 ---

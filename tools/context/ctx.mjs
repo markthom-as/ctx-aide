@@ -779,6 +779,20 @@ function customize() {
       enabled: ["markdown-source", "lint", "ticket-check", "component-catalog", "impact", "claude-ui-review", "agent-packs"],
       optional: ["idvisor-workflow"],
     },
+    astrotechne: {
+      enabled: [
+        "markdown-source",
+        "lint",
+        "ticket-check",
+        "legacy-ticket-adapter",
+        "component-catalog",
+        "impact",
+        "run-orchestration",
+        "agent-packs",
+        "semble-discovery",
+      ],
+      optional: ["claude-ui-review", "idvisor-workflow", "custom-ui-catalog"],
+    },
     "idvisor-orchestrated": {
       enabled: ["markdown-source", "lint", "ticket-check", "run-orchestration", "idvisor-workflow", "agent-packs"],
       optional: ["custom-ui-catalog"],
