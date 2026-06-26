@@ -6,6 +6,11 @@ milestones:
   - milestone.slug
 source_specs: []
 tickets: []
+run_policy:
+  max_parallel_agents: 4
+  stale_after_minutes: 20
+  merge_strategy: coordinator-queue
+  worktree_required: true
 parallel_groups:
   default:
     tickets: []
@@ -36,6 +41,15 @@ State the milestone-level outcome this pack delivers.
 - Parallel groups:
 - Sequential dependencies:
 - Shared-file coordination:
+- Worktree strategy:
+- Merge queue strategy:
+
+## Run Policy
+
+- Max parallel agents:
+- Stale lease threshold:
+- Dead-agent cleanup:
+- Requeue rules:
 
 ## Pack Validation
 

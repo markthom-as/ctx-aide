@@ -720,6 +720,118 @@ Pack statuses:
 
 Packs should make parallel execution explicit. Tickets in different `parallel_group`s should be safe to implement concurrently unless the pack calls out shared-file coordination.
 
+### Milestone Runs
+
+A ticket pack is the plan. A milestone run is the live execution state for one attempt to complete that plan with parallel agents.
+
+Milestone runs should be local, resumable, and cheap to inspect. For a pure markdown implementation, store them under `docs/runs/`. For an Idvisor-backed implementation, Idvisor should own the durable run/event truth and can export markdown progress reports back into the repo.
+
+```markdown
+---
+id: run.2026-06-25.repo-context-mvp.001
+kind: milestone-run
+status: active
+ticket_pack: pack.repo-context-mvp
+started_at: 2026-06-25T09:00:00-06:00
+updated_at: 2026-06-25T10:15:00-06:00
+coordinator: codex-high-effort
+max_parallel_agents: 4
+stale_after_minutes: 20
+worktree_root: ../.worktrees/repo-context-mvp
+agents:
+  - agent_id: codex-a
+    status: active
+    ticket: ticket.context.002
+    worktree: ../.worktrees/repo-context-mvp/codex-a
+    branch: ctx/ticket-context-002
+    lease_expires_at: 2026-06-25T10:35:00-06:00
+    last_heartbeat_at: 2026-06-25T10:15:00-06:00
+  - agent_id: codex-b
+    status: stale
+    ticket: ticket.context.004
+    worktree: ../.worktrees/repo-context-mvp/codex-b
+    branch: ctx/ticket-context-004
+    lease_expires_at: 2026-06-25T09:50:00-06:00
+    last_heartbeat_at: 2026-06-25T09:30:00-06:00
+merge_queue:
+  - ticket.context.002
+blocked_tickets: []
+completed_tickets: []
+---
+
+# Repo Context MVP Run
+
+## Current State
+
+- Active agents:
+- Stale agents:
+- Ready tickets:
+- Blocked tickets:
+- Merge queue:
+
+## Coordination Notes
+
+- Shared files:
+- Merge order:
+- Validation gates:
+
+## Cleanup Log
+
+- Timestamp:
+- Agent:
+- Action:
+- Reason:
+```
+
+Run statuses:
+
+- `planning`: run exists but no implementation agents are assigned.
+- `active`: at least one agent has an active lease.
+- `draining`: no new tickets should be assigned; active tickets may finish.
+- `blocked`: no runnable tickets remain because of blockers.
+- `needs-merge`: one or more completed ticket branches are waiting to merge.
+- `validating`: pack-level validation is running.
+- `done`: all required tickets are merged and pack validation is complete.
+- `abandoned`: run was intentionally stopped before completion.
+
+Agent lease statuses:
+
+- `active`: agent owns the ticket lease and heartbeat is current.
+- `stale`: heartbeat or lease expired.
+- `recovering`: coordinator is inspecting or salvaging work from the stale worktree.
+- `requeued`: ticket was returned to ready work.
+- `completed`: ticket commit was produced and evidence recorded.
+- `failed`: agent ended with a hard failure.
+- `abandoned`: coordinator intentionally discarded the lease.
+
+Long-run orchestration rules:
+
+- Assign each parallel ticket to a separate worktree and branch.
+- Store a lease for every in-progress ticket with `agent_id`, `worktree`, `branch`, `started_at`, `last_heartbeat_at`, and `lease_expires_at`.
+- Agents must heartbeat after meaningful progress, before long test runs, after tests, and before final handoff.
+- A stale agent does not automatically mean failed work. The coordinator should inspect `git status`, recent commits, logs, and ticket notes before cleanup.
+- Dead-agent cleanup must either salvage a commit, preserve a patch artifact, or explicitly discard the worktree with a reason.
+- Requeue tickets only after recording what happened to the stale lease.
+- Merge through a coordinator-owned queue, not directly from parallel agents into the main branch.
+- Run pack-level validation after ticket merges, even when each ticket passed locally.
+
+Useful command surface:
+
+```bash
+ctx run start --pack <pack-id> --max-parallel 4 --json
+ctx run status <run-id> --json
+ctx run assign <run-id> --ticket <ticket-id> --agent codex --json
+ctx run heartbeat <run-id> --agent <agent-id> --ticket <ticket-id> --json
+ctx run stale <run-id> --json
+ctx run recover <run-id> --agent <agent-id> --json
+ctx run requeue <run-id> --ticket <ticket-id> --reason "..." --json
+ctx run merge-next <run-id> --json
+ctx run validate <run-id> --json
+ctx run finish <run-id> --json
+```
+
+Idvisor is the stronger long-run backend once available because it can own heartbeats, queues, leases, events, and dead-agent cleanup as runtime truth. The repo-local markdown form is still useful as an exportable progress artifact and a fallback when Idvisor is not running.
+
 ```markdown
 ---
 id: ticket.2026-06-25.reports-chart-helper-copy
@@ -934,6 +1046,7 @@ Later additions:
 - Visual snapshots for component catalog examples.
 - Pull request template section listing relevant context ids.
 - Worktree assignment helpers for parallel ticket execution.
+- Long-running milestone run orchestration with leases, heartbeats, stale-agent recovery, merge queues, and pack-level validation.
 
 ## Adoption Plan
 

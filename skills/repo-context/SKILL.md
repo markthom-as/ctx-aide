@@ -16,6 +16,7 @@ Use this skill to turn rough product or implementation intent into a hardened re
 - Specs come before tickets.
 - Tickets belong to ticket packs.
 - Tickets must be atomic, parallelizable where practical, and committed individually when complete.
+- Long milestone-level work should run through explicit pack runs with worktrees, agent leases, heartbeats, stale-agent cleanup, merge queues, and pack-level validation.
 - Codex is the default implementation agent.
 - Claude is preferred for UI design, product-flow, copy, and visual hardening passes.
 
@@ -29,8 +30,10 @@ Use this skill to turn rough product or implementation intent into a hardened re
 6. Create or update a ticket pack under `docs/ticket-packs/`.
 7. Create atomic tickets from the hardened spec using the canonical ticket template.
 8. Harden each ticket until it can be implemented by Codex without design decisions.
-9. During implementation, stop and escalate if the ticket needs new product/design/architecture/security decisions.
-10. Validate with the ticket's automated checks, smoke tests, and screenshots, then record commit and evidence.
+9. For long or parallel milestones, create a milestone run that assigns tickets to worktrees with leases and heartbeat expectations.
+10. During implementation, stop and escalate if the ticket needs new product/design/architecture/security decisions.
+11. Validate with the ticket's automated checks, smoke tests, and screenshots, then record commit and evidence.
+12. Merge through the coordinator queue and run pack-level validation before marking the pack done.
 
 ## Status Rules
 
@@ -65,6 +68,21 @@ Use only these pack statuses:
 - Best practices: framework idioms, performance, accessibility, observability, error handling.
 - Testing: unit/component/e2e coverage, smoke tests, screenshots, regression checks.
 - Parallelization: independent lanes, shared-file conflicts, dependency ordering, worktree suitability.
+
+## Long Runs
+
+For milestone-level runs, track:
+
+- pack id and run id
+- active tickets and assigned agents
+- worktree and branch per agent
+- lease expiry and last heartbeat
+- stale or dead agents
+- cleanup and requeue actions
+- merge queue
+- pack-level validation state
+
+Stale work should be inspected before deletion. Salvage commits or patches when useful, then record whether the ticket was completed, requeued, blocked, or abandoned.
 
 ## Templates
 
