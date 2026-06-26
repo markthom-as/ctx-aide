@@ -1,6 +1,6 @@
 ---
 id: ticket.context.001
-status: draft
+status: needs-review
 title: Add repo-local context markdown substrate
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -49,7 +49,7 @@ completion:
   completed_at: null
 ---
 
-# Add repo-local context markdown substrate
+# Add Repo-Local Context Markdown Substrate
 
 ## Outcome
 
@@ -119,7 +119,9 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/context/ctx.mjs ticket check --json`
 - Follow-up tickets: pending

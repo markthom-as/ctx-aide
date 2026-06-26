@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://repo-context.local/schema/context-entry.schema.json",
+  "title": "Repo Context Entry",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "context_scan",
+    "status",
+    "title",
+    "positive_rules",
+    "negative_rules",
+    "load_when",
+    "updated"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(route|file|dir|component|flow|design|architecture)\\.[A-Za-z0-9_.-]+$"
+    },
+    "kind": {
+      "enum": [
+        "route",
+        "file",
+        "dir",
+        "component",
+        "flow",
+        "design",
+        "architecture"
+      ]
+    },
+    "context_scan": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "proposed",
+        "active",
+        "deprecated",
+        "superseded"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "flows": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "positive_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "negative_rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "load_when": {
+      "type": "object"
+    },
+    "updated": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

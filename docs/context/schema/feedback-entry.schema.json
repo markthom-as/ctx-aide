@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://repo-context.local/schema/feedback-entry.schema.json",
+  "title": "Repo Context Feedback Entry",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "severity",
+    "source",
+    "applies_to",
+    "title",
+    "created"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^feedback\\.[A-Za-z0-9_.-]+$"
+    },
+    "kind": {
+      "const": "feedback"
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "accepted",
+        "rejected",
+        "resolved",
+        "superseded"
+      ]
+    },
+    "severity": {
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "applies_to": {
+      "type": "object"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created": {
+      "type": "string"
+    },
+    "resolved_by": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

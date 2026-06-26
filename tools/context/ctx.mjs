@@ -23,6 +23,10 @@ const ticketStatuses = new Set([
 
 const packStatuses = new Set(["draft", "ready", "active", "blocked", "done", "superseded"]);
 const specStatuses = new Set(["draft", "needs-questions", "needs-hardening", "ready", "done", "superseded"]);
+const contextKinds = new Set(["route", "file", "dir", "component", "flow", "design", "architecture"]);
+const contextStatuses = new Set(["draft", "proposed", "active", "deprecated", "superseded"]);
+const feedbackStatuses = new Set(["proposed", "accepted", "rejected", "resolved", "superseded"]);
+const feedbackSeverities = new Set(["low", "medium", "high", "critical"]);
 const runStatuses = new Set([
   "planning",
   "active",
@@ -183,6 +187,59 @@ function hasPlaceholder(body) {
 function validateDirs(errors) {
   for (const dir of requiredDirs) {
     assert(fs.existsSync(path.join(root, dir)), errors, dir, "required directory is missing");
+  }
+}
+
+function validateContextEntries(errors) {
+  const files = markdownFiles("docs/context").filter(
+    (file) => !file.includes("/schema/") && !file.includes("/generated/"),
+  );
+  const ids = new Map();
+  const expectedKindByFolder = {
+    routes: "route",
+    files: "file",
+    dirs: "dir",
+    components: "component",
+    flows: "flow",
+    design: "design",
+    architecture: "architecture",
+    feedback: "feedback",
+  };
+  for (const file of files) {
+    const doc = readDoc(file);
+    if (doc.ignored) continue;
+    const fm = doc.frontmatter;
+    if (typeof fm.id === "string") {
+      assert(!ids.has(fm.id), errors, file, `duplicate context id: ${fm.id}`);
+      ids.set(fm.id, file);
+    }
+    const folder = folderAfter(file, "docs/context");
+    const expectedKind = expectedKindByFolder[folder];
+    assert(Boolean(expectedKind), errors, file, `unsupported context folder: ${folder}`);
+    assert(fm.kind === expectedKind, errors, file, `context kind ${fm.kind} does not match folder ${folder}`);
+
+    if (fm.kind === "feedback") {
+      assert(/^feedback\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "feedback id must start with feedback.");
+      assert(feedbackStatuses.has(fm.status), errors, file, `invalid feedback status: ${fm.status}`);
+      assert(feedbackSeverities.has(fm.severity), errors, file, `invalid feedback severity: ${fm.severity}`);
+      for (const key of ["title", "source", "applies_to", "created"]) {
+        assert(Object.hasOwn(fm, key), errors, file, `missing feedback frontmatter: ${key}`);
+      }
+      for (const heading of ["Feedback", "Decision", "Regression Risk"]) {
+        assert(sectionPresent(doc.body, heading), errors, file, `missing feedback section: ${heading}`);
+      }
+      continue;
+    }
+
+    assert(new RegExp(`^${fm.kind}\\.[A-Za-z0-9_.-]+$`).test(fm.id ?? ""), errors, file, `context id must start with ${fm.kind}.`);
+    assert(contextKinds.has(fm.kind), errors, file, `invalid context kind: ${fm.kind}`);
+    assert(contextStatuses.has(fm.status), errors, file, `invalid context status: ${fm.status}`);
+    for (const key of ["title", "positive_rules", "negative_rules", "load_when", "updated"]) {
+      assert(Object.hasOwn(fm, key), errors, file, `missing context frontmatter: ${key}`);
+    }
+    for (const heading of ["Purpose", "Current Decisions", "Positive Rules", "Negative Rules", "Implementation Rules"]) {
+      assert(sectionPresent(doc.body, heading), errors, file, `missing context section: ${heading}`);
+    }
   }
 }
 
@@ -350,6 +407,7 @@ function validateFutureWork(errors, tickets = new Map(), packs = new Map(), spec
 function runChecks(scope) {
   const errors = [];
   validateDirs(errors);
+  validateContextEntries(errors);
   const specs = validateSpecs(errors);
   const tickets = validateTickets(errors, specs);
   const packs = validatePacks(errors, tickets, specs);
