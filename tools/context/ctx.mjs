@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 
 const root = process.cwd();
 const toolRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
@@ -199,6 +199,22 @@ function nestedFrontmatterList(doc, parent, key) {
   return values;
 }
 
+function allNestedFrontmatterValues(doc, parent) {
+  const values = {};
+  let inParent = false;
+  for (const line of (doc.frontmatterText ?? "").split("\n")) {
+    const top = line.match(/^([A-Za-z0-9_-]+):(?:\s*(.*))?$/);
+    if (top) {
+      inParent = top[1] === parent && (top[2] ?? "") === "";
+      continue;
+    }
+    if (!inParent) continue;
+    const child = line.match(/^\s+([A-Za-z0-9_-]+):\s*(.+)$/);
+    if (child) values[child[1]] = parseValue(child[2]);
+  }
+  return values;
+}
+
 function folderAfter(file, prefix) {
   const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = file.match(new RegExp(`^${escaped}\\/([^/]+)\\/`));
@@ -222,6 +238,74 @@ function hasPlaceholder(body) {
     "Short imperative title",
     "One concrete outcome this ticket delivers.",
   ].some((placeholder) => body.includes(placeholder));
+}
+
+function boundedText(text, max = 4000) {
+  const value = String(text ?? "").trim();
+  if (value.length <= max) return value;
+  return `${value.slice(0, max)}\n...[truncated ${value.length - max} chars]`;
+}
+
+function dependencyAudit() {
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  const commandText = argValue("--command", "pnpm audit --prod");
+  const out = argValue("--out", "");
+  const startedAt = new Date().toISOString();
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "dependency audit",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  const result = spawnSync(commandText, {
+    cwd: repoPath,
+    shell: true,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const stdout = result.stdout ?? "";
+  const stderr = result.stderr ?? "";
+  const combined = `${stdout}\n${stderr}`;
+  const vulnerabilities = {
+    total: Number.parseInt(combined.match(/(\d+)\s+vulnerabilities?\s+found/i)?.[1] ?? "0", 10),
+    low: Number.parseInt(combined.match(/(\d+)\s+low/i)?.[1] ?? "0", 10),
+    moderate: Number.parseInt(combined.match(/(\d+)\s+moderate/i)?.[1] ?? "0", 10),
+    high: Number.parseInt(combined.match(/(\d+)\s+high/i)?.[1] ?? "0", 10),
+    critical: Number.parseInt(combined.match(/(\d+)\s+critical/i)?.[1] ?? "0", 10),
+  };
+  const packages = unique([...combined.matchAll(/│\s*Package\s*│\s*([^│]+?)\s*│/g)].map((match) => match[1].trim()));
+  const payload = {
+    ok: result.status === 0,
+    scope: "dependency audit",
+    repo: path.relative(root, repoPath) || ".",
+    command: commandText,
+    checked_at: startedAt,
+    audit_cleared: result.status === 0,
+    exit_code: result.status,
+    vulnerabilities,
+    vulnerable_packages: packages,
+    evidence: {
+      command: commandText,
+      stdout_excerpt: boundedText(stdout),
+      stderr_excerpt: boundedText(stderr),
+    },
+    errors: result.status === 0 ? [] : [{ file: path.relative(root, repoPath) || ".", message: "dependency audit did not clear" }],
+  };
+  if (out) {
+    const outPath = path.isAbsolute(out) ? out : path.join(root, out);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);
+    payload.out = path.relative(root, outPath);
+  }
+  return payload;
+}
+
+function isDependencyUpgradeTicket(doc) {
+  const workType = doc.frontmatter.work_type;
+  if (workType === "dependency-upgrade" || workType === "dependency-sweep") return true;
+  return false;
 }
 
 function unique(values) {
@@ -1120,6 +1204,12 @@ function validateTickets(errors, specs = new Map()) {
       const completedAt = nestedFrontmatterValue(doc, "completion", "completed_at");
       assert(Boolean(commit && commit !== "pending"), errors, file, "done ticket must record completion commit");
       assert(Boolean(completedAt && completedAt !== "null"), errors, file, "done ticket must record completed_at");
+      if (isDependencyUpgradeTicket(doc)) {
+        const completion = allNestedFrontmatterValues(doc, "completion");
+        assert(completion.dependency_audit === "cleared", errors, file, "done dependency-upgrade ticket must record completion.dependency_audit: cleared");
+        assert(Boolean(completion.dependency_audit_command), errors, file, "done dependency-upgrade ticket must record completion.dependency_audit_command");
+        assert(Boolean(completion.dependency_audit_checked_at), errors, file, "done dependency-upgrade ticket must record completion.dependency_audit_checked_at");
+      }
     }
     for (const heading of ["Outcome", "Context", "Positive Rules", "Negative Rules", "Axioms", "Frozen Decisions", "Implementation Rules", "Scope", "Acceptance Criteria", "Validation", "Completion"]) {
       assert(sectionPresent(doc.body, heading), errors, file, `missing ticket section: ${heading}`);
@@ -1416,6 +1506,8 @@ if (command === "lint") {
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
+} else if (command === "dependency" && subcommand === "audit") {
+  printResult(dependencyAudit());
 } else if (command === "ticket" && subcommand === "check") {
   const errors = [];
   const specs = validateSpecs(errors);
@@ -1459,6 +1551,7 @@ if (command === "lint") {
       "ctx idvisor workflow --json",
       "ctx customize --profile strict --dry-run --json",
       "ctx discover --backend semble --task <task> --repo . --json",
+      "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",
       "ctx pack check --json",

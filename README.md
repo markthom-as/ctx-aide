@@ -605,6 +605,7 @@ ctx ticket harden docs/tickets/draft/TICKET.md --json
 ctx components list --json
 ctx components get component.Button --json
 ctx impact --path components/ui/button.tsx --json
+ctx dependency audit --repo . --command "pnpm audit --prod" --out docs/context/generated/dependency-audit.json --json
 ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json
 ctx export-agent --agent claude --out docs/context/generated/agent-pack.claude.md --json
 ctx export-agent --agent cursor --out .cursor/rules/generated/repo-context.mdc --json
@@ -622,6 +623,42 @@ Output rules:
 Pack status returns the pack metadata, ticket count, per-status totals, and ordered ticket rows. Use it before dispatching parallel agents and after merging ticket commits.
 
 Ticket hydration returns a bounded context snapshot for a ticket's scoped paths, directories, routes, and task. It preserves positive and negative rules as separate arrays so implementation agents can distinguish preferences from constraints.
+
+### Dependency Audit Gate
+
+Dependency work needs a stricter closeout than ordinary implementation work. A ticket that updates dependency manifests may complete code changes while the production audit is still red. Repo-context treats those as different states.
+
+Use `ctx dependency audit` to capture bounded, parseable evidence:
+
+```bash
+node tools/context/ctx.mjs dependency audit \
+  --repo /path/to/app \
+  --command "pnpm audit --prod" \
+  --out docs/context/generated/dependency-audit.json \
+  --json
+```
+
+Output includes `audit_cleared`, `exit_code`, vulnerability counts, vulnerable package names when they can be parsed, and bounded stdout/stderr excerpts. The command exits non-zero when the audit command fails.
+
+Dependency tickets should opt into enforcement with:
+
+```yaml
+work_type: dependency-upgrade
+completion:
+  commit: pending
+  completed_at: null
+  dependency_audit: pending
+  dependency_audit_command: pnpm audit --prod
+  dependency_audit_checked_at: null
+```
+
+When a `work_type: dependency-upgrade` or `work_type: dependency-sweep` ticket is marked `done`, `ctx ticket check` requires:
+
+- `completion.dependency_audit: cleared`
+- `completion.dependency_audit_command`
+- `completion.dependency_audit_checked_at`
+
+This prevents agents from marking "dependency sweep findings implemented" as equivalent to "dependency audit cleared."
 
 ## Daily Commands
 

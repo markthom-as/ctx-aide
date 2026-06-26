@@ -161,6 +161,186 @@ assert.equal(noBackendDiscovery.ok, true);
 assert.equal(noBackendDiscovery.out, "docs/context/generated/discovery.none.json");
 assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/discovery.none.json")), true);
 
+write("audit-pass.mjs", "process.exit(0);\n");
+write("audit-fail.mjs", "process.stderr.write('2 vulnerabilities found\\nSeverity: 1 moderate | 1 high\\n│ Package             │ next                                                   │\\n'); process.exit(1);\n");
+const clearedAudit = run(["dependency", "audit", "--repo", ".", "--command", `"${process.execPath}" audit-pass.mjs`]);
+assert.equal(clearedAudit.ok, true);
+assert.equal(clearedAudit.audit_cleared, true);
+
+const failedAudit = run(["dependency", "audit", "--repo", ".", "--command", `"${process.execPath}" audit-fail.mjs`], { allowFailure: true });
+assert.equal(failedAudit.ok, false);
+assert.equal(failedAudit.audit_cleared, false);
+assert.equal(failedAudit.vulnerabilities.total, 2);
+assert.deepEqual(failedAudit.vulnerable_packages, ["next"]);
+
+write("docs/specs/dependency-upgrade.md", `---
+id: spec.dependency-upgrade
+status: draft
+title: Dependency Upgrade
+owner_agent: codex-high-effort
+source_feedback: []
+context_ids: []
+target_agents:
+  spec:
+    - codex-high-effort
+  implementation: codex
+created: 2026-06-26
+---
+
+# Dependency Upgrade
+
+## Goal
+
+Clear dependency audit findings.
+
+## Affected Surfaces
+
+- Files/directories: package manifests.
+
+## Product Decisions
+
+- Decision: audit must clear.
+
+## Architecture Decisions
+
+- Decision: no architecture change.
+- Rationale: dependency update only.
+- Rejected alternatives: ignore audit findings.
+
+## Design Decisions
+
+- Decision: no UI change.
+- Components/tokens to use: none.
+- Anti-patterns to avoid: unrelated UI changes.
+
+## Security and Privacy Decisions
+
+- Data touched: package metadata.
+- Trust boundaries: dependency registry.
+- Required safeguards: audit evidence.
+
+## Open Questions
+
+None.
+
+## Hardening Review
+
+- Architecture: bounded dependency update.
+- Design: not applicable.
+- Security: audit must clear.
+- Best practices: keep lockfile reviewable.
+- Testing: run audit.
+- Parallelization: single package lane.
+
+## Ticket Plan
+
+- Independent tickets: dependency audit clear.
+- Sequential tickets: none.
+- Shared files that require coordination: package manifests.
+`);
+
+write("docs/tickets/done/dependency-upgrade-missing-audit.md", `---
+id: ticket.test.dependency-upgrade
+status: done
+title: Dependency upgrade clears audit
+work_type: dependency-upgrade
+ticket_pack: pack.test.dependency-upgrade
+milestones:
+  - milestone.test
+source_spec: spec.dependency-upgrade
+source_feedback: []
+implementation_agent: codex
+planning_agents:
+  - codex-high-effort
+ui_review_agent: claude-high-effort
+parallel_group: deps-a
+depends_on: []
+blocks: []
+scope:
+  routes: []
+  files:
+    - package.json
+  directories: []
+  components: []
+  flows: []
+context_query:
+  task: "dependency upgrade clears audit"
+  generated_at: 2026-06-26
+  context_ids: []
+axioms:
+  - axiom.markdown-source-of-truth
+  - axiom.ticket-done-requires-commit
+validation:
+  automated:
+    - Run dependency audit.
+  smoke: []
+  screenshots: []
+completion:
+  commit: test-commit
+  completed_at: 2026-06-26
+---
+
+# Dependency Upgrade Clears Audit
+
+## Outcome
+
+Clear dependency audit findings.
+
+## Context
+
+Dependency upgrades must distinguish implementation from audit clearance.
+
+## Positive Rules
+
+- Preserve package manager lockfile integrity.
+
+## Negative Rules
+
+- Do not mark done while the audit still fails.
+
+## Axioms
+
+- axiom.markdown-source-of-truth: Markdown remains canonical.
+
+## Frozen Decisions
+
+- Audit evidence is required.
+
+## Implementation Rules
+
+- Required approach: update dependencies.
+
+## Scope
+
+- In: package manifests.
+- Out: unrelated changes.
+
+## Acceptance Criteria
+
+- Dependency audit clears.
+
+## Validation
+
+- Run dependency audit.
+
+## Completion
+
+- Status: done
+- Commit: test-commit
+- Verification evidence: pending audit.
+`);
+
+const missingAuditTicketCheck = run(["ticket", "check"], { allowFailure: true });
+assert.equal(missingAuditTicketCheck.ok, false);
+assert.equal(missingAuditTicketCheck.errors.some((error) => error.message.includes("completion.dependency_audit: cleared")), true);
+
+write("docs/tickets/done/dependency-upgrade-missing-audit.md", fs
+  .readFileSync(path.join(fixture, "docs/tickets/done/dependency-upgrade-missing-audit.md"), "utf8")
+  .replace("completion:\n  commit: test-commit\n  completed_at: 2026-06-26", "completion:\n  commit: test-commit\n  completed_at: 2026-06-26\n  dependency_audit: cleared\n  dependency_audit_command: pnpm audit --prod\n  dependency_audit_checked_at: 2026-06-26T00:00:00.000Z"));
+
+const dependencyTicketCheck = run(["ticket", "check"]);
+assert.equal(dependencyTicketCheck.ok, true);
+
 if (commandExists("rg")) {
   const rgDiscovery = run(["discover", "--backend", "ripgrep", "--task", "authenticateUser", "--repo", ".", "--limit", "2"]);
   assert.equal(rgDiscovery.ok, true);
