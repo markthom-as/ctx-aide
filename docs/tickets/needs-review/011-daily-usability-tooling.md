@@ -1,6 +1,6 @@
 ---
 id: ticket.context.011
-status: draft
+status: needs-review
 title: Add daily usability tooling
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -51,7 +51,7 @@ completion:
   completed_at: null
 ---
 
-# Add daily usability tooling
+# Add Daily Usability Tooling
 
 ## Outcome
 
@@ -122,7 +122,10 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `make validate`
+  - `make smoke`
+  - `node tools/context/ctx.mjs doctor --json`
 - Follow-up tickets: pending

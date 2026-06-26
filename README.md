@@ -563,6 +563,7 @@ The CLI should be non-interactive and agent-native.
 
 ```bash
 node tools/context/ctx.mjs lint --json
+node tools/context/ctx.mjs doctor --json
 node tools/context/ctx.mjs discover --backend semble --task "save report chart selection" --repo . --json
 ctx init --json
 ctx scan --json
@@ -594,6 +595,21 @@ Output rules:
 - Durable ids for mutations.
 - Validation before writes.
 - `--dry-run` for mutation previews.
+
+## Daily Commands
+
+Use these commands while shaping or implementing tickets:
+
+```bash
+make validate
+make smoke
+make ctx-scan
+make ctx-query-smoke
+make ctx-doctor
+make install-skill
+```
+
+`make validate` is the default pre-commit check. `make smoke` adds scan, query, and doctor checks. `make install-skill` installs the local Codex skill into `~/.codex/skills/repo-context` after validating it.
 
 ### Semble Discovery
 

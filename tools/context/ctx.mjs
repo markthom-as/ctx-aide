@@ -495,6 +495,37 @@ function query() {
   };
 }
 
+function doctor() {
+  const errors = [];
+  validateDirs(errors);
+  validateContextEntries(errors);
+  const specs = validateSpecs(errors);
+  const tickets = validateTickets(errors, specs);
+  const packs = validatePacks(errors, tickets, specs);
+  validateRuns(errors);
+  validateFutureWork(errors, tickets, packs, specs);
+  const generatedManifest = path.join(root, "docs/context/generated/context-manifest.json");
+  return {
+    ok: errors.length === 0,
+    scope: "doctor",
+    checks: {
+      lint: errors.length === 0,
+      node: true,
+      sqlite3: commandExists("sqlite3"),
+      semble: commandExists("semble"),
+      uvx: commandExists("uvx"),
+      generated_manifest: fs.existsSync(generatedManifest),
+    },
+    counts: {
+      context_entries: readContextEntries().length,
+      specs: specs.size,
+      tickets: tickets.size,
+      packs: packs.size,
+    },
+    errors,
+  };
+}
+
 function validateDirs(errors) {
   for (const dir of requiredDirs) {
     assert(fs.existsSync(path.join(root, dir)), errors, dir, "required directory is missing");
@@ -849,6 +880,8 @@ function printResult(result) {
 
 if (command === "lint") {
   printResult(runChecks("lint"));
+} else if (command === "doctor") {
+  printResult(doctor());
 } else if (command === "scan") {
   printResult(scan());
 } else if (command === "query") {
@@ -883,6 +916,7 @@ if (command === "lint") {
     ok: false,
     usage: [
       "ctx lint --json",
+      "ctx doctor --json",
       "ctx scan --json",
       "ctx query --path <path> --task <task> --agent codex --budget 6000 --json",
       "ctx discover --backend semble --task <task> --repo . --json",
