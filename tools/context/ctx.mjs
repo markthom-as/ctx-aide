@@ -22,6 +22,7 @@ const ticketStatuses = new Set([
 ]);
 
 const packStatuses = new Set(["draft", "ready", "active", "blocked", "done", "superseded"]);
+const specStatuses = new Set(["draft", "needs-questions", "needs-hardening", "ready", "done", "superseded"]);
 const runStatuses = new Set([
   "planning",
   "active",
@@ -66,6 +67,7 @@ const requiredDirs = [
   "docs/future-work/templates",
   "docs/future-work/captured",
   "docs/future-work/promoted",
+  "docs/future-work/superseded",
   "tools/context",
 ];
 
@@ -133,8 +135,30 @@ function readDoc(file) {
     file,
     ignored: frontmatter.context_scan === false,
     frontmatter,
+    frontmatterText: match[1],
     body: text.slice(match[0].length),
   };
+}
+
+function nestedFrontmatterValue(doc, parent, key) {
+  let inParent = false;
+  for (const line of (doc.frontmatterText ?? "").split("\n")) {
+    const top = line.match(/^([A-Za-z0-9_-]+):(?:\s*(.*))?$/);
+    if (top) {
+      inParent = top[1] === parent && (top[2] ?? "") === "";
+      continue;
+    }
+    if (!inParent) continue;
+    const child = line.match(new RegExp(`^\\s+${key}:\\s*(.+)$`));
+    if (child) return parseValue(child[1]);
+  }
+  return undefined;
+}
+
+function folderAfter(file, prefix) {
+  const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = file.match(new RegExp(`^${escaped}\\/([^/]+)\\/`));
+  return match ? match[1] : null;
 }
 
 function assert(condition, errors, file, message) {
@@ -162,47 +186,116 @@ function validateDirs(errors) {
   }
 }
 
-function validateTickets(errors) {
-  const files = markdownFiles("docs/tickets").filter((file) => !file.includes("/templates/"));
-  const ids = new Set();
+function validateSpecs(errors) {
+  const files = markdownFiles("docs/specs");
+  const specs = new Map();
   for (const file of files) {
     const doc = readDoc(file);
     if (doc.ignored) continue;
     const fm = doc.frontmatter;
-    ids.add(fm.id);
+    if (typeof fm.id === "string") {
+      assert(!specs.has(fm.id), errors, file, `duplicate spec id: ${fm.id}`);
+      specs.set(fm.id, { file, frontmatter: fm, body: doc.body });
+    }
+    assert(/^spec\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "spec id must start with spec.");
+    assert(specStatuses.has(fm.status), errors, file, `invalid spec status: ${fm.status}`);
+    for (const key of ["title", "owner_agent", "source_feedback", "context_ids", "target_agents", "created"]) {
+      assert(Object.hasOwn(fm, key), errors, file, `missing spec frontmatter: ${key}`);
+    }
+    for (const heading of ["Goal", "Affected Surfaces", "Product Decisions", "Architecture Decisions", "Design Decisions", "Security and Privacy Decisions", "Open Questions", "Hardening Review", "Ticket Plan"]) {
+      assert(sectionPresent(doc.body, heading), errors, file, `missing spec section: ${heading}`);
+    }
+    assert(!hasPlaceholder(doc.body + JSON.stringify(fm)), errors, file, "spec still contains template placeholder text");
+  }
+  return specs;
+}
+
+function validateTickets(errors, specs = new Map()) {
+  const files = markdownFiles("docs/tickets").filter((file) => !file.includes("/templates/"));
+  const tickets = new Map();
+  for (const file of files) {
+    const doc = readDoc(file);
+    if (doc.ignored) continue;
+    const fm = doc.frontmatter;
+    if (typeof fm.id === "string") {
+      assert(!tickets.has(fm.id), errors, file, `duplicate ticket id: ${fm.id}`);
+      tickets.set(fm.id, { file, frontmatter: fm, body: doc.body });
+    }
     assert(/^ticket\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "ticket id must start with ticket.");
     assert(ticketStatuses.has(fm.status), errors, file, `invalid ticket status: ${fm.status}`);
-    for (const key of ["title", "ticket_pack", "milestones", "implementation_agent", "parallel_group", "scope", "context_query", "axioms", "validation", "completion"]) {
+    const folderStatus = folderAfter(file, "docs/tickets");
+    if (folderStatus && ticketStatuses.has(folderStatus)) {
+      assert(fm.status === folderStatus, errors, file, `ticket status ${fm.status} does not match folder ${folderStatus}`);
+    }
+    for (const key of ["title", "ticket_pack", "milestones", "source_spec", "implementation_agent", "parallel_group", "scope", "context_query", "axioms", "validation", "completion"]) {
       assert(Object.hasOwn(fm, key), errors, file, `missing canonical ticket frontmatter: ${key}`);
+    }
+    if (typeof fm.source_spec === "string") {
+      assert(specs.has(fm.source_spec), errors, file, `ticket references missing spec: ${fm.source_spec}`);
     }
     for (const heading of ["Outcome", "Context", "Positive Rules", "Negative Rules", "Axioms", "Frozen Decisions", "Implementation Rules", "Scope", "Acceptance Criteria", "Validation", "Completion"]) {
       assert(sectionPresent(doc.body, heading), errors, file, `missing ticket section: ${heading}`);
     }
     assert(!hasPlaceholder(doc.body + JSON.stringify(fm)), errors, file, "ticket still contains template placeholder text");
   }
-  return ids;
+  return tickets;
 }
 
-function validatePacks(errors, ticketIds) {
+function validatePacks(errors, tickets, specs = new Map()) {
   const files = markdownFiles("docs/ticket-packs").filter((file) => !file.includes("/templates/"));
+  const packs = new Map();
+  const allowedFolderStatuses = {
+    draft: new Set(["draft"]),
+    active: new Set(["active", "blocked"]),
+    backlog: new Set(["draft", "ready", "blocked"]),
+    done: new Set(["done"]),
+    superseded: new Set(["superseded"]),
+  };
   for (const file of files) {
     const doc = readDoc(file);
     if (doc.ignored) continue;
     const fm = doc.frontmatter;
+    if (typeof fm.id === "string") {
+      assert(!packs.has(fm.id), errors, file, `duplicate pack id: ${fm.id}`);
+      packs.set(fm.id, { file, frontmatter: fm, body: doc.body });
+    }
     assert(/^pack\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "pack id must start with pack.");
     assert(packStatuses.has(fm.status), errors, file, `invalid pack status: ${fm.status}`);
-    for (const key of ["title", "milestones", "tickets", "run_policy", "parallel_groups", "completion"]) {
+    const folderStatus = folderAfter(file, "docs/ticket-packs");
+    if (folderStatus && allowedFolderStatuses[folderStatus]) {
+      assert(allowedFolderStatuses[folderStatus].has(fm.status), errors, file, `pack status ${fm.status} does not belong in folder ${folderStatus}`);
+    }
+    for (const key of ["title", "milestones", "source_specs", "tickets", "run_policy", "parallel_groups", "completion"]) {
       assert(Object.hasOwn(fm, key), errors, file, `missing pack frontmatter: ${key}`);
+    }
+    if (Array.isArray(fm.source_specs)) {
+      for (const spec of fm.source_specs) {
+        assert(specs.has(spec), errors, file, `pack references missing spec: ${spec}`);
+      }
     }
     if (Array.isArray(fm.tickets)) {
       for (const ticket of fm.tickets) {
-        assert(ticketIds.has(ticket), errors, file, `pack references missing ticket: ${ticket}`);
+        assert(tickets.has(ticket), errors, file, `pack references missing ticket: ${ticket}`);
+        const ticketDoc = tickets.get(ticket);
+        if (ticketDoc) {
+          assert(ticketDoc.frontmatter.ticket_pack === fm.id, errors, ticketDoc.file, `ticket_pack ${ticketDoc.frontmatter.ticket_pack} does not match containing pack ${fm.id}`);
+        }
       }
     }
     for (const heading of ["Outcome", "Scope", "Tickets", "Execution Plan", "Run Policy", "Pack Validation", "Completion"]) {
       assert(sectionPresent(doc.body, heading), errors, file, `missing pack section: ${heading}`);
     }
   }
+  for (const [id, ticket] of tickets) {
+    const packId = ticket.frontmatter.ticket_pack;
+    if (typeof packId !== "string") continue;
+    assert(packs.has(packId), errors, ticket.file, `ticket references missing pack: ${packId}`);
+    const packTickets = packs.get(packId)?.frontmatter.tickets;
+    if (Array.isArray(packTickets)) {
+      assert(packTickets.includes(id), errors, ticket.file, `ticket_pack ${packId} does not include ticket ${id}`);
+    }
+  }
+  return packs;
 }
 
 function validateRuns(errors) {
@@ -218,8 +311,13 @@ function validateRuns(errors) {
   }
 }
 
-function validateFutureWork(errors) {
+function validateFutureWork(errors, tickets = new Map(), packs = new Map(), specs = new Map()) {
   const files = markdownFiles("docs/future-work").filter((file) => !file.includes("/templates/"));
+  const allowedFolderStatuses = {
+    captured: new Set(["captured", "questioning"]),
+    promoted: new Set(["promoted"]),
+    superseded: new Set(["superseded"]),
+  };
   for (const file of files) {
     const doc = readDoc(file);
     if (doc.ignored) continue;
@@ -227,9 +325,22 @@ function validateFutureWork(errors) {
     assert(/^future\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "future work id must start with future.");
     assert(fm.kind === "future-work", errors, file, "future work kind must be future-work");
     assert(["captured", "questioning", "promoted", "superseded"].includes(fm.status), errors, file, `invalid future work status: ${fm.status}`);
+    const folderStatus = folderAfter(file, "docs/future-work");
+    if (folderStatus && allowedFolderStatuses[folderStatus]) {
+      assert(allowedFolderStatuses[folderStatus].has(fm.status), errors, file, `future work status ${fm.status} does not belong in folder ${folderStatus}`);
+    }
     for (const key of ["title", "captured_at", "source", "promotion_target"]) {
       assert(Object.hasOwn(fm, key), errors, file, `missing future work frontmatter: ${key}`);
     }
+    const targetSpec = nestedFrontmatterValue(doc, "promotion_target", "spec");
+    const targetPack = nestedFrontmatterValue(doc, "promotion_target", "ticket_pack");
+    const targetTicket = nestedFrontmatterValue(doc, "promotion_target", "ticket");
+    if (fm.status === "promoted") {
+      assert(targetSpec || targetPack || targetTicket, errors, file, "promoted future work must reference a promotion target");
+    }
+    if (targetSpec) assert(specs.has(targetSpec), errors, file, `future work references missing spec: ${targetSpec}`);
+    if (targetPack) assert(packs.has(targetPack), errors, file, `future work references missing ticket pack: ${targetPack}`);
+    if (targetTicket) assert(tickets.has(targetTicket), errors, file, `future work references missing ticket: ${targetTicket}`);
     for (const heading of ["Idea", "Why Later", "Questions Before Promotion", "Promotion Notes"]) {
       assert(sectionPresent(doc.body, heading), errors, file, `missing future work section: ${heading}`);
     }
@@ -239,10 +350,11 @@ function validateFutureWork(errors) {
 function runChecks(scope) {
   const errors = [];
   validateDirs(errors);
-  const ticketIds = validateTickets(errors);
-  validatePacks(errors, ticketIds);
+  const specs = validateSpecs(errors);
+  const tickets = validateTickets(errors, specs);
+  const packs = validatePacks(errors, tickets, specs);
   validateRuns(errors);
-  validateFutureWork(errors);
+  validateFutureWork(errors, tickets, packs, specs);
   return {
     ok: errors.length === 0,
     scope,
@@ -373,18 +485,25 @@ if (command === "lint") {
   printResult(result);
 } else if (command === "ticket" && subcommand === "check") {
   const errors = [];
-  validateTickets(errors);
+  const specs = validateSpecs(errors);
+  validateTickets(errors, specs);
   printResult({ ok: errors.length === 0, scope: "ticket check", errors });
 } else if (command === "pack" && subcommand === "check") {
   const errors = [];
-  const ticketIds = validateTickets(errors);
-  validatePacks(errors, ticketIds);
+  const specs = validateSpecs(errors);
+  const tickets = validateTickets(errors, specs);
+  validatePacks(errors, tickets, specs);
   printResult({ ok: errors.length === 0, scope: "pack check", errors });
 } else if (command === "spec" && subcommand === "check") {
-  printResult({ ok: fs.existsSync(path.join(root, "docs/specs")), scope: "spec check", errors: [] });
+  const errors = [];
+  validateSpecs(errors);
+  printResult({ ok: errors.length === 0, scope: "spec check", errors });
 } else if (command === "future" && subcommand === "check") {
   const errors = [];
-  validateFutureWork(errors);
+  const specs = validateSpecs(errors);
+  const tickets = validateTickets(errors, specs);
+  const packs = validatePacks(errors, tickets, specs);
+  validateFutureWork(errors, tickets, packs, specs);
   printResult({ ok: errors.length === 0, scope: "future check", errors });
 } else {
   const result = {

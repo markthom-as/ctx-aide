@@ -65,13 +65,17 @@ repo/
       done/
       superseded/
     ticket-packs/
+      templates/
+      draft/
       active/
       backlog/
       done/
+      superseded/
     future-work/
       templates/
       captured/
       promoted/
+      superseded/
   tools/
     context/
       ctx.mjs

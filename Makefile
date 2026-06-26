@@ -1,4 +1,4 @@
-.PHONY: validate ctx-lint skill-validate install-skill
+.PHONY: validate ctx-lint future-check skill-validate install-skill
 
 CODEX_SKILLS_DIR ?= $(HOME)/.codex/skills
 
