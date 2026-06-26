@@ -251,6 +251,11 @@ assert.equal(defaultValidationPlan.ok, true);
 assert.equal(defaultValidationPlan.workflows[0].breakpoints.length, 4);
 assert.equal(defaultValidationPlan.workflows[0].matrix.length, 8);
 assert.equal(defaultValidationPlan.workflows[0].matrix.some((item) => item.id === "logged-in:desktop"), true);
+assert.equal(defaultValidationPlan.workflows[0].testing.runner, "playwright");
+assert.equal(defaultValidationPlan.workflows[0].screenshots.output_dir, ".repo-context/artifacts/screenshots");
+assert.equal(defaultValidationPlan.workflows[0].ci.block_deploy_on_failure, true);
+assert.equal(defaultValidationPlan.workflows[0].deploy.cost_estimate_required, true);
+assert.equal(defaultValidationPlan.workflows[0].matrix.find((item) => item.id === "logged-out:mobile").screenshot_path, ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png");
 
 write("docs/config/repo-context.validation.json", `${JSON.stringify({
   config_version: 1,
@@ -258,6 +263,23 @@ write("docs/config/repo-context.validation.json", `${JSON.stringify({
     "workflow.browser-validation": {
       views: ["logged-out"],
       breakpoints: ["mobile", { id: "compact", width: 500, height: 700, purpose: "Custom compact viewport" }],
+      testing: {
+        runner: "vitest-browser",
+        command: "pnpm exec vitest --browser",
+      },
+      screenshots: {
+        output_dir: "artifacts/screens",
+        filename_template: "{view}-{breakpoint}.png",
+      },
+      ci: {
+        required_gates: ["unit", "browser"],
+      },
+      deploy: {
+        enabled: true,
+        provider: "vercel",
+        settings_file: "vercel.json",
+        postdeploy_smoke_commands: ["ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json"],
+      },
     },
   },
 }, null, 2)}\n`);
@@ -267,18 +289,29 @@ assert.equal(configuredValidationPlan.config.exists, true);
 assert.equal(configuredValidationPlan.workflows[0].views.length, 1);
 assert.equal(configuredValidationPlan.workflows[0].breakpoints.length, 2);
 assert.equal(configuredValidationPlan.workflows[0].matrix.map((item) => item.id).join(","), "logged-out:mobile,logged-out:compact");
+assert.equal(configuredValidationPlan.workflows[0].testing.runner, "vitest-browser");
+assert.equal(configuredValidationPlan.workflows[0].screenshots.output_dir, "artifacts/screens");
+assert.deepEqual(configuredValidationPlan.workflows[0].ci.required_gates, ["unit", "browser"]);
+assert.equal(configuredValidationPlan.workflows[0].deploy.provider, "vercel");
+assert.equal(configuredValidationPlan.workflows[0].deploy.cost_estimate_required, true);
+assert.equal(configuredValidationPlan.workflows[0].matrix[0].screenshot_path, "artifacts/screens/logged-out-mobile.png");
 
 write("docs/config/repo-context.validation.json", `${JSON.stringify({
   config_version: 1,
   workflows: {
     "workflow.browser-validation": {
       breakpoints: [{ id: "broken", width: 0, height: 700 }],
+      deploy: {
+        enabled: true,
+        cost_estimate_required: false,
+      },
     },
   },
 }, null, 2)}\n`);
 const invalidValidationPlan = run(["workflow", "validation-plan", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
 assert.equal(invalidValidationPlan.ok, false);
 assert.equal(invalidValidationPlan.errors.some((error) => error.message.includes("invalid width")), true);
+assert.equal(invalidValidationPlan.errors.some((error) => error.message.includes("cost_estimate_required")), true);
 
 const adoptedRepo = path.join(fixture, "target-app");
 fs.mkdirSync(adoptedRepo, { recursive: true });

@@ -390,6 +390,49 @@ const defaultWorkflowValidationConfig = {
     "workflow.browser-validation": {
       views: ["logged-out", "logged-in"],
       breakpoints: ["mobile", "tablet", "desktop", "wide"],
+      testing: {
+        runner: "playwright",
+        command: "npx playwright test",
+        config_file: "playwright.config.ts",
+        headed: false,
+        retries: {
+          local: 0,
+          ci: 2,
+        },
+        reporter: "html,line",
+        trace: "on-first-retry",
+        video: "retain-on-failure",
+      },
+      screenshots: {
+        output_dir: ".repo-context/artifacts/screenshots",
+        filename_template: "{workflow}/{view}/{breakpoint}.png",
+        save_on: "failure-and-request",
+      },
+      ci: {
+        provider: "auto",
+        required_gates: [
+          "workflow-deps",
+          "workflow-views",
+          "workflow-validation-plan",
+          "test-runner",
+        ],
+        artifact_paths: [
+          ".repo-context/artifacts/screenshots",
+          "playwright-report",
+          "test-results",
+        ],
+        block_deploy_on_failure: true,
+      },
+      deploy: {
+        enabled: false,
+        provider: "none",
+        mode: "manual",
+        requires_green_ci: true,
+        cost_estimate_required: true,
+        settings_file: null,
+        predeploy_commands: [],
+        postdeploy_smoke_commands: [],
+      },
     },
   },
 };
@@ -924,6 +967,65 @@ function workflowValidationOverride(config, workflowId) {
     ?? {};
 }
 
+function plainObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function mergeObjects(base, override) {
+  if (!plainObject(override)) return structuredClone(base);
+  const out = structuredClone(base);
+  for (const [key, value] of Object.entries(override)) {
+    if (plainObject(value) && plainObject(out[key])) out[key] = mergeObjects(out[key], value);
+    else out[key] = value;
+  }
+  return out;
+}
+
+function stringArray(value) {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string" && item.trim()) : [];
+}
+
+function validateRuntimeSettings(settings, file, errors) {
+  if (!plainObject(settings.testing)) {
+    errors.push({ file, message: "testing settings must be an object" });
+  } else {
+    for (const key of ["runner", "command"]) {
+      if (typeof settings.testing[key] !== "string" || !settings.testing[key].trim()) {
+        errors.push({ file, message: `testing.${key} must be a non-empty string` });
+      }
+    }
+  }
+  if (!plainObject(settings.screenshots)) {
+    errors.push({ file, message: "screenshots settings must be an object" });
+  } else if (typeof settings.screenshots.output_dir !== "string" || !settings.screenshots.output_dir.trim()) {
+    errors.push({ file, message: "screenshots.output_dir must be a non-empty string" });
+  }
+  if (!plainObject(settings.ci)) {
+    errors.push({ file, message: "ci settings must be an object" });
+  } else if (stringArray(settings.ci.required_gates).length === 0) {
+    errors.push({ file, message: "ci.required_gates must include at least one gate" });
+  }
+  if (!plainObject(settings.deploy)) {
+    errors.push({ file, message: "deploy settings must be an object" });
+  } else {
+    if (typeof settings.deploy.provider !== "string" || !settings.deploy.provider.trim()) {
+      errors.push({ file, message: "deploy.provider must be a non-empty string" });
+    }
+    if (settings.deploy.enabled === true && settings.deploy.cost_estimate_required !== true) {
+      errors.push({ file, message: "deploy.cost_estimate_required must be true when deploy.enabled is true" });
+    }
+  }
+}
+
+function screenshotPathFor(settings, workflowId, viewId, breakpointId) {
+  const template = String(settings.screenshots.filename_template ?? "{workflow}/{view}/{breakpoint}.png");
+  const filename = template
+    .replaceAll("{workflow}", workflowId.replace(/^workflow\./, ""))
+    .replaceAll("{view}", viewId)
+    .replaceAll("{breakpoint}", breakpointId);
+  return path.posix.join(String(settings.screenshots.output_dir), filename);
+}
+
 function normalizeBreakpointEntry(entry) {
   if (typeof entry === "string") {
     const preset = workflowBreakpointCatalog[entry];
@@ -1024,11 +1126,27 @@ function workflowValidationPlan() {
   const errors = [];
   const workflows = selected.map((workflow) => {
     const override = workflowValidationOverride(configResult.config, workflow.frontmatter.id);
+    const defaultWorkflowConfig = defaultWorkflowValidationConfig.workflows["workflow.browser-validation"];
+    const runtimeSettings = mergeObjects(
+      {
+        testing: defaultWorkflowConfig.testing,
+        screenshots: defaultWorkflowConfig.screenshots,
+        ci: defaultWorkflowConfig.ci,
+        deploy: defaultWorkflowConfig.deploy,
+      },
+      {
+        testing: override.testing,
+        screenshots: override.screenshots,
+        ci: override.ci,
+        deploy: override.deploy,
+      },
+    );
+    validateRuntimeSettings(runtimeSettings, configResult.path, errors);
     const configuredBreakpoints = Array.isArray(override.breakpoints)
       ? override.breakpoints
       : (Array.isArray(workflow.frontmatter.validation_breakpoints)
           ? workflow.frontmatter.validation_breakpoints
-          : defaultWorkflowValidationConfig.workflows["workflow.browser-validation"].breakpoints);
+          : defaultWorkflowConfig.breakpoints);
     const normalizedBreakpoints = configuredBreakpoints.map(normalizeBreakpointEntry);
     for (const normalized of normalizedBreakpoints) {
       if (!normalized.ok) errors.push({ file: configResult.path, message: normalized.error });
@@ -1041,12 +1159,14 @@ function workflowValidationPlan() {
       id: `${view.id}:${breakpoint.id}`,
       view: view.id,
       breakpoint: breakpoint.id,
+      test_runner: runtimeSettings.testing.runner,
       viewport: {
         width: breakpoint.width,
         height: breakpoint.height,
         device_scale_factor: breakpoint.device_scale_factor,
         is_mobile: breakpoint.is_mobile,
       },
+      screenshot_path: screenshotPathFor(runtimeSettings, workflow.frontmatter.id, view.id, breakpoint.id),
       auth_required: view.auth_required,
       ready: view.ready,
     })));
@@ -1056,6 +1176,10 @@ function workflowValidationPlan() {
       file: workflow.file,
       views,
       breakpoints,
+      testing: runtimeSettings.testing,
+      screenshots: runtimeSettings.screenshots,
+      ci: runtimeSettings.ci,
+      deploy: runtimeSettings.deploy,
       matrix,
       ready: matrix.every((item) => item.ready),
     };

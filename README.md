@@ -760,7 +760,7 @@ Codex native browser plugins are treated as optional external runtime tools. The
 
 ### Validation Breakpoints
 
-Browser validation has default breakpoints so target repos get useful coverage without configuration:
+Browser validation has default breakpoints and runtime behavior so target repos get useful coverage without configuration:
 
 - `mobile`: `390x844`
 - `tablet`: `820x1180`
@@ -776,7 +776,7 @@ node tools/context/ctx.mjs workflow validation-plan \
   --json
 ```
 
-Target repos can override the matrix in `docs/config/repo-context.validation.json`:
+Target repos can override the matrix, test runner, screenshot location, CI gates, and deploy policy in `docs/config/repo-context.validation.json`:
 
 ```json
 {
@@ -788,13 +788,35 @@ Target repos can override the matrix in `docs/config/repo-context.validation.jso
         "mobile",
         "desktop",
         { "id": "small-height", "width": 1280, "height": 720 }
-      ]
+      ],
+      "testing": {
+        "runner": "playwright",
+        "command": "npx playwright test",
+        "config_file": "playwright.config.ts",
+        "retries": { "local": 0, "ci": 2 }
+      },
+      "screenshots": {
+        "output_dir": ".repo-context/artifacts/screenshots",
+        "filename_template": "{workflow}/{view}/{breakpoint}.png"
+      },
+      "ci": {
+        "provider": "auto",
+        "required_gates": ["workflow-deps", "workflow-views", "workflow-validation-plan", "test-runner"],
+        "artifact_paths": [".repo-context/artifacts/screenshots", "playwright-report", "test-results"],
+        "block_deploy_on_failure": true
+      },
+      "deploy": {
+        "enabled": false,
+        "provider": "none",
+        "requires_green_ci": true,
+        "cost_estimate_required": true
+      }
     }
   }
 }
 ```
 
-The command works when the config file is absent by using built-in defaults. A future smart TUI should edit this same config file so CLI, agents, and humans share one source of truth.
+The command works when the config file is absent by using built-in defaults. It returns the normalized testing settings, screenshot path for each matrix row, CI gates/artifact paths, and deploy policy. A future smart TUI should edit this same config file so CLI, agents, and humans share one source of truth.
 
 ### Browser Views and Credentials
 

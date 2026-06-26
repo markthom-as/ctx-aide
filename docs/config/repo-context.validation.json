@@ -11,7 +11,50 @@
         "tablet",
         "desktop",
         "wide"
-      ]
+      ],
+      "testing": {
+        "runner": "playwright",
+        "command": "npx playwright test",
+        "config_file": "playwright.config.ts",
+        "headed": false,
+        "retries": {
+          "local": 0,
+          "ci": 2
+        },
+        "reporter": "html,line",
+        "trace": "on-first-retry",
+        "video": "retain-on-failure"
+      },
+      "screenshots": {
+        "output_dir": ".repo-context/artifacts/screenshots",
+        "filename_template": "{workflow}/{view}/{breakpoint}.png",
+        "save_on": "failure-and-request"
+      },
+      "ci": {
+        "provider": "auto",
+        "required_gates": [
+          "workflow-deps",
+          "workflow-views",
+          "workflow-validation-plan",
+          "test-runner"
+        ],
+        "artifact_paths": [
+          ".repo-context/artifacts/screenshots",
+          "playwright-report",
+          "test-results"
+        ],
+        "block_deploy_on_failure": true
+      },
+      "deploy": {
+        "enabled": false,
+        "provider": "none",
+        "mode": "manual",
+        "requires_green_ci": true,
+        "cost_estimate_required": true,
+        "settings_file": null,
+        "predeploy_commands": [],
+        "postdeploy_smoke_commands": []
+      }
     }
   },
   "tui": {

@@ -36,7 +36,7 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 5. Check the view-state matrix with `ctx workflow views --workflow workflow.browser-validation --repo <repo> --json`.
 6. Generate the breakpoint validation matrix with `ctx workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`.
 7. For logged-in validation, satisfy the `browser-test-user` profile through environment variables, an untracked env file, or an imported browser storage-state file.
-8. Record the dependency check, view-state check, breakpoint matrix, install command, and browser validation evidence on the ticket.
+8. Record the dependency check, view-state check, breakpoint matrix, test runner, screenshot output path, CI gates, deploy policy, install command, and browser validation evidence on the ticket.
 
 ## Readiness Gates
 
@@ -47,6 +47,8 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 - Logged-out and logged-in views must both be represented when a feature has different auth states.
 - Logged-in validation must not print credential values in stdout, logs, tickets, or generated context.
 - Breakpoint validation must use sensible defaults when no config file exists, and target repos may override breakpoints in `docs/config/repo-context.validation.json`.
+- Test runner behavior, screenshot save location, CI gates, and deploy policy must be included in the validation plan.
+- Deploy settings must keep `cost_estimate_required: true` whenever deploy is enabled.
 
 ## Dependency Policy
 
@@ -69,6 +71,14 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 - Target repos can override the validation matrix in `docs/config/repo-context.validation.json`.
 - Configured breakpoints may reference default preset ids or define custom `{ "id", "width", "height" }` objects.
 - A future smart TUI should edit the same config file instead of introducing a separate source of truth.
+
+## Runtime Policy
+
+- Default test runner is Playwright through `npx playwright test`.
+- Default screenshot output directory is `.repo-context/artifacts/screenshots`.
+- The validation matrix emits one screenshot path per view and breakpoint.
+- CI gates default to workflow dependency checks, view readiness, validation-plan generation, and the configured test runner.
+- Deploy defaults to disabled/manual. If enabled, deploy policy must require green CI and a cost estimate before infrastructure or hosted deploy changes.
 
 ## Validation
 
