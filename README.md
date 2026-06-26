@@ -73,6 +73,36 @@ repo/
 
 The repo should commit markdown context and generated lightweight agent packs. The SQLite database should usually be ignored or regenerated, unless the team wants deterministic local bootstrap without Node install.
 
+## Scan Exclusion
+
+Some markdown files should stay human-only and never enter the context index. The scanner must support two exclusion forms.
+
+Preferred structured form:
+
+```markdown
+---
+context_scan: false
+---
+
+# Human-Only Notes
+```
+
+Fast first-line sentinel:
+
+```markdown
+<!-- repo-context: ignore -->
+
+# Scratch Notes
+```
+
+Scanner rules:
+
+- If the first non-BOM line is `<!-- repo-context: ignore -->`, skip the file before frontmatter parsing.
+- If YAML frontmatter contains `context_scan: false`, skip the file.
+- Excluded files must not appear in SQLite, generated manifests, FTS search, agent packs, ticket hydration, or context query results.
+- `ctx lint` may report malformed markdown only when explicitly asked to include ignored files.
+- Ignored files should still remain normal repo files; this is not a gitignore substitute.
+
 ## Operating Model
 
 This system is designed around a two-tier agent workflow:
@@ -218,6 +248,7 @@ Every context file uses frontmatter plus markdown. The frontmatter provides mach
 ---
 id: route.reports.generate
 kind: route
+context_scan: true
 status: active
 title: Reports Generate Flow
 routes:

@@ -11,6 +11,8 @@ Use this skill to turn rough product or implementation intent into a hardened re
 
 - Markdown is source of truth.
 - SQLite indexes and generated agent packs are rebuildable artifacts.
+- Markdown is loaded progressively; detailed files should not enter agent context unless selected by scope/query or explicitly requested.
+- Files with first-line `<!-- repo-context: ignore -->` or frontmatter `context_scan: false` must be excluded from scans and generated agent context.
 - Specs come before tickets.
 - Tickets belong to ticket packs.
 - Tickets must be atomic, parallelizable where practical, and committed individually when complete.
@@ -86,4 +88,3 @@ ctx pack check --json
 ```
 
 If the CLI does not exist yet, do the same checks manually from markdown and note that automated context checks were not available.
-
