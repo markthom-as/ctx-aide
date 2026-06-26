@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "generated_by": "tools/context/ctx.mjs scan",
+  "source": "markdown",
+  "entry_count": 4,
+  "entries": [
+    {
+      "id": "component.ContextEntryCard",
+      "kind": "component",
+      "status": "proposed",
+      "title": "Context Entry Card",
+      "markdown_path": "docs/context/components/context-entry-card.md",
+      "summary": "Summarize one context entry in a lightweight catalog without replacing the markdown source file.",
+      "routes": [],
+      "files": [
+        "components/context/ContextEntryCard.tsx"
+      ],
+      "components": [],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "context",
+        "component-catalog"
+      ],
+      "positive_rules": [
+        "Display id, kind, status, source path, and short summary.",
+        "Keep positive rules and negative rules in separate labeled sections."
+      ],
+      "negative_rules": [
+        "Do not collapse negative rules into generic notes.",
+        "Do not use this component to edit canonical markdown directly."
+      ],
+      "load_when": {
+        "path_matches": [
+          "components/context/**"
+        ],
+        "task_terms": [
+          "context entry",
+          "component catalog"
+        ]
+      },
+      "updated": "2026-06-26"
+    },
+    {
+      "id": "feedback.2026-06-26.substrate-examples",
+      "kind": "feedback",
+      "status": "accepted",
+      "title": "Context substrate needs committed examples",
+      "markdown_path": "docs/context/feedback/2026-06-26-substrate-examples.md",
+      "summary": "The context substrate is not daily-usable if it only contains empty directories. It needs schema files and representative entries that validators can inspect.",
+      "routes": [
+        "/context-lab"
+      ],
+      "files": [
+        "docs/context/schema/context-entry.schema.json",
+        "docs/context/schema/feedback-entry.schema.json",
+        "tools/context/ctx.mjs"
+      ],
+      "components": [
+        "component.ContextEntryCard"
+      ],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "context",
+        "validation"
+      ],
+      "positive_rules": [],
+      "negative_rules": [],
+      "load_when": {
+        "path_matches": [],
+        "task_terms": []
+      },
+      "updated": "2026-06-26"
+    },
+    {
+      "id": "flow.repo-context-dogfood",
+      "kind": "flow",
+      "status": "active",
+      "title": "Repo Context Dogfood Flow",
+      "markdown_path": "docs/context/flows/repo-context-dogfood.md",
+      "summary": "Use this repository as the first fixture for the repo-local context, ticket, pack, validation, and agent skill workflow.",
+      "routes": [
+        "/context-lab"
+      ],
+      "files": [
+        "README.md",
+        "AGENTS.md",
+        "tools/context/ctx.mjs"
+      ],
+      "components": [
+        "component.ContextEntryCard"
+      ],
+      "flows": [],
+      "tags": [
+        "dogfood",
+        "tickets",
+        "validation"
+      ],
+      "positive_rules": [
+        "Update markdown context in the same ticket when intentional behavior changes.",
+        "Validate the repo context graph before committing ticket work."
+      ],
+      "negative_rules": [
+        "Do not treat generated indexes as canonical truth.",
+        "Do not implement a ticket that still requires product or architecture decisions."
+      ],
+      "load_when": {
+        "path_matches": [
+          "docs/context/**",
+          "docs/tickets/**",
+          "tools/context/**"
+        ],
+        "task_terms": [
+          "repo context",
+          "ticket pack",
+          "dogfood"
+        ]
+      },
+      "updated": "2026-06-26"
+    },
+    {
+      "id": "route.context-lab",
+      "kind": "route",
+      "status": "proposed",
+      "title": "Context Lab Route",
+      "markdown_path": "docs/context/routes/context-lab.md",
+      "summary": "Provide a local route concept for previewing repo-context entries, component catalog records, and rule polarity in a web app.",
+      "routes": [
+        "/context-lab"
+      ],
+      "files": [
+        "app/context-lab/page.tsx"
+      ],
+      "components": [
+        "component.ContextEntryCard"
+      ],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "context",
+        "catalog"
+      ],
+      "positive_rules": [
+        "Render context entries from markdown-derived registry data.",
+        "Keep positive and negative rules visually distinct."
+      ],
+      "negative_rules": [
+        "Do not make the context lab the canonical authoring surface.",
+        "Do not hide scan exclusions from review output."
+      ],
+      "load_when": {
+        "path_matches": [
+          "app/context-lab/**"
+        ],
+        "task_terms": [
+          "context lab",
+          "component catalog"
+        ]
+      },
+      "updated": "2026-06-26"
+    }
+  ]
+}

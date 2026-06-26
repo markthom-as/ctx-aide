@@ -1,11 +1,14 @@
-.PHONY: validate ctx-lint future-check skill-validate install-skill
+.PHONY: validate ctx-lint ctx-test future-check skill-validate install-skill
 
 CODEX_SKILLS_DIR ?= $(HOME)/.codex/skills
 
-validate: ctx-lint future-check skill-validate
+validate: ctx-lint ctx-test future-check skill-validate
 
 ctx-lint:
 	node tools/context/ctx.mjs lint --json
+
+ctx-test:
+	node tools/context/ctx.test.mjs
 
 future-check:
 	node tools/context/ctx.mjs future check --json

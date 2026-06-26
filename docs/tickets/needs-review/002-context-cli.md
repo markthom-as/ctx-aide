@@ -1,6 +1,6 @@
 ---
 id: ticket.context.002
-status: draft
+status: needs-review
 title: Implement ctx scan query lint CLI foundation
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -51,7 +51,7 @@ completion:
   completed_at: null
 ---
 
-# Implement ctx scan query lint CLI foundation
+# Implement Ctx Scan Query Lint CLI Foundation
 
 ## Outcome
 
@@ -125,7 +125,11 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs scan --json`
+  - `node tools/context/ctx.mjs query --path tools/context/ctx.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json`
+  - `make validate`
 - Follow-up tickets: pending

@@ -92,6 +92,12 @@ function markdownFiles(dir) {
     .map((file) => path.relative(root, file));
 }
 
+function contextMarkdownFiles() {
+  return markdownFiles("docs/context")
+    .filter((file) => !file.includes("/schema/") && !file.includes("/generated/"))
+    .sort();
+}
+
 function parseValue(value) {
   const trimmed = value.trim();
   if (trimmed === "[]") return [];
@@ -159,6 +165,34 @@ function nestedFrontmatterValue(doc, parent, key) {
   return undefined;
 }
 
+function nestedFrontmatterList(doc, parent, key) {
+  const values = [];
+  let inParent = false;
+  let inKey = false;
+  for (const line of (doc.frontmatterText ?? "").split("\n")) {
+    const top = line.match(/^([A-Za-z0-9_-]+):(?:\s*(.*))?$/);
+    if (top) {
+      inParent = top[1] === parent && (top[2] ?? "") === "";
+      inKey = false;
+      continue;
+    }
+    if (!inParent) continue;
+    const child = line.match(new RegExp(`^\\s{2}${key}:\\s*$`));
+    if (child) {
+      inKey = true;
+      continue;
+    }
+    if (/^\s{2}[A-Za-z0-9_-]+:/.test(line)) {
+      inKey = false;
+      continue;
+    }
+    if (!inKey) continue;
+    const item = line.match(/^\s+-\s*(.+)$/);
+    if (item) values.push(parseValue(item[1]));
+  }
+  return values;
+}
+
 function folderAfter(file, prefix) {
   const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = file.match(new RegExp(`^${escaped}\\/([^/]+)\\/`));
@@ -182,6 +216,196 @@ function hasPlaceholder(body) {
     "Short imperative title",
     "One concrete outcome this ticket delivers.",
   ].some((placeholder) => body.includes(placeholder));
+}
+
+function unique(values) {
+  return [...new Set(values.filter((value) => typeof value === "string" && value.length > 0))];
+}
+
+function firstParagraph(body) {
+  const lines = body
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#") && !line.startsWith("-"));
+  return lines[0] ?? "";
+}
+
+function contextEntryFromDoc(file, doc) {
+  const fm = doc.frontmatter;
+  const feedbackRoutes = nestedFrontmatterList(doc, "applies_to", "routes");
+  const feedbackFiles = nestedFrontmatterList(doc, "applies_to", "files");
+  const feedbackComponents = nestedFrontmatterList(doc, "applies_to", "components");
+  const feedbackFlows = nestedFrontmatterList(doc, "applies_to", "flows");
+  const loadPathMatches = nestedFrontmatterList(doc, "load_when", "path_matches");
+  const loadTaskTerms = nestedFrontmatterList(doc, "load_when", "task_terms");
+  return {
+    id: fm.id,
+    kind: fm.kind,
+    status: fm.status,
+    title: fm.title,
+    markdown_path: file,
+    summary: firstParagraph(doc.body),
+    routes: unique([...(Array.isArray(fm.routes) ? fm.routes : []), ...feedbackRoutes]),
+    files: unique([...(Array.isArray(fm.files) ? fm.files : []), ...feedbackFiles]),
+    components: unique([...(Array.isArray(fm.components) ? fm.components : []), ...feedbackComponents]),
+    flows: unique([...(Array.isArray(fm.flows) ? fm.flows : []), ...feedbackFlows]),
+    tags: Array.isArray(fm.tags) ? fm.tags : [],
+    positive_rules: Array.isArray(fm.positive_rules) ? fm.positive_rules : [],
+    negative_rules: Array.isArray(fm.negative_rules) ? fm.negative_rules : [],
+    load_when: {
+      path_matches: loadPathMatches,
+      task_terms: loadTaskTerms,
+    },
+    updated: fm.updated ?? fm.created ?? null,
+    body: doc.body,
+  };
+}
+
+function readContextEntries() {
+  return contextMarkdownFiles()
+    .map((file) => ({ file, doc: readDoc(file) }))
+    .filter(({ doc }) => !doc.ignored)
+    .map(({ file, doc }) => contextEntryFromDoc(file, doc))
+    .filter((entry) => typeof entry.id === "string")
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function publicEntry(entry) {
+  const { body, ...rest } = entry;
+  return rest;
+}
+
+function manifestFor(entries) {
+  return {
+    schema_version: 1,
+    generated_by: "tools/context/ctx.mjs scan",
+    source: "markdown",
+    entry_count: entries.length,
+    entries: entries.map(publicEntry),
+  };
+}
+
+function writeGeneratedManifest(manifest) {
+  const outDir = path.join(root, "docs/context/generated");
+  fs.mkdirSync(outDir, { recursive: true });
+  const outPath = path.join(outDir, "context-manifest.json");
+  fs.writeFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  return path.relative(root, outPath);
+}
+
+function scan() {
+  const entries = readContextEntries();
+  const manifest = manifestFor(entries);
+  const manifestPath = writeGeneratedManifest(manifest);
+  return {
+    ok: true,
+    scope: "scan",
+    manifest_path: manifestPath,
+    entry_count: entries.length,
+    entries: entries.map((entry) => ({
+      id: entry.id,
+      kind: entry.kind,
+      status: entry.status,
+      markdown_path: entry.markdown_path,
+    })),
+  };
+}
+
+function pathMatchesPattern(pattern, targetPath) {
+  if (!pattern || !targetPath) return false;
+  if (pattern.endsWith("/**")) return targetPath.startsWith(pattern.slice(0, -3));
+  if (pattern.includes("*")) {
+    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    return new RegExp(`^${escaped}$`).test(targetPath);
+  }
+  return pattern === targetPath;
+}
+
+function scoreEntry(entry, targetPath, task) {
+  const reasons = [];
+  let score = 0;
+  if (targetPath) {
+    if (entry.files.includes(targetPath)) {
+      score += 100;
+      reasons.push("exact file match");
+    }
+    if (entry.routes.includes(targetPath)) {
+      score += 90;
+      reasons.push("exact route match");
+    }
+    for (const pattern of entry.load_when.path_matches) {
+      if (pathMatchesPattern(pattern, targetPath)) {
+        score += 60;
+        reasons.push(`load_when path match: ${pattern}`);
+      }
+    }
+    for (const file of entry.files) {
+      if (targetPath.startsWith(file.replace(/\/?$/, "/"))) {
+        score += 25;
+        reasons.push(`directory ancestor match: ${file}`);
+      }
+    }
+  }
+
+  const taskLower = task.toLowerCase();
+  for (const term of entry.load_when.task_terms) {
+    if (term && taskLower.includes(term.toLowerCase())) {
+      score += 35;
+      reasons.push(`task term match: ${term}`);
+    }
+  }
+  const searchable = [
+    entry.id,
+    entry.title,
+    entry.kind,
+    entry.summary,
+    entry.tags.join(" "),
+    entry.body,
+  ].join(" ").toLowerCase();
+  for (const token of unique(taskLower.split(/[^a-z0-9_.-]+/)).filter((token) => token.length >= 4)) {
+    if (searchable.includes(token)) score += 5;
+  }
+  if (entry.status === "active" || entry.status === "accepted") score += 10;
+  return { score, reasons };
+}
+
+function query() {
+  const targetPath = argValue("--path", "");
+  const task = argValue("--task", "");
+  const agent = argValue("--agent", "codex");
+  const budget = Number.parseInt(argValue("--budget", "6000"), 10);
+  const maxEntries = Math.max(1, Math.min(20, Math.floor((Number.isFinite(budget) ? budget : 6000) / 300)));
+  const entries = readContextEntries()
+    .map((entry) => {
+      const ranked = scoreEntry(entry, targetPath, task);
+      return { ...entry, score: ranked.score, reasons: ranked.reasons };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
+    .slice(0, maxEntries)
+    .map((entry) => ({
+      id: entry.id,
+      kind: entry.kind,
+      status: entry.status,
+      title: entry.title,
+      markdown_path: entry.markdown_path,
+      score: entry.score,
+      reasons: entry.reasons,
+      summary: entry.summary,
+      positive_rules: entry.positive_rules,
+      negative_rules: entry.negative_rules,
+    }));
+  return {
+    ok: true,
+    scope: "query",
+    query: {
+      path: targetPath,
+      task,
+      agent,
+      budget,
+    },
+    entries,
+  };
 }
 
 function validateDirs(errors) {
@@ -538,6 +762,10 @@ function printResult(result) {
 
 if (command === "lint") {
   printResult(runChecks("lint"));
+} else if (command === "scan") {
+  printResult(scan());
+} else if (command === "query") {
+  printResult(query());
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
@@ -568,6 +796,8 @@ if (command === "lint") {
     ok: false,
     usage: [
       "ctx lint --json",
+      "ctx scan --json",
+      "ctx query --path <path> --task <task> --agent codex --budget 6000 --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx pack check --json",
