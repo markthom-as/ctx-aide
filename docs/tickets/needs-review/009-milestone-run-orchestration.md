@@ -1,6 +1,6 @@
 ---
 id: ticket.context.009
-status: draft
+status: needs-review
 title: Add milestone run orchestration
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -123,7 +123,10 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs run status docs/runs/repo-context-mvp.md --json`
+  - `node tools/context/ctx.mjs lint --json`
+  - `make validate`
 - Follow-up tickets: pending

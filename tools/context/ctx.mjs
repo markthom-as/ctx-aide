@@ -692,6 +692,40 @@ function impact() {
   };
 }
 
+function runStatus(runFile) {
+  const file = runFile || args[2] || argValue("--run", "");
+  if (!file) {
+    return {
+      ok: false,
+      scope: "run status",
+      errors: [{ file: "docs/runs", message: "missing run file" }],
+    };
+  }
+  const doc = readDoc(file);
+  const agents = nestedFrontmatterList(doc, "agents", "ids");
+  const mergeQueue = nestedFrontmatterList(doc, "merge_queue", "items");
+  const staleAgents = nestedFrontmatterList(doc, "stale_agents", "ids");
+  return {
+    ok: Boolean(doc.frontmatter.kind === "milestone-run"),
+    scope: "run status",
+    run: {
+      file,
+      ticket_pack: doc.frontmatter.ticket_pack,
+      status: doc.frontmatter.status,
+      coordinator: doc.frontmatter.coordinator,
+      max_parallel_agents: doc.frontmatter.max_parallel_agents,
+      stale_after_minutes: doc.frontmatter.stale_after_minutes,
+    },
+    agents,
+    stale_agents: staleAgents,
+    merge_queue: mergeQueue,
+    pack_validation: {
+      pending: doc.body.includes("Pack validation: pending"),
+    },
+    errors: doc.frontmatter.kind === "milestone-run" ? [] : [{ file, message: "run kind must be milestone-run" }],
+  };
+}
+
 function doctor() {
   const errors = [];
   validateDirs(errors);
@@ -1257,6 +1291,8 @@ if (command === "lint") {
   printResult(componentGet(args[2] ?? ""));
 } else if (command === "impact") {
   printResult(impact());
+} else if (command === "run" && subcommand === "status") {
+  printResult(runStatus(args[2] ?? ""));
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
@@ -1299,6 +1335,7 @@ if (command === "lint") {
       "ctx components list --json",
       "ctx components get component.Button --json",
       "ctx impact --path components/Button.tsx --json",
+      "ctx run status docs/runs/RUN.md --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",
