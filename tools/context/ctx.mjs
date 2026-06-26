@@ -1948,6 +1948,12 @@ function bodySectionLines(body, heading) {
   return out;
 }
 
+function markdownTitle(body) {
+  const line = body.split("\n").find((item) => item.startsWith("# "));
+  if (!line) return "";
+  return line.replace(/^#\s+/, "").replace(/^Ticket:\s*/i, "").trim();
+}
+
 function implementationPlan() {
   const repoPath = targetRepoPath();
   const ticketArg = argValue("--ticket", args[2] && !args[2].startsWith("--") ? args[2] : "");
@@ -1963,7 +1969,8 @@ function implementationPlan() {
     return { ok: false, scope: "adoption implementation-plan", errors: [{ file: ticketArg, message: "ticket file does not exist" }] };
   }
   const doc = readDocAt(repoPath, ticketPath);
-  const task = nestedFrontmatterValue(doc, "context_query", "task") ?? doc.frontmatter.title ?? "";
+  const inferredTitle = doc.frontmatter.title ?? markdownTitle(doc.body) ?? "";
+  const task = nestedFrontmatterValue(doc, "context_query", "task") ?? inferredTitle;
   const explicitContextIds = unique([
     ...(Array.isArray(doc.frontmatter.context_ids) ? doc.frontmatter.context_ids : []),
     ...nestedFrontmatterList(doc, "context_query", "context_ids"),
@@ -1972,6 +1979,7 @@ function implementationPlan() {
     ...nestedFrontmatterList(doc, "scope", "files"),
     ...nestedFrontmatterList(doc, "scope", "directories"),
     ...nestedFrontmatterList(doc, "scope", "routes"),
+    ...(Array.isArray(doc.frontmatter.source_docs) ? doc.frontmatter.source_docs : []),
   ]);
   const entries = targetContextEntries(repoPath)
     .map((entry) => {
@@ -2002,6 +2010,9 @@ function implementationPlan() {
     ...bodySectionLines(doc.body, "Validation")
       .map((line) => line.match(/`([^`]+)`/)?.[1] ?? line.replace(/^-\s*/, "").trim())
       .filter((line) => line && !line.endsWith(":")),
+    ...bodySectionLines(doc.body, "Verification")
+      .map((line) => line.match(/`([^`]+)`/)?.[1] ?? line.replace(/^-\s*/, "").trim())
+      .filter((line) => line && !line.endsWith(":")),
   ]);
   return {
     ok: true,
@@ -2010,8 +2021,8 @@ function implementationPlan() {
     explicit_context_loading: true,
     ticket: {
       file: ticketPath,
-      id: doc.frontmatter.id ?? null,
-      title: doc.frontmatter.title ?? null,
+      id: doc.frontmatter.id ?? doc.frontmatter.ticket_id ?? null,
+      title: inferredTitle || null,
       status: doc.frontmatter.status ?? null,
       work_type: doc.frontmatter.work_type ?? null,
     },

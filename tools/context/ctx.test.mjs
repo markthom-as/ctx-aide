@@ -280,6 +280,115 @@ const invalidValidationPlan = run(["workflow", "validation-plan", "--workflow", 
 assert.equal(invalidValidationPlan.ok, false);
 assert.equal(invalidValidationPlan.errors.some((error) => error.message.includes("invalid width")), true);
 
+const adoptedRepo = path.join(fixture, "target-app");
+fs.mkdirSync(adoptedRepo, { recursive: true });
+fs.writeFileSync(path.join(adoptedRepo, "package.json"), `${JSON.stringify({ name: "target-app", private: true }, null, 2)}\n`);
+fs.writeFileSync(path.join(adoptedRepo, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+const adoptionDryRun = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware"]);
+assert.equal(adoptionDryRun.ok, true);
+assert.equal(adoptionDryRun.write, false);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), false);
+
+const adoptionBootstrap = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware", "--write"]);
+assert.equal(adoptionBootstrap.ok, true);
+assert.equal(adoptionBootstrap.profile.profile, "wetware");
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), true);
+
+const adoptedContext = run([
+  "adoption",
+  "context",
+  "--repo",
+  adoptedRepo,
+  "--kind",
+  "flow",
+  "--title",
+  "Dependency Audit Clearance",
+  "--slug",
+  "dependency-audit-clearance",
+  "--path",
+  "package.json,pnpm-lock.yaml",
+  "--task",
+  "dependency audit clearance",
+  "--positive-rule",
+  "Preserve lockfile integrity.",
+  "--negative-rule",
+  "Do not mark dependency work done until the audit clears.",
+  "--write",
+]);
+assert.equal(adoptedContext.ok, true);
+assert.equal(adoptedContext.context.id, "flow.dependency-audit-clearance");
+assert.equal(fs.existsSync(path.join(adoptedRepo, adoptedContext.context.file)), true);
+
+const adoptedTicket = run([
+  "adoption",
+  "ticket",
+  "--repo",
+  adoptedRepo,
+  "--profile",
+  "wetware",
+  "--title",
+  "Clear Dependency Audit",
+  "--slug",
+  "clear-dependency-audit",
+  "--task",
+  "dependency audit clearance",
+  "--work-type",
+  "dependency-upgrade",
+  "--context",
+  "flow.dependency-audit-clearance",
+  "--file",
+  "package.json,pnpm-lock.yaml",
+  "--validation",
+  "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
+  "--write",
+]);
+assert.equal(adoptedTicket.ok, true);
+assert.equal(adoptedTicket.ticket.file, "docs/tickets/clear-dependency-audit.md");
+assert.equal(fs.existsSync(path.join(adoptedRepo, adoptedTicket.ticket.file)), true);
+
+const adoptedPlan = run([
+  "adoption",
+  "implementation-plan",
+  "--repo",
+  adoptedRepo,
+  "--ticket",
+  adoptedTicket.ticket.file,
+]);
+assert.equal(adoptedPlan.ok, true);
+assert.equal(adoptedPlan.explicit_context_loading, true);
+assert.deepEqual(adoptedPlan.context_ids, ["flow.dependency-audit-clearance"]);
+assert.equal(adoptedPlan.entries[0].body, undefined);
+assert.equal(adoptedPlan.validation_commands.some((command) => command.includes("dependency audit")), true);
+
+fs.writeFileSync(path.join(adoptedRepo, "docs/tickets/legacy-dependency-ticket.md"), `---
+status: done
+ticket_id: WG-DEPS-LEGACY
+work_type: dependency-upgrade
+source_docs:
+  - package.json
+  - pnpm-lock.yaml
+---
+
+# Ticket: Clear Production Dependency Audit
+
+## Verification
+
+- \`ctx dependency audit --repo . --command "pnpm audit --prod" --json\`
+`);
+const legacyPlan = run([
+  "adoption",
+  "implementation-plan",
+  "--repo",
+  adoptedRepo,
+  "--ticket",
+  "docs/tickets/legacy-dependency-ticket.md",
+]);
+assert.equal(legacyPlan.ok, true);
+assert.equal(legacyPlan.ticket.id, "WG-DEPS-LEGACY");
+assert.equal(legacyPlan.ticket.title, "Clear Production Dependency Audit");
+assert.equal(legacyPlan.target_paths.includes("package.json"), true);
+assert.equal(legacyPlan.validation_commands.some((command) => command.includes("pnpm audit --prod")), true);
+
 write("docs/specs/dependency-upgrade.md", `---
 id: spec.dependency-upgrade
 status: draft
