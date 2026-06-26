@@ -147,6 +147,28 @@ Recommended flow:
 
 The implementation agent contract is strict: if a ticket contains an unresolved design, architecture, product, or security decision, the agent should stop and escalate rather than inventing policy during implementation.
 
+## Agent Operating Rules
+
+Repo-context should preserve the daily operating rules that make agent work reviewable and parallelizable.
+
+- Plan work for parallel execution where practical. Use ticket packs, parallel groups, subagents, and worktrees when the work can be isolated cleanly.
+- Use markdown specs, tickets, and ticket packs for implementation planning. A completed ticket should have one clean commit, completion metadata, and validation evidence.
+- Keep tickets atomic enough to implement independently. Tickets that share files, migrations, route contracts, or design decisions must declare the coordination point in the pack.
+- Estimate and surface the delta in cost before changing, deploying, or creating paid infrastructure such as AWS, Vercel, Fly, hosted databases, queues, or paid observability services.
+- Start semantic code discovery with Semble when target files are unknown. Use `semble search` for behavioral or symbol-oriented discovery, `semble find-related` for similar code, and grep or ripgrep only for exhaustive literal matches or exact-string confirmation.
+- If `semble` is not on `PATH`, use `uvx --from "semble[mcp]" semble`.
+- Inspect full files before editing; Semble output is a discovery aid, not product truth.
+
+Example search flow:
+
+```bash
+semble search "authentication flow" ./my-project
+semble search "save_pretrained" ./my-project
+semble search "save model to disk" ./my-project --top-k 10
+semble find-related src/auth.py 42 ./my-project
+uvx --from "semble[mcp]" semble search "authentication flow" ./my-project
+```
+
 ## Future Work Capture
 
 Future work is first-class. Use it for ideas that should be retained but should not block the current spec, ticket, or milestone.
@@ -618,7 +640,7 @@ make install-skill
 
 ### Semble Discovery
 
-Use Semble as an optional code-discovery backend when target files are unknown.
+Use Semble as the default semantic code-discovery backend when target files are unknown. Keep discovery bounded and feed the results into context queries, ticket hydration, and implementation notes.
 
 ```bash
 node tools/context/ctx.mjs discover --backend semble --task "fix chart selection flow" --repo . --json
