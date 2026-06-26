@@ -1,6 +1,6 @@
 ---
 id: ticket.context.025
-status: ready
+status: done
 title: Make validation plan readiness truthful
 ticket_pack: pack.repo-context-staff-review-hardening-2026-06-26
 milestones:
@@ -37,12 +37,12 @@ axioms:
 validation:
   automated:
     - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json
+    - BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: validation-plan-truthfulness-hardening
+  completed_at: 2026-06-26
 ---
 
 # Make Validation Plan Readiness Truthful
@@ -99,7 +99,7 @@ A review gate that emits `ok: true` while its required validation matrix is unre
 ## Validation
 
 - Automated: `node tools/context/ctx.test.mjs`.
-- Smoke: `node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`.
+- Smoke: `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -108,7 +108,12 @@ This ticket intentionally makes a stricter gate; any caller that wants planning-
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending.
+- Status: done
+- Commit: validation-plan-truthfulness-hardening
+- Verification evidence:
+  - `node --check tools/context/ctx.mjs`
+  - `node tools/context/ctx.test.mjs`
+  - `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/context/ctx.mjs ticket check --json`
+  - `node tools/context/ctx.mjs pack check --json`
 - Follow-up tickets: none.

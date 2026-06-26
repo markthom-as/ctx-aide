@@ -1306,8 +1306,13 @@ function workflowValidationPlan() {
       ready: matrix.every((item) => item.ready),
     };
   });
+  const readinessErrors = workflows.flatMap((workflow) =>
+    workflow.views
+      .filter((view) => !view.ready)
+      .flatMap((view) => view.issues.map((issue) => ({ file: workflow.file, message: `${workflow.id}: ${issue}` }))),
+  );
   return {
-    ok: errors.length === 0,
+    ok: errors.length === 0 && readinessErrors.length === 0,
     scope: "workflow validation-plan",
     repo: path.relative(root, repoPath) || ".",
     config: {
@@ -1316,7 +1321,7 @@ function workflowValidationPlan() {
       source: configResult.source,
     },
     workflows,
-    errors,
+    errors: [...errors, ...readinessErrors],
   };
 }
 

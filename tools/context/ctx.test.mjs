@@ -229,6 +229,12 @@ assert.equal(missingViewCredentials.ok, false);
 assert.equal(missingViewCredentials.workflows[0].views.find((view) => view.id === "logged-out").ready, true);
 assert.equal(missingViewCredentials.workflows[0].views.find((view) => view.id === "logged-in").ready, false);
 
+const blockedValidationPlan = run(["workflow", "validation-plan", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
+assert.equal(blockedValidationPlan.ok, false);
+assert.equal(blockedValidationPlan.workflows[0].matrix.length, 8);
+assert.equal(blockedValidationPlan.workflows[0].ready, false);
+assert.equal(blockedValidationPlan.errors.some((error) => error.message.includes("logged-in")), true);
+
 const envCredentials = run(["credentials", "check", "--profile", "browser-test-user", "--repo", "."], {
   env: {
     BROWSER_TEST_EMAIL: "agent@example.test",

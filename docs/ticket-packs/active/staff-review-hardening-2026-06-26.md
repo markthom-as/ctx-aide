@@ -46,7 +46,7 @@ Prepare repo-context for staff-engineering review and harsh public scrutiny by h
 ## Tickets
 
 - `ticket.context.024`: done
-- `ticket.context.025`: ready
+- `ticket.context.025`: done
 - `ticket.context.026`: ready
 
 ## Execution Plan
@@ -72,6 +72,6 @@ Prepare repo-context for staff-engineering review and harsh public scrutiny by h
 
 ## Completion
 
-- Completed tickets: `ticket.context.024`.
-- Remaining tickets: `ticket.context.025`, `ticket.context.026`.
+- Completed tickets: `ticket.context.024`, `ticket.context.025`.
+- Remaining tickets: `ticket.context.026`.
 - Final validation: pending.

@@ -34,7 +34,7 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 3. Install dependencies with the target repo's package manager so the lockfile records the exact resolved tree.
 4. Run the workflow's browser smoke or screenshot validation command from the repo, not from an agent plugin.
 5. Check the view-state matrix with `ctx workflow views --workflow workflow.browser-validation --repo <repo> --json`.
-6. Generate the breakpoint validation matrix with `ctx workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`.
+6. Generate the breakpoint validation matrix with `ctx workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`; this command fails when any required view is not ready, while still returning the matrix and blockers.
 7. For logged-in validation, satisfy the `browser-test-user` profile through environment variables, an untracked env file, or an imported browser storage-state file.
 8. Record the dependency check, view-state check, breakpoint matrix, test runner, screenshot output path, CI gates, deploy policy, install command, and browser validation evidence on the ticket.
 
@@ -48,6 +48,7 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 - Logged-in validation must not print credential values in stdout, logs, tickets, or generated context.
 - Breakpoint validation must use sensible defaults when no config file exists, and target repos may override breakpoints in `docs/config/repo-context.validation.json`.
 - Test runner behavior, screenshot save location, CI gates, and deploy policy must be included in the validation plan.
+- Validation-plan `ok` must be false when required views lack credentials or storage state.
 - Deploy settings must keep `cost_estimate_required: true` whenever deploy is enabled.
 
 ## Dependency Policy
