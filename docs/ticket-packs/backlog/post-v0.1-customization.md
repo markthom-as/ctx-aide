@@ -45,7 +45,7 @@ Add an agent-guided customization process that lets users tune optional repo-con
 
 ## Tickets
 
-- `ticket.context.014`: draft - Add agent-driven workflow customization
+- `ticket.context.014`: needs-review - Add agent-driven workflow customization
 
 ## Execution Plan
 

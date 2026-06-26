@@ -55,6 +55,7 @@ const requiredDirs = [
   "docs/specs/templates",
   "docs/workflows",
   "docs/idvisor",
+  "docs/config",
   "docs/tickets/templates",
   "docs/tickets/draft",
   "docs/tickets/needs-questions",
@@ -756,6 +757,67 @@ function idvisorWorkflow() {
   };
 }
 
+const requiredAxioms = [
+  "axiom.markdown-source-of-truth",
+  "axiom.ticket-done-requires-commit",
+  "axiom.rule-polarity-preserved",
+];
+
+function customize() {
+  const profile = argValue("--profile", "strict");
+  const dryRun = args.includes("--dry-run") || !args.includes("--write");
+  const profiles = {
+    minimal: {
+      enabled: ["markdown-source", "lint", "ticket-check"],
+      optional: ["agent-packs", "sqlite-index", "impact"],
+    },
+    "web-app": {
+      enabled: ["markdown-source", "lint", "ticket-check", "component-catalog", "impact", "agent-packs"],
+      optional: ["idvisor-workflow", "custom-ui-catalog"],
+    },
+    "ui-heavy": {
+      enabled: ["markdown-source", "lint", "ticket-check", "component-catalog", "impact", "claude-ui-review", "agent-packs"],
+      optional: ["idvisor-workflow"],
+    },
+    "idvisor-orchestrated": {
+      enabled: ["markdown-source", "lint", "ticket-check", "run-orchestration", "idvisor-workflow", "agent-packs"],
+      optional: ["custom-ui-catalog"],
+    },
+    strict: {
+      enabled: ["markdown-source", "lint", "ticket-check", "component-catalog", "impact", "run-orchestration", "idvisor-workflow", "agent-packs"],
+      optional: [],
+    },
+  };
+  const selected = profiles[profile];
+  if (!selected) {
+    return {
+      ok: false,
+      scope: "customize",
+      errors: [{ file: "docs/config", message: `unknown profile: ${profile}` }],
+    };
+  }
+  const config = {
+    profile,
+    required_axioms: requiredAxioms,
+    enabled: selected.enabled,
+    optional: selected.optional,
+    generated_by: "tools/context/ctx.mjs customize",
+  };
+  const out = argValue("--out", "docs/config/repo-context.profile.json");
+  if (!dryRun) {
+    const outPath = path.isAbsolute(out) ? out : path.join(root, out);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, `${JSON.stringify(config, null, 2)}\n`);
+  }
+  return {
+    ok: true,
+    scope: "customize",
+    dry_run: dryRun,
+    out,
+    config,
+  };
+}
+
 function doctor() {
   const errors = [];
   validateDirs(errors);
@@ -1325,6 +1387,8 @@ if (command === "lint") {
   printResult(runStatus(args[2] ?? ""));
 } else if (command === "idvisor" && subcommand === "workflow") {
   printResult(idvisorWorkflow());
+} else if (command === "customize") {
+  printResult(customize());
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
@@ -1369,6 +1433,7 @@ if (command === "lint") {
       "ctx impact --path components/Button.tsx --json",
       "ctx run status docs/runs/RUN.md --json",
       "ctx idvisor workflow --json",
+      "ctx customize --profile strict --dry-run --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",
