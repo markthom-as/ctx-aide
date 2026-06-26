@@ -1,6 +1,6 @@
 ---
 id: ticket.context.000
-status: draft
+status: needs-review
 title: Define high-effort spec to ticket workflow
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -49,7 +49,7 @@ completion:
   completed_at: null
 ---
 
-# Define high-effort spec to ticket workflow
+# Define High-Effort Spec to Ticket Workflow
 
 ## Outcome
 
@@ -119,7 +119,9 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs spec check --json`
+  - `make validate`
 - Follow-up tickets: pending

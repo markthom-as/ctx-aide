@@ -50,6 +50,8 @@ const requiredDirs = [
   "docs/context/feedback",
   "docs/context/generated",
   "docs/specs",
+  "docs/specs/templates",
+  "docs/workflows",
   "docs/tickets/templates",
   "docs/tickets/draft",
   "docs/tickets/needs-questions",
