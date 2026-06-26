@@ -173,6 +173,36 @@ assert.equal(failedAudit.audit_cleared, false);
 assert.equal(failedAudit.vulnerabilities.total, 2);
 assert.deepEqual(failedAudit.vulnerable_packages, ["next"]);
 
+write("docs/workflows/browser-validation.md", `---
+id: workflow.browser-validation
+status: active
+title: Browser Validation Workflow
+workflow_dependencies:
+  - node
+  - package-manager-lockfile
+  - playwright
+optional_workflow_dependencies:
+  - codex-native-browser-plugin
+updated: 2026-06-26
+---
+
+# Browser Validation Workflow
+`);
+write("package.json", `${JSON.stringify({ name: "fixture-app", private: true }, null, 2)}\n`);
+const missingWorkflowDeps = run(["workflow", "deps", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
+assert.equal(missingWorkflowDeps.ok, false);
+assert.equal(missingWorkflowDeps.workflows[0].dependencies.some((dependency) => dependency.id === "playwright" && dependency.pinned === false), true);
+
+const wroteWorkflowDeps = run(["workflow", "deps", "--workflow", "workflow.browser-validation", "--repo", ".", "--write"], { allowFailure: true });
+assert.equal(wroteWorkflowDeps.ok, false);
+assert.equal(wroteWorkflowDeps.workflows[0].writes.some((writeRow) => writeRow.package_name === "@playwright/test"), true);
+const workflowPackage = JSON.parse(fs.readFileSync(path.join(fixture, "package.json"), "utf8"));
+assert.equal(workflowPackage.devDependencies["@playwright/test"], "1.61.1");
+
+write("package-lock.json", "{}\n");
+const pinnedWorkflowDeps = run(["workflow", "deps", "--workflow", "workflow.browser-validation", "--repo", "."]);
+assert.equal(pinnedWorkflowDeps.ok, true);
+
 write("docs/specs/dependency-upgrade.md", `---
 id: spec.dependency-upgrade
 status: draft

@@ -606,6 +606,8 @@ ctx components list --json
 ctx components get component.Button --json
 ctx impact --path components/ui/button.tsx --json
 ctx dependency audit --repo . --command "pnpm audit --prod" --out docs/context/generated/dependency-audit.json --json
+ctx workflow deps --workflow workflow.browser-validation --repo . --json
+ctx workflow deps --workflow workflow.browser-validation --repo . --write --json
 ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json
 ctx export-agent --agent claude --out docs/context/generated/agent-pack.claude.md --json
 ctx export-agent --agent cursor --out .cursor/rules/generated/repo-context.mdc --json
@@ -659,6 +661,33 @@ When a `work_type: dependency-upgrade` or `work_type: dependency-sweep` ticket i
 - `completion.dependency_audit_checked_at`
 
 This prevents agents from marking "dependency sweep findings implemented" as equivalent to "dependency audit cleared."
+
+### Workflow Dependency Management
+
+Workflow dependencies are declared in markdown workflow files under `docs/workflows/`. Repo-context can check a target repo for required workflow dependencies and, when package pins are known, write exact package pins into `package.json`.
+
+Browser validation uses `workflow.browser-validation`:
+
+```bash
+node tools/context/ctx.mjs workflow deps \
+  --workflow workflow.browser-validation \
+  --repo /path/to/app \
+  --json
+```
+
+If the repo is missing the pinned Playwright dependency, run:
+
+```bash
+node tools/context/ctx.mjs workflow deps \
+  --workflow workflow.browser-validation \
+  --repo /path/to/app \
+  --write \
+  --json
+```
+
+This updates `package.json` with an exact `@playwright/test` dev dependency pin. It does not install packages or create paid infrastructure. The operator still runs the repo's package-manager install command so the lockfile records the resolved tree.
+
+Codex native browser plugins are treated as optional external runtime tools. They can help with interactive validation, but they are not the pinned source of truth for browser workflow readiness.
 
 ## Daily Commands
 

@@ -28,6 +28,7 @@ const contextKinds = new Set(["route", "file", "dir", "component", "flow", "desi
 const contextStatuses = new Set(["draft", "proposed", "active", "deprecated", "superseded"]);
 const feedbackStatuses = new Set(["proposed", "accepted", "rejected", "resolved", "superseded"]);
 const feedbackSeverities = new Set(["low", "medium", "high", "critical"]);
+const workflowStatuses = new Set(["draft", "active", "deprecated", "superseded"]);
 const runStatuses = new Set([
   "planning",
   "active",
@@ -292,6 +293,290 @@ function dependencyAudit() {
       stderr_excerpt: boundedText(stderr),
     },
     errors: result.status === 0 ? [] : [{ file: path.relative(root, repoPath) || ".", message: "dependency audit did not clear" }],
+  };
+  if (out) {
+    const outPath = path.isAbsolute(out) ? out : path.join(root, out);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);
+    payload.out = path.relative(root, outPath);
+  }
+  return payload;
+}
+
+const workflowDependencyCatalog = {
+  node: {
+    kind: "command",
+    command: "node",
+    purpose: "Run repo-context and JavaScript workflow tooling.",
+  },
+  "package-manager-lockfile": {
+    kind: "lockfile",
+    purpose: "Keep workflow package pins reproducible for agents and local runs.",
+  },
+  playwright: {
+    kind: "npm_package",
+    package_name: "@playwright/test",
+    version: "1.61.1",
+    purpose: "Run deterministic browser validation without depending on agent-host plugin versions.",
+  },
+  "codex-native-browser-plugin": {
+    kind: "external_tool",
+    purpose: "Optional interactive browser fallback supplied by the Codex app/plugin environment.",
+  },
+};
+
+function workflowMarkdownFiles() {
+  return markdownFiles("docs/workflows").sort();
+}
+
+function readWorkflows() {
+  return workflowMarkdownFiles()
+    .map((file) => ({ file, doc: readDoc(file) }))
+    .filter(({ doc }) => !doc.ignored && typeof doc.frontmatter.id === "string")
+    .map(({ file, doc }) => ({ file, frontmatter: doc.frontmatter, body: doc.body }));
+}
+
+function targetWorkflows(workflowArg) {
+  const workflows = readWorkflows();
+  if (!workflowArg) return workflows;
+  return workflows.filter((workflow) => workflow.frontmatter.id === workflowArg || workflow.file === workflowArg);
+}
+
+function packageJsonPath(repoPath) {
+  return path.join(repoPath, "package.json");
+}
+
+function readPackageJson(repoPath) {
+  const file = packageJsonPath(repoPath);
+  if (!fs.existsSync(file)) return null;
+  return JSON.parse(fs.readFileSync(file, "utf8"));
+}
+
+function writePackageJson(repoPath, pkg) {
+  fs.writeFileSync(packageJsonPath(repoPath), `${JSON.stringify(pkg, null, 2)}\n`);
+}
+
+function packageSpec(pkg, packageName) {
+  if (!pkg) return null;
+  for (const field of ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]) {
+    if (pkg[field]?.[packageName]) return { field, spec: pkg[field][packageName] };
+  }
+  return null;
+}
+
+function isExactVersion(spec) {
+  return /^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(String(spec ?? ""));
+}
+
+function detectPackageManager(repoPath, pkg) {
+  if (typeof pkg?.packageManager === "string") return pkg.packageManager.split("@")[0];
+  const lockfiles = [
+    ["pnpm", "pnpm-lock.yaml"],
+    ["npm", "package-lock.json"],
+    ["yarn", "yarn.lock"],
+    ["bun", "bun.lockb"],
+    ["bun", "bun.lock"],
+  ];
+  return lockfiles.find(([, file]) => fs.existsSync(path.join(repoPath, file)))?.[0] ?? "npm";
+}
+
+function lockfileStatus(repoPath) {
+  const present = ["pnpm-lock.yaml", "package-lock.json", "yarn.lock", "bun.lockb", "bun.lock"]
+    .filter((file) => fs.existsSync(path.join(repoPath, file)));
+  return {
+    present,
+    ok: present.length > 0,
+  };
+}
+
+function commandVersion(command, versionArgs = ["--version"], cwd = root) {
+  if (!commandExists(command)) return null;
+  const result = spawnSync(command, versionArgs, {
+    cwd,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 5000,
+  });
+  if (result.status !== 0) return null;
+  return (result.stdout || result.stderr || "").trim();
+}
+
+function checkWorkflowDependency(id, required, repoPath, pkg) {
+  const dependency = workflowDependencyCatalog[id] ?? {
+    kind: "unknown",
+    purpose: "Unknown workflow dependency.",
+  };
+  const base = {
+    id,
+    required,
+    kind: dependency.kind,
+    purpose: dependency.purpose,
+    ok: false,
+    issues: [],
+    fix: null,
+  };
+
+  if (dependency.kind === "command") {
+    const version = commandVersion(dependency.command, ["--version"], repoPath);
+    return {
+      ...base,
+      ok: Boolean(version),
+      command: dependency.command,
+      version,
+      issues: version ? [] : [`missing command: ${dependency.command}`],
+    };
+  }
+
+  if (dependency.kind === "lockfile") {
+    const lockfiles = lockfileStatus(repoPath);
+    return {
+      ...base,
+      ok: lockfiles.ok,
+      lockfiles: lockfiles.present,
+      issues: lockfiles.ok ? [] : ["missing package-manager lockfile"],
+    };
+  }
+
+  if (dependency.kind === "npm_package") {
+    const current = packageSpec(pkg, dependency.package_name);
+    const pinned = current?.spec === dependency.version && isExactVersion(current.spec);
+    const installedVersion = commandVersion("npx", ["--no-install", "playwright", "--version"], repoPath);
+    return {
+      ...base,
+      ok: pinned,
+      package_name: dependency.package_name,
+      required_version: dependency.version,
+      current_spec: current?.spec ?? null,
+      current_field: current?.field ?? null,
+      installed_version: installedVersion,
+      pinned,
+      issues: pinned
+        ? []
+        : [`${dependency.package_name} must be pinned to ${dependency.version} in package.json`],
+      fix: {
+        package_json_field: "devDependencies",
+        package_name: dependency.package_name,
+        version: dependency.version,
+      },
+    };
+  }
+
+  if (dependency.kind === "external_tool") {
+    return {
+      ...base,
+      ok: !required,
+      managed_by: "external agent runtime",
+      issues: required
+        ? [`${id} cannot be pinned by repo-context; make it optional or replace it with a repo-owned dependency`]
+        : ["external runtime dependency is not repo-pinned"],
+    };
+  }
+
+  return {
+    ...base,
+    issues: [`unknown workflow dependency: ${id}`],
+  };
+}
+
+function applyWorkflowDependencyFixes(repoPath, pkg, checks, packageManager) {
+  const writes = [];
+  for (const check of checks) {
+    if (!check.fix) continue;
+    const field = check.fix.package_json_field;
+    pkg[field] = pkg[field] ?? {};
+    if (pkg[field][check.fix.package_name] !== check.fix.version) {
+      pkg[field][check.fix.package_name] = check.fix.version;
+      writes.push({
+        file: path.relative(root, packageJsonPath(repoPath)) || "package.json",
+        field,
+        package_name: check.fix.package_name,
+        version: check.fix.version,
+        install_command: `${packageManager} ${packageManager === "npm" ? "install --save-dev" : "add -D"} ${check.fix.package_name}@${check.fix.version}`,
+      });
+    }
+  }
+  if (writes.length > 0) writePackageJson(repoPath, pkg);
+  return writes;
+}
+
+function workflowDeps() {
+  const workflowArg = argValue("--workflow", args[2] && !args[2].startsWith("--") ? args[2] : "");
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  const write = args.includes("--write");
+  const initPackage = args.includes("--init-package");
+  const out = argValue("--out", "");
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "workflow deps",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  let pkg = readPackageJson(repoPath);
+  if (write && !pkg && initPackage) {
+    pkg = {
+      name: path.basename(repoPath).toLowerCase().replace(/[^a-z0-9_.-]+/g, "-") || "repo-context-target",
+      private: true,
+    };
+  }
+  if (write && !pkg) {
+    return {
+      ok: false,
+      scope: "workflow deps",
+      errors: [{ file: path.relative(root, packageJsonPath(repoPath)) || "package.json", message: "missing package.json; pass --init-package to create one" }],
+    };
+  }
+
+  const selected = targetWorkflows(workflowArg);
+  if (selected.length === 0) {
+    return {
+      ok: false,
+      scope: "workflow deps",
+      errors: [{ file: "docs/workflows", message: `unknown workflow: ${workflowArg}` }],
+    };
+  }
+
+  const packageManager = argValue("--package-manager", detectPackageManager(repoPath, pkg));
+  const workflowRows = selected.map((workflow) => {
+    const requiredIds = Array.isArray(workflow.frontmatter.workflow_dependencies)
+      ? workflow.frontmatter.workflow_dependencies
+      : [];
+    const optionalIds = Array.isArray(workflow.frontmatter.optional_workflow_dependencies)
+      ? workflow.frontmatter.optional_workflow_dependencies
+      : [];
+    const checks = [
+      ...requiredIds.map((id) => checkWorkflowDependency(id, true, repoPath, pkg)),
+      ...optionalIds.map((id) => checkWorkflowDependency(id, false, repoPath, pkg)),
+    ];
+    const writes = write && pkg ? applyWorkflowDependencyFixes(repoPath, pkg, checks, packageManager) : [];
+    if (writes.length > 0) {
+      pkg = readPackageJson(repoPath);
+      for (let i = 0; i < checks.length; i += 1) {
+        checks[i] = checkWorkflowDependency(checks[i].id, checks[i].required, repoPath, pkg);
+      }
+    }
+    return {
+      id: workflow.frontmatter.id,
+      title: workflow.frontmatter.title,
+      file: workflow.file,
+      ok: checks.filter((check) => check.required).every((check) => check.ok),
+      dependencies: checks,
+      writes,
+    };
+  });
+  const payload = {
+    ok: workflowRows.every((workflow) => workflow.ok),
+    scope: "workflow deps",
+    repo: path.relative(root, repoPath) || ".",
+    write,
+    package_manager: packageManager,
+    workflows: workflowRows,
+    errors: workflowRows
+      .filter((workflow) => !workflow.ok)
+      .flatMap((workflow) => workflow.dependencies
+        .filter((check) => check.required && !check.ok)
+        .map((check) => ({ file: workflow.file, message: `${workflow.id}: ${check.issues.join("; ")}` }))),
   };
   if (out) {
     const outPath = path.isAbsolute(out) ? out : path.join(root, out);
@@ -920,6 +1205,7 @@ function doctor() {
   const errors = [];
   validateDirs(errors);
   validateContextEntries(errors);
+  validateWorkflows(errors);
   const specs = validateSpecs(errors);
   const tickets = validateTickets(errors, specs);
   const packs = validatePacks(errors, tickets, specs);
@@ -1329,10 +1615,31 @@ function validateFutureWork(errors, tickets = new Map(), packs = new Map(), spec
   }
 }
 
+function validateWorkflows(errors) {
+  for (const file of workflowMarkdownFiles()) {
+    const doc = readDoc(file);
+    if (doc.ignored) continue;
+    const fm = doc.frontmatter;
+    assert(/^workflow\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "workflow id must start with workflow.");
+    assert(workflowStatuses.has(fm.status), errors, file, `invalid workflow status: ${fm.status}`);
+    for (const key of ["title", "updated"]) {
+      assert(Object.hasOwn(fm, key), errors, file, `missing workflow frontmatter: ${key}`);
+    }
+    const dependencyIds = [
+      ...(Array.isArray(fm.workflow_dependencies) ? fm.workflow_dependencies : []),
+      ...(Array.isArray(fm.optional_workflow_dependencies) ? fm.optional_workflow_dependencies : []),
+    ];
+    for (const dependencyId of dependencyIds) {
+      assert(Object.hasOwn(workflowDependencyCatalog, dependencyId), errors, file, `unknown workflow dependency: ${dependencyId}`);
+    }
+  }
+}
+
 function runChecks(scope) {
   const errors = [];
   validateDirs(errors);
   validateContextEntries(errors);
+  validateWorkflows(errors);
   const specs = validateSpecs(errors);
   const tickets = validateTickets(errors, specs);
   const packs = validatePacks(errors, tickets, specs);
@@ -1508,6 +1815,8 @@ if (command === "lint") {
   printResult(result);
 } else if (command === "dependency" && subcommand === "audit") {
   printResult(dependencyAudit());
+} else if (command === "workflow" && subcommand === "deps") {
+  printResult(workflowDeps());
 } else if (command === "ticket" && subcommand === "check") {
   const errors = [];
   const specs = validateSpecs(errors);
@@ -1552,6 +1861,7 @@ if (command === "lint") {
       "ctx customize --profile strict --dry-run --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
+      "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",
       "ctx pack check --json",
