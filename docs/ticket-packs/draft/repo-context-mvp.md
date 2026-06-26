@@ -102,7 +102,7 @@ Make this repository its own first usable fixture for repo-local context, canoni
 - `ticket.context.000`: needs-review - Define high-effort spec to ticket workflow
 - `ticket.context.001`: needs-review - Add repo-local context markdown substrate
 - `ticket.context.002`: needs-review - Implement ctx scan query lint CLI foundation
-- `ticket.context.003`: draft - Generate Codex Claude and Cursor context packs
+- `ticket.context.003`: needs-review - Generate Codex Claude and Cursor context packs
 - `ticket.context.004`: draft - Add lightweight component and design catalog
 - `ticket.context.005`: draft - Hydrate markdown tickets with scoped context
 - `ticket.context.006`: draft - Add impact and regression checks

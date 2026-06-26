@@ -142,6 +142,16 @@ assert.equal(secondInit.skipped.includes("docs/tickets/templates/canonical-ticke
 const fixtureLint = run(["lint"]);
 assert.equal(fixtureLint.ok, true);
 
+const codexPack = run(["export-agent", "--agent", "codex"]);
+assert.equal(codexPack.ok, true);
+assert.equal(codexPack.out, "docs/context/generated/agent-pack.codex.md");
+assert.equal(fs.existsSync(path.join(fixture, codexPack.out)), true);
+
+const cursorPack = run(["export-agent", "--agent", "cursor"]);
+assert.equal(cursorPack.ok, true);
+assert.equal(cursorPack.out, ".cursor/rules/generated/repo-context.mdc");
+assert.equal(fs.existsSync(path.join(fixture, cursorPack.out)), true);
+
 const noBackendDiscovery = run(["discover", "--backend", "none", "--task", "known path", "--out", "docs/context/generated/discovery.none.json"]);
 assert.equal(noBackendDiscovery.ok, true);
 assert.equal(noBackendDiscovery.out, "docs/context/generated/discovery.none.json");

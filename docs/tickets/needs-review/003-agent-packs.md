@@ -1,6 +1,6 @@
 ---
 id: ticket.context.003
-status: draft
+status: needs-review
 title: Generate Codex Claude and Cursor context packs
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -121,7 +121,11 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs export-agent --agent codex --json`
+  - `node tools/context/ctx.mjs export-agent --agent claude --json`
+  - `node tools/context/ctx.mjs export-agent --agent cursor --json`
+  - `make validate`
 - Follow-up tickets: pending

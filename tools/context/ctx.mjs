@@ -50,6 +50,7 @@ const requiredDirs = [
   "docs/context/architecture",
   "docs/context/feedback",
   "docs/context/generated",
+  ".cursor/rules/generated",
   "docs/specs",
   "docs/specs/templates",
   "docs/workflows",
@@ -493,6 +494,64 @@ function query() {
       budget,
     },
     entries,
+  };
+}
+
+function agentPackMarkdown(agent, entries) {
+  const title = agent === "cursor" ? "Repo Context Cursor Rules" : `Repo Context Pack: ${agent}`;
+  const lines = [`# ${title}`, "", "Generated from markdown source. Do not edit generated packs by hand.", ""];
+  if (agent === "claude") {
+    lines.push("Prioritize product-flow, UI, design, copy, and critique context. Load full files only when needed.", "");
+  } else if (agent === "codex") {
+    lines.push("Prioritize implementation constraints, validation commands, source paths, and rule polarity.", "");
+  } else {
+    lines.push("Use this as a compact IDE rule summary. Query markdown source for detail.", "");
+  }
+  for (const entry of entries) {
+    lines.push(`## ${entry.id}`);
+    lines.push("");
+    lines.push(`- Kind: ${entry.kind}`);
+    lines.push(`- Status: ${entry.status}`);
+    lines.push(`- Source: ${entry.markdown_path}`);
+    if (entry.summary) lines.push(`- Summary: ${entry.summary}`);
+    if (entry.positive_rules.length > 0) {
+      lines.push("- Positive rules:");
+      for (const rule of entry.positive_rules) lines.push(`  - ${rule}`);
+    }
+    if (entry.negative_rules.length > 0) {
+      lines.push("- Negative rules:");
+      for (const rule of entry.negative_rules) lines.push(`  - ${rule}`);
+    }
+    lines.push("");
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function exportAgent() {
+  const agent = argValue("--agent", "codex");
+  const defaultOut = {
+    codex: "docs/context/generated/agent-pack.codex.md",
+    claude: "docs/context/generated/agent-pack.claude.md",
+    cursor: ".cursor/rules/generated/repo-context.mdc",
+  }[agent];
+  if (!defaultOut) {
+    return {
+      ok: false,
+      scope: "export-agent",
+      errors: [{ file: "tools/context/ctx.mjs", message: `unsupported agent: ${agent}` }],
+    };
+  }
+  const out = argValue("--out", defaultOut);
+  const entries = readContextEntries();
+  const outPath = path.isAbsolute(out) ? out : path.join(root, out);
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, agentPackMarkdown(agent, entries));
+  return {
+    ok: true,
+    scope: "export-agent",
+    agent,
+    out: path.relative(root, outPath),
+    entry_count: entries.length,
   };
 }
 
@@ -1053,6 +1112,8 @@ if (command === "lint") {
   printResult(scan());
 } else if (command === "query") {
   printResult(query());
+} else if (command === "export-agent") {
+  printResult(exportAgent());
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
@@ -1089,6 +1150,7 @@ if (command === "lint") {
       "ctx init --json",
       "ctx scan --json",
       "ctx query --path <path> --task <task> --agent codex --budget 6000 --json",
+      "ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx pack check --json",
