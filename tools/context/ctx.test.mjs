@@ -30,6 +30,7 @@ function run(args, options = {}) {
       cwd: fixture,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, ...(options.env ?? {}) },
     }));
   } catch (error) {
     if (!options.allowFailure) throw error;
@@ -183,6 +184,11 @@ workflow_dependencies:
   - playwright
 optional_workflow_dependencies:
   - codex-native-browser-plugin
+workflow_views:
+  - logged-out
+  - logged-in
+credential_profiles:
+  - browser-test-user
 updated: 2026-06-26
 ---
 
@@ -202,6 +208,43 @@ assert.equal(workflowPackage.devDependencies["@playwright/test"], "1.61.1");
 write("package-lock.json", "{}\n");
 const pinnedWorkflowDeps = run(["workflow", "deps", "--workflow", "workflow.browser-validation", "--repo", "."]);
 assert.equal(pinnedWorkflowDeps.ok, true);
+
+const missingViewCredentials = run(["workflow", "views", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
+assert.equal(missingViewCredentials.ok, false);
+assert.equal(missingViewCredentials.workflows[0].views.find((view) => view.id === "logged-out").ready, true);
+assert.equal(missingViewCredentials.workflows[0].views.find((view) => view.id === "logged-in").ready, false);
+
+const envCredentials = run(["credentials", "check", "--profile", "browser-test-user", "--repo", "."], {
+  env: {
+    BROWSER_TEST_EMAIL: "agent@example.test",
+    BROWSER_TEST_PASSWORD: "secret-password",
+  },
+});
+assert.equal(envCredentials.ok, true);
+assert.equal(JSON.stringify(envCredentials).includes("secret-password"), false);
+
+write("browser-export.storage-state.json", `${JSON.stringify({
+  cookies: [{ name: "session", value: "secret-cookie", domain: "example.test", path: "/" }],
+  origins: [],
+}, null, 2)}\n`);
+const importedState = run([
+  "credentials",
+  "import-browser-state",
+  "--profile",
+  "browser-test-user",
+  "--repo",
+  ".",
+  "--from",
+  "browser-export.storage-state.json",
+  "--write",
+]);
+assert.equal(importedState.ok, true);
+assert.equal(importedState.storage_state.cookies, 1);
+assert.equal(JSON.stringify(importedState).includes("secret-cookie"), false);
+assert.equal(fs.existsSync(path.join(fixture, ".repo-context/browser/browser-test-user.storage-state.json")), true);
+
+const readyViewCredentials = run(["workflow", "views", "--workflow", "workflow.browser-validation", "--repo", "."]);
+assert.equal(readyViewCredentials.ok, true);
 
 write("docs/specs/dependency-upgrade.md", `---
 id: spec.dependency-upgrade

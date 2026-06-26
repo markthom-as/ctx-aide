@@ -608,6 +608,9 @@ ctx impact --path components/ui/button.tsx --json
 ctx dependency audit --repo . --command "pnpm audit --prod" --out docs/context/generated/dependency-audit.json --json
 ctx workflow deps --workflow workflow.browser-validation --repo . --json
 ctx workflow deps --workflow workflow.browser-validation --repo . --write --json
+ctx workflow views --workflow workflow.browser-validation --repo . --json
+ctx credentials check --profile browser-test-user --repo . --json
+ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json
 ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json
 ctx export-agent --agent claude --out docs/context/generated/agent-pack.claude.md --json
 ctx export-agent --agent cursor --out .cursor/rules/generated/repo-context.mdc --json
@@ -688,6 +691,50 @@ node tools/context/ctx.mjs workflow deps \
 This updates `package.json` with an exact `@playwright/test` dev dependency pin. It does not install packages or create paid infrastructure. The operator still runs the repo's package-manager install command so the lockfile records the resolved tree.
 
 Codex native browser plugins are treated as optional external runtime tools. They can help with interactive validation, but they are not the pinned source of truth for browser workflow readiness.
+
+### Browser Views and Credentials
+
+Browser workflows need to distinguish signed-out and signed-in validation. `workflow.browser-validation` declares two view states:
+
+- `logged-out`: no credentials required.
+- `logged-in`: uses the `browser-test-user` credential profile.
+
+Check view readiness with:
+
+```bash
+node tools/context/ctx.mjs workflow views \
+  --workflow workflow.browser-validation \
+  --repo /path/to/app \
+  --json
+```
+
+Check a credential profile without printing secret values:
+
+```bash
+node tools/context/ctx.mjs credentials check \
+  --profile browser-test-user \
+  --repo /path/to/app \
+  --json
+```
+
+The default `browser-test-user` profile can be satisfied by:
+
+- `BROWSER_TEST_EMAIL` and `BROWSER_TEST_PASSWORD` in the environment.
+- `.repo-context/credentials/browser-test-user.env` in the target repo.
+- `.repo-context/browser/browser-test-user.storage-state.json` in the target repo.
+
+To copy an authenticated browser session into the target repo, first export a Playwright-compatible storage-state JSON file from the browser/tooling session, then import it:
+
+```bash
+node tools/context/ctx.mjs credentials import-browser-state \
+  --profile browser-test-user \
+  --from /path/to/storage-state.json \
+  --repo /path/to/app \
+  --write \
+  --json
+```
+
+The import command validates the JSON shape and copies it to the profile's storage-state path. Output is redacted and only includes counts and paths. Repo-context does not scrape browser password stores. Target repos should keep `.repo-context/` untracked because storage-state files can contain live session cookies.
 
 ## Daily Commands
 

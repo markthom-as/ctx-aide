@@ -8,6 +8,11 @@ workflow_dependencies:
   - playwright
 optional_workflow_dependencies:
   - codex-native-browser-plugin
+workflow_views:
+  - logged-out
+  - logged-in
+credential_profiles:
+  - browser-test-user
 updated: 2026-06-26
 ---
 
@@ -23,7 +28,9 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 2. If required package pins are missing, run the same command with `--write` to update `package.json`.
 3. Install dependencies with the target repo's package manager so the lockfile records the exact resolved tree.
 4. Run the workflow's browser smoke or screenshot validation command from the repo, not from an agent plugin.
-5. Record the dependency check, install command, and browser validation evidence on the ticket.
+5. Check the view-state matrix with `ctx workflow views --workflow workflow.browser-validation --repo <repo> --json`.
+6. For logged-in validation, satisfy the `browser-test-user` profile through environment variables, an untracked env file, or an imported browser storage-state file.
+7. Record the dependency check, view-state check, install command, and browser validation evidence on the ticket.
 
 ## Readiness Gates
 
@@ -31,6 +38,8 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 - Required dependencies must be repo-owned and pinned before browser validation is considered deterministic.
 - Codex native browser plugins are allowed as interactive fallbacks, but they are not the pinned source of truth for validation.
 - A missing or stale lockfile blocks completion until the package manager install has refreshed it.
+- Logged-out and logged-in views must both be represented when a feature has different auth states.
+- Logged-in validation must not print credential values in stdout, logs, tickets, or generated context.
 
 ## Dependency Policy
 
@@ -39,9 +48,20 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 - `playwright` maps to `@playwright/test@1.61.1` in `devDependencies`.
 - `codex-native-browser-plugin` is optional because repo-context cannot pin external desktop-app plugin bundles inside the target repository.
 
+## View and Credential Policy
+
+- `logged-out` requires no credentials and validates anonymous browser behavior.
+- `logged-in` uses the `browser-test-user` credential profile.
+- `browser-test-user` can be satisfied by `BROWSER_TEST_EMAIL` and `BROWSER_TEST_PASSWORD`, by `.repo-context/credentials/browser-test-user.env`, or by `.repo-context/browser/browser-test-user.storage-state.json`.
+- Browser storage-state imports copy an exported Playwright-compatible state file. Repo-context does not scrape browser password stores.
+- `.repo-context/` must stay untracked in target repositories because it can contain live session cookies or local credential files.
+
 ## Validation
 
 - `ctx workflow deps --workflow workflow.browser-validation --repo <repo> --json`
+- `ctx workflow views --workflow workflow.browser-validation --repo <repo> --json`
+- `ctx credentials check --profile browser-test-user --repo <repo> --json`
+- `ctx credentials import-browser-state --profile browser-test-user --repo <repo> --from <storage-state.json> --write --json`
 - `ctx workflow deps --workflow workflow.browser-validation --repo <repo> --write --json`
 - The target repo's package-manager install command.
 - The target repo's browser smoke or screenshot command.

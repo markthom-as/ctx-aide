@@ -325,6 +325,27 @@ const workflowDependencyCatalog = {
   },
 };
 
+const credentialProfileCatalog = {
+  "browser-test-user": {
+    purpose: "Default logged-in browser validation identity.",
+    required_env: ["BROWSER_TEST_EMAIL", "BROWSER_TEST_PASSWORD"],
+    env_file: ".repo-context/credentials/browser-test-user.env",
+    storage_state: ".repo-context/browser/browser-test-user.storage-state.json",
+  },
+};
+
+const workflowViewCatalog = {
+  "logged-out": {
+    auth_required: false,
+    purpose: "Validate anonymous and signed-out surfaces.",
+  },
+  "logged-in": {
+    auth_required: true,
+    credential_profile: "browser-test-user",
+    purpose: "Validate authenticated surfaces with a reusable test identity or browser storage state.",
+  },
+};
+
 function workflowMarkdownFiles() {
   return markdownFiles("docs/workflows").sort();
 }
@@ -585,6 +606,252 @@ function workflowDeps() {
     payload.out = path.relative(root, outPath);
   }
   return payload;
+}
+
+function defaultCredentialProfile(profileId) {
+  const id = profileId || "browser-test-user";
+  return credentialProfileCatalog[id] ?? {
+    purpose: "Custom credential profile.",
+    required_env: [`${id.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_USERNAME`, `${id.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_PASSWORD`],
+    env_file: `.repo-context/credentials/${id}.env`,
+    storage_state: `.repo-context/browser/${id}.storage-state.json`,
+  };
+}
+
+function parseEnvKeys(raw, fallback) {
+  if (!raw) return fallback;
+  return raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function parseEnvFile(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return {};
+  const values = {};
+  const text = fs.readFileSync(filePath, "utf8");
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match) continue;
+    values[match[1]] = match[2].replace(/^["']|["']$/g, "");
+  }
+  return values;
+}
+
+function credentialStatus(profileId, repoPath, options = {}) {
+  const profile = defaultCredentialProfile(profileId);
+  const envKeys = parseEnvKeys(options.envKeys, profile.required_env);
+  const envFile = options.envFile ?? profile.env_file;
+  const storageState = options.storageState ?? profile.storage_state;
+  const envFilePath = path.isAbsolute(envFile) ? envFile : path.join(repoPath, envFile);
+  const storageStatePath = path.isAbsolute(storageState) ? storageState : path.join(repoPath, storageState);
+  const envFileValues = parseEnvFile(envFilePath);
+  const env = envKeys.map((key) => ({
+    key,
+    present: Boolean(process.env[key]),
+  }));
+  const file = envKeys.map((key) => ({
+    key,
+    present: Boolean(envFileValues[key]),
+  }));
+  const envReady = envKeys.length > 0 && env.every((item) => item.present);
+  const fileReady = envKeys.length > 0 && file.every((item) => item.present);
+  const storageStateExists = fs.existsSync(storageStatePath);
+  return {
+    id: profileId,
+    purpose: profile.purpose,
+    required_env: envKeys,
+    sources: {
+      env: {
+        ok: envReady,
+        keys: env,
+      },
+      env_file: {
+        ok: fileReady,
+        path: path.relative(root, envFilePath) || envFile,
+        exists: fs.existsSync(envFilePath),
+        keys: file,
+      },
+      browser_storage_state: {
+        ok: storageStateExists,
+        path: path.relative(root, storageStatePath) || storageState,
+        exists: storageStateExists,
+      },
+    },
+    ok: envReady || fileReady || storageStateExists,
+    redacted: true,
+  };
+}
+
+function workflowViews() {
+  const workflowArg = argValue("--workflow", args[2] && !args[2].startsWith("--") ? args[2] : "");
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "workflow views",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  const selected = targetWorkflows(workflowArg);
+  if (selected.length === 0) {
+    return {
+      ok: false,
+      scope: "workflow views",
+      errors: [{ file: "docs/workflows", message: `unknown workflow: ${workflowArg}` }],
+    };
+  }
+  const workflows = selected.map((workflow) => {
+    const viewIds = Array.isArray(workflow.frontmatter.workflow_views)
+      ? workflow.frontmatter.workflow_views
+      : [];
+    const profileIds = Array.isArray(workflow.frontmatter.credential_profiles)
+      ? workflow.frontmatter.credential_profiles
+      : [];
+    const defaultProfile = profileIds[0] ?? "browser-test-user";
+    const views = viewIds.map((viewId) => {
+      const view = workflowViewCatalog[viewId] ?? { auth_required: true, purpose: "Custom workflow view." };
+      const credentialProfile = view.credential_profile ?? defaultProfile;
+      const credentials = view.auth_required ? credentialStatus(credentialProfile, repoPath) : null;
+      const ready = view.auth_required ? credentials.ok : true;
+      return {
+        id: viewId,
+        purpose: view.purpose,
+        auth_required: view.auth_required,
+        credential_profile: view.auth_required ? credentialProfile : null,
+        ready,
+        credentials,
+        issues: ready ? [] : [`view ${viewId} needs env credentials, env file credentials, or browser storage state`],
+      };
+    });
+    return {
+      id: workflow.frontmatter.id,
+      title: workflow.frontmatter.title,
+      file: workflow.file,
+      ok: views.every((view) => view.ready),
+      views,
+    };
+  });
+  return {
+    ok: workflows.every((workflow) => workflow.ok),
+    scope: "workflow views",
+    repo: path.relative(root, repoPath) || ".",
+    workflows,
+    errors: workflows
+      .filter((workflow) => !workflow.ok)
+      .flatMap((workflow) => workflow.views
+        .filter((view) => !view.ready)
+        .map((view) => ({ file: workflow.file, message: `${workflow.id}: ${view.issues.join("; ")}` }))),
+  };
+}
+
+function credentialsCheck() {
+  const profileId = argValue("--profile", args[2] && !args[2].startsWith("--") ? args[2] : "browser-test-user");
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "credentials check",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  const status = credentialStatus(profileId, repoPath, {
+    envKeys: argValue("--env", ""),
+    envFile: argValue("--env-file", null),
+    storageState: argValue("--storage-state", null),
+  });
+  return {
+    ok: status.ok,
+    scope: "credentials check",
+    repo: path.relative(root, repoPath) || ".",
+    profile: status,
+    errors: status.ok ? [] : [{ file: status.sources.env_file.path, message: `missing credentials for profile ${profileId}` }],
+  };
+}
+
+function validateStorageStateFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return { ok: false, errors: [`source storage state does not exist: ${filePath}`] };
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    const cookies = Array.isArray(parsed.cookies) ? parsed.cookies.length : 0;
+    const origins = Array.isArray(parsed.origins) ? parsed.origins.length : 0;
+    if (!Array.isArray(parsed.cookies) && !Array.isArray(parsed.origins)) {
+      return { ok: false, errors: ["storage state must contain cookies or origins arrays"] };
+    }
+    return { ok: true, cookies, origins };
+  } catch (error) {
+    return { ok: false, errors: [`invalid storage state JSON: ${error.message}`] };
+  }
+}
+
+function credentialsImportBrowserState() {
+  const profileId = argValue("--profile", "browser-test-user");
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  const sourceArg = argValue("--from", argValue("--from-browser-export", ""));
+  const write = args.includes("--write");
+  const force = args.includes("--force");
+  const profile = defaultCredentialProfile(profileId);
+  const outArg = argValue("--out", profile.storage_state);
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "credentials import-browser-state",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  if (!sourceArg) {
+    return {
+      ok: false,
+      scope: "credentials import-browser-state",
+      errors: [{ file: "credentials", message: "missing --from <storage-state.json>" }],
+    };
+  }
+  const sourcePath = path.isAbsolute(sourceArg) ? sourceArg : path.join(root, sourceArg);
+  const outPath = path.isAbsolute(outArg) ? outArg : path.join(repoPath, outArg);
+  const validation = validateStorageStateFile(sourcePath);
+  if (!validation.ok) {
+    return {
+      ok: false,
+      scope: "credentials import-browser-state",
+      errors: validation.errors.map((message) => ({ file: sourceArg, message })),
+    };
+  }
+  if (fs.existsSync(outPath) && !force && write) {
+    return {
+      ok: false,
+      scope: "credentials import-browser-state",
+      errors: [{ file: path.relative(root, outPath) || outArg, message: "destination exists; pass --force to overwrite" }],
+    };
+  }
+  if (write) {
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.copyFileSync(sourcePath, outPath);
+  }
+  return {
+    ok: true,
+    scope: "credentials import-browser-state",
+    repo: path.relative(root, repoPath) || ".",
+    profile: profileId,
+    write,
+    source: path.relative(root, sourcePath) || sourceArg,
+    out: path.relative(root, outPath) || outArg,
+    storage_state: {
+      cookies: validation.cookies,
+      origins: validation.origins,
+      redacted: true,
+    },
+    warnings: [
+      "storage state can contain live session cookies; keep destination untracked and rotate if exposed",
+      "repo-context does not scrape browser password stores",
+    ],
+  };
 }
 
 function isDependencyUpgradeTicket(doc) {
@@ -1632,6 +1899,14 @@ function validateWorkflows(errors) {
     for (const dependencyId of dependencyIds) {
       assert(Object.hasOwn(workflowDependencyCatalog, dependencyId), errors, file, `unknown workflow dependency: ${dependencyId}`);
     }
+    const viewIds = Array.isArray(fm.workflow_views) ? fm.workflow_views : [];
+    for (const viewId of viewIds) {
+      assert(Object.hasOwn(workflowViewCatalog, viewId), errors, file, `unknown workflow view: ${viewId}`);
+    }
+    const profileIds = Array.isArray(fm.credential_profiles) ? fm.credential_profiles : [];
+    for (const profileId of profileIds) {
+      assert(Object.hasOwn(credentialProfileCatalog, profileId), errors, file, `unknown credential profile: ${profileId}`);
+    }
   }
 }
 
@@ -1817,6 +2092,12 @@ if (command === "lint") {
   printResult(dependencyAudit());
 } else if (command === "workflow" && subcommand === "deps") {
   printResult(workflowDeps());
+} else if (command === "workflow" && subcommand === "views") {
+  printResult(workflowViews());
+} else if (command === "credentials" && subcommand === "check") {
+  printResult(credentialsCheck());
+} else if (command === "credentials" && subcommand === "import-browser-state") {
+  printResult(credentialsImportBrowserState());
 } else if (command === "ticket" && subcommand === "check") {
   const errors = [];
   const specs = validateSpecs(errors);
@@ -1862,6 +2143,9 @@ if (command === "lint") {
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
       "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
+      "ctx workflow views --workflow workflow.browser-validation --repo . --json",
+      "ctx credentials check --profile browser-test-user --repo . --json",
+      "ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",
       "ctx pack check --json",

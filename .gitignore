@@ -1,8 +1,8 @@
 .DS_Store
+.repo-context/
 docs/context/generated/context.sqlite
 docs/context/generated/*.sqlite
 node_modules/
 dist/
 target/
 *.log
-
