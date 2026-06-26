@@ -2665,6 +2665,14 @@ if (command === "lint") {
   printResult(credentialsCheck());
 } else if (command === "credentials" && subcommand === "import-browser-state") {
   printResult(credentialsImportBrowserState());
+} else if (command === "adoption" && subcommand === "bootstrap") {
+  printResult(adoptionBootstrap());
+} else if (command === "adoption" && subcommand === "context") {
+  printResult(adoptionContext());
+} else if (command === "adoption" && subcommand === "ticket") {
+  printResult(adoptionTicket());
+} else if (command === "adoption" && subcommand === "implementation-plan") {
+  printResult(implementationPlan());
 } else if (command === "ticket" && subcommand === "check") {
   const errors = [];
   const specs = validateSpecs(errors);
@@ -2714,6 +2722,10 @@ if (command === "lint") {
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",
       "ctx credentials check --profile browser-test-user --repo . --json",
       "ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
+      "ctx adoption bootstrap --repo <target-repo> --profile wetware --write --json",
+      "ctx adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json",
+      "ctx adoption ticket --repo <target-repo> --title '<ticket>' --task '<task>' --context <context-id> --write --json",
+      "ctx adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",
       "ctx pack check --json",
