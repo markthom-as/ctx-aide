@@ -68,6 +68,10 @@ repo/
       active/
       backlog/
       done/
+    future-work/
+      templates/
+      captured/
+      promoted/
   tools/
     context/
       ctx.mjs
@@ -138,6 +142,70 @@ Recommended flow:
 10. **Commit Per Ticket**: each completed ticket gets one clean commit and updates its completion metadata.
 
 The implementation agent contract is strict: if a ticket contains an unresolved design, architecture, product, or security decision, the agent should stop and escalate rather than inventing policy during implementation.
+
+## Future Work Capture
+
+Future work is first-class. Use it for ideas that should be retained but should not block the current spec, ticket, or milestone.
+
+```markdown
+---
+id: future.2026-06-25.agent-driven-customization
+kind: future-work
+status: captured
+title: Agent-driven workflow customization
+captured_at: 2026-06-25
+source: user
+applies_to:
+  routes: []
+  files:
+    - README.md
+  components: []
+  flows:
+    - flow.workflow-customization
+promotion_target:
+  spec: null
+  ticket_pack: null
+  ticket: null
+---
+
+# Agent-Driven Workflow Customization
+
+## Idea
+
+Capture the idea without forcing it into the current milestone.
+
+## Why Later
+
+- Explain why it should not block current work.
+
+## Questions Before Promotion
+
+- What must be answered before this becomes a spec or ticket?
+
+## Promotion Notes
+
+- Suggested spec:
+- Suggested ticket pack:
+- Suggested validation:
+```
+
+Future work statuses:
+
+- `captured`: idea is recorded but not elaborated.
+- `questioning`: idea needs targeted questions before promotion.
+- `promoted`: idea has been turned into a spec, ticket pack, or ticket.
+- `superseded`: idea is replaced or no longer relevant.
+
+Useful command surface:
+
+```bash
+ctx future capture --title "..." --source user --json
+ctx future list --status captured --json
+ctx future promote <future-id> --to spec --json
+node tools/context/ctx.mjs future check --json
+```
+
+For now, `node tools/context/ctx.mjs future check --json` validates future-work files. Capture and promote are documented future commands.
 
 ## Spec Format
 
@@ -941,6 +1009,7 @@ Customization rules:
 - Dry-run output must show exactly which commands, exports, rules, and gates would change.
 - Profiles should be named and diffable, not hidden agent memory.
 - Customization is post-v0.1 and should not block the MVP pack.
+- Capture customization requests first as future work, then promote them into a spec/ticket pack when the MVP workflow is stable.
 
 ```markdown
 ---
@@ -1178,6 +1247,7 @@ ctx scan --check --json
 node tools/context/ctx.mjs lint --json
 node tools/context/ctx.mjs ticket check --json
 node tools/context/ctx.mjs pack check --json
+node tools/context/ctx.mjs future check --json
 ctx spec check --json
 ```
 

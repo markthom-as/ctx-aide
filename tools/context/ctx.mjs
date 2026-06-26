@@ -62,6 +62,10 @@ const requiredDirs = [
   "docs/ticket-packs/done",
   "docs/ticket-packs/superseded",
   "docs/runs",
+  "docs/future-work",
+  "docs/future-work/templates",
+  "docs/future-work/captured",
+  "docs/future-work/promoted",
   "tools/context",
 ];
 
@@ -214,12 +218,31 @@ function validateRuns(errors) {
   }
 }
 
+function validateFutureWork(errors) {
+  const files = markdownFiles("docs/future-work").filter((file) => !file.includes("/templates/"));
+  for (const file of files) {
+    const doc = readDoc(file);
+    if (doc.ignored) continue;
+    const fm = doc.frontmatter;
+    assert(/^future\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "future work id must start with future.");
+    assert(fm.kind === "future-work", errors, file, "future work kind must be future-work");
+    assert(["captured", "questioning", "promoted", "superseded"].includes(fm.status), errors, file, `invalid future work status: ${fm.status}`);
+    for (const key of ["title", "captured_at", "source", "promotion_target"]) {
+      assert(Object.hasOwn(fm, key), errors, file, `missing future work frontmatter: ${key}`);
+    }
+    for (const heading of ["Idea", "Why Later", "Questions Before Promotion", "Promotion Notes"]) {
+      assert(sectionPresent(doc.body, heading), errors, file, `missing future work section: ${heading}`);
+    }
+  }
+}
+
 function runChecks(scope) {
   const errors = [];
   validateDirs(errors);
   const ticketIds = validateTickets(errors);
   validatePacks(errors, ticketIds);
   validateRuns(errors);
+  validateFutureWork(errors);
   return {
     ok: errors.length === 0,
     scope,
@@ -359,6 +382,10 @@ if (command === "lint") {
   printResult({ ok: errors.length === 0, scope: "pack check", errors });
 } else if (command === "spec" && subcommand === "check") {
   printResult({ ok: fs.existsSync(path.join(root, "docs/specs")), scope: "spec check", errors: [] });
+} else if (command === "future" && subcommand === "check") {
+  const errors = [];
+  validateFutureWork(errors);
+  printResult({ ok: errors.length === 0, scope: "future check", errors });
 } else {
   const result = {
     ok: false,
@@ -368,6 +395,7 @@ if (command === "lint") {
       "ctx ticket check --json",
       "ctx pack check --json",
       "ctx spec check --json",
+      "ctx future check --json",
     ],
   };
   if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

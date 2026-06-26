@@ -2,10 +2,13 @@
 
 CODEX_SKILLS_DIR ?= $(HOME)/.codex/skills
 
-validate: ctx-lint skill-validate
+validate: ctx-lint future-check skill-validate
 
 ctx-lint:
 	node tools/context/ctx.mjs lint --json
+
+future-check:
+	node tools/context/ctx.mjs future check --json
 
 skill-validate:
 	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py skills/repo-context
@@ -15,4 +18,3 @@ install-skill: skill-validate
 	rm -rf "$(CODEX_SKILLS_DIR)/repo-context"
 	cp -R skills/repo-context "$(CODEX_SKILLS_DIR)/repo-context"
 	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py "$(CODEX_SKILLS_DIR)/repo-context"
-

@@ -5,6 +5,7 @@ This repo defines a repo-local context system for coding agents. Markdown is the
 ## Workflow
 
 - Use markdown specs, tickets, and ticket packs for all implementation planning.
+- Capture non-blocking future work under `docs/future-work/captured/` instead of hiding it in chat or bloating current tickets.
 - Prefer high-effort planning before implementation: describe, draft spec, ask targeted questions, harden, create tickets, harden tickets, then implement.
 - Keep tickets atomic and parallelizable when possible.
 - Each completed ticket should have one clean commit.
@@ -39,6 +40,7 @@ ctx lint --json
 ctx ticket check --json
 ctx pack check --json
 ctx spec check --json
+ctx future check --json
 ```
 
 Until the CLI exists, validate markdown structure manually against the templates in `docs/tickets/templates/` and `docs/ticket-packs/templates/`.

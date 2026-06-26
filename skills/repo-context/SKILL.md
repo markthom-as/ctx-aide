@@ -19,6 +19,7 @@ Use this skill to turn rough product or implementation intent into a hardened re
 - Tickets belong to ticket packs.
 - Tickets must be atomic, parallelizable where practical, and committed individually when complete.
 - Long milestone-level work should run through explicit pack runs with worktrees, agent leases, heartbeats, stale-agent cleanup, merge queues, and pack-level validation.
+- Capture non-blocking future work as explicit future-work markdown, then promote it later into a spec, ticket pack, or ticket.
 - Codex is the default implementation agent.
 - Claude is preferred for UI design, product-flow, copy, and visual hardening passes.
 
@@ -29,13 +30,14 @@ Use this skill to turn rough product or implementation intent into a hardened re
 3. Ask targeted questions only when the answer changes implementation behavior.
 4. Harden the spec through architecture, design, security, best-practices, testing, and parallelization lenses.
 5. Freeze resolved decisions in the spec.
-6. Create or update a ticket pack under `docs/ticket-packs/`.
-7. Create atomic tickets from the hardened spec using the canonical ticket template.
-8. Harden each ticket until it can be implemented by Codex without design decisions.
-9. For long or parallel milestones, create a milestone run that assigns tickets to worktrees with leases and heartbeat expectations.
-10. During implementation, stop and escalate if the ticket needs new product/design/architecture/security decisions.
-11. Validate with the ticket's automated checks, smoke tests, and screenshots, then record commit and evidence.
-12. Merge through the coordinator queue and run pack-level validation before marking the pack done.
+6. Capture non-blocking later ideas under `docs/future-work/captured/`.
+7. Create or update a ticket pack under `docs/ticket-packs/`.
+8. Create atomic tickets from the hardened spec using the canonical ticket template.
+9. Harden each ticket until it can be implemented by Codex without design decisions.
+10. For long or parallel milestones, create a milestone run that assigns tickets to worktrees with leases and heartbeat expectations.
+11. During implementation, stop and escalate if the ticket needs new product/design/architecture/security decisions.
+12. Validate with the ticket's automated checks, smoke tests, and screenshots, then record commit and evidence.
+13. Merge through the coordinator queue and run pack-level validation before marking the pack done.
 
 ## Status Rules
 
@@ -105,6 +107,10 @@ Post-v0.1, support agent-guided workflow customization. Keep the default profile
 
 When asked about customization before the CLI exists, document the desired profile/toggles in a future ticket rather than inventing hidden behavior.
 
+## Future Work
+
+Use future-work files for non-blocking ideas. Capture first, then promote later. A future-work item should include the idea, why it is later, questions before promotion, and promotion notes. Do not bury future work in the current ticket unless it directly changes implementation.
+
 ## Templates
 
 Use the repo templates when available:
@@ -120,6 +126,7 @@ If a `ctx` CLI exists in the target repo, prefer it:
 
 ```sh
 node tools/context/ctx.mjs lint --json
+node tools/context/ctx.mjs future check --json
 node tools/context/ctx.mjs discover --backend semble --task "<task>" --repo . --json
 ctx scan --json
 ctx query --path <path> --task "<task>" --agent codex --budget 6000 --json
