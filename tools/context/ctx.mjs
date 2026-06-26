@@ -527,6 +527,51 @@ function doctor() {
   };
 }
 
+function packStatus(packId) {
+  const errors = [];
+  const specs = validateSpecs(errors);
+  const tickets = validateTickets(errors, specs);
+  const packs = validatePacks(errors, tickets, specs);
+  const requestedPackId = packId || argValue("--pack", "");
+  const pack = packs.get(requestedPackId);
+  if (!pack) {
+    return {
+      ok: false,
+      scope: "pack status",
+      pack: requestedPackId,
+      errors: [{ file: "docs/ticket-packs", message: `unknown pack: ${requestedPackId}` }],
+    };
+  }
+  const ticketRows = (Array.isArray(pack.frontmatter.tickets) ? pack.frontmatter.tickets : []).map((ticketId) => {
+    const ticket = tickets.get(ticketId);
+    return {
+      id: ticketId,
+      status: ticket?.frontmatter.status ?? "missing",
+      title: ticket?.frontmatter.title ?? null,
+      file: ticket?.file ?? null,
+      parallel_group: ticket?.frontmatter.parallel_group ?? null,
+    };
+  });
+  const byStatus = {};
+  for (const ticket of ticketRows) {
+    byStatus[ticket.status] = (byStatus[ticket.status] ?? 0) + 1;
+  }
+  return {
+    ok: errors.length === 0,
+    scope: "pack status",
+    pack: {
+      id: pack.frontmatter.id,
+      status: pack.frontmatter.status,
+      title: pack.frontmatter.title,
+      file: pack.file,
+    },
+    ticket_count: ticketRows.length,
+    by_status: byStatus,
+    tickets: ticketRows,
+    errors,
+  };
+}
+
 function writeInitFile(relativePath, content, result, force = false) {
   const target = path.join(root, relativePath);
   if (fs.existsSync(target) && !force) {
@@ -1004,6 +1049,8 @@ if (command === "lint") {
   const tickets = validateTickets(errors, specs);
   validatePacks(errors, tickets, specs);
   printResult({ ok: errors.length === 0, scope: "pack check", errors });
+} else if (command === "pack" && subcommand === "status") {
+  printResult(packStatus(args[2] ?? ""));
 } else if (command === "spec" && subcommand === "check") {
   const errors = [];
   validateSpecs(errors);
@@ -1027,6 +1074,7 @@ if (command === "lint") {
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx pack check --json",
+      "ctx pack status <pack-id> --json",
       "ctx spec check --json",
       "ctx future check --json",
     ],

@@ -596,6 +596,8 @@ Output rules:
 - Validation before writes.
 - `--dry-run` for mutation previews.
 
+Pack status returns the pack metadata, ticket count, per-status totals, and ordered ticket rows. Use it before dispatching parallel agents and after merging ticket commits.
+
 ## Daily Commands
 
 Use these commands while shaping or implementing tickets:

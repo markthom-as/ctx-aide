@@ -1,6 +1,6 @@
 ---
 id: ticket.context.007
-status: draft
+status: needs-review
 title: Add canonical ticket statuses and ticket packs
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -121,7 +121,11 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs ticket check --json`
+  - `node tools/context/ctx.mjs pack check --json`
+  - `node tools/context/ctx.mjs pack status pack.repo-context-mvp --json`
+  - `make validate`
 - Follow-up tickets: pending
