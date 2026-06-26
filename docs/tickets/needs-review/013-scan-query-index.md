@@ -1,6 +1,6 @@
 ---
 id: ticket.context.013
-status: draft
+status: needs-review
 title: Implement scan and query index
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -55,7 +55,7 @@ completion:
   completed_at: null
 ---
 
-# Implement scan and query index
+# Implement Scan and Query Index
 
 ## Outcome
 
@@ -126,7 +126,13 @@ This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an 
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs scan --json`
+  - `sqlite3 docs/context/generated/context.sqlite '.tables'`
+  - `sqlite3 docs/context/generated/context.sqlite 'select id, kind, status from context_entries order by id;'`
+  - `node tools/context/ctx.mjs query --path tools/context/ctx.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json`
+  - `make validate`
 - Follow-up tickets: pending

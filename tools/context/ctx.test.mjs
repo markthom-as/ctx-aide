@@ -9,6 +9,15 @@ const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "
 const ctx = path.join(repoRoot, "tools/context/ctx.mjs");
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "repo-context-"));
 
+function commandExists(binary) {
+  try {
+    execFileSync("which", [binary], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function write(file, text) {
   const full = path.join(fixture, file);
   fs.mkdirSync(path.dirname(full), { recursive: true });
@@ -84,6 +93,10 @@ assert.equal(scan.ok, true);
 assert.equal(scan.entry_count, 1);
 assert.equal(scan.entries[0].id, "route.context-lab");
 assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/context-manifest.json")), true);
+if (commandExists("sqlite3")) {
+  assert.equal(scan.sqlite_path, "docs/context/generated/context.sqlite");
+  assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/context.sqlite")), true);
+}
 
 const manifest = JSON.parse(fs.readFileSync(path.join(fixture, scan.manifest_path), "utf8"));
 assert.equal(manifest.entries.length, 1);

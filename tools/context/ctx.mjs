@@ -252,6 +252,11 @@ function contextEntryFromDoc(file, doc) {
     tags: Array.isArray(fm.tags) ? fm.tags : [],
     positive_rules: Array.isArray(fm.positive_rules) ? fm.positive_rules : [],
     negative_rules: Array.isArray(fm.negative_rules) ? fm.negative_rules : [],
+    severity: fm.severity ?? null,
+    source: fm.source ?? null,
+    name: fm.name ?? null,
+    import_path: fm.import_path ?? null,
+    package_path: fm.package_path ?? null,
     load_when: {
       path_matches: loadPathMatches,
       task_terms: loadTaskTerms,
@@ -293,15 +298,95 @@ function writeGeneratedManifest(manifest) {
   return path.relative(root, outPath);
 }
 
+function sqlString(value) {
+  if (value === null || value === undefined) return "null";
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function sqlJson(value) {
+  return sqlString(JSON.stringify(value));
+}
+
+function writeSqliteIndex(entries) {
+  if (!commandExists("sqlite3")) {
+    return { path: null, warning: "sqlite3 is unavailable; skipped SQLite index generation" };
+  }
+  const outDir = path.join(root, "docs/context/generated");
+  fs.mkdirSync(outDir, { recursive: true });
+  const dbPath = path.join(outDir, "context.sqlite");
+  fs.rmSync(dbPath, { force: true });
+  const statements = [
+    "pragma journal_mode = delete;",
+    "create table context_entries (id text primary key, kind text not null, status text not null, title text not null, markdown_path text not null, summary text, updated text, frontmatter_json text not null);",
+    "create table scope_bindings (entry_id text not null, scope_type text not null, scope_value text not null, weight integer not null default 100, primary key (entry_id, scope_type, scope_value));",
+    "create table relationships (from_id text not null, relation text not null, to_id text not null, primary key (from_id, relation, to_id));",
+    "create table feedback_items (id text primary key, status text not null, severity text, source text, created text, resolved_at text, markdown_path text not null);",
+    "create table component_registry (id text primary key, name text not null, package_path text, import_path text, status text not null, markdown_path text not null);",
+    "create virtual table context_fts using fts5(id, title, kind, body, tags);",
+  ];
+  for (const entry of entries) {
+    statements.push(
+      `insert into context_entries values (${sqlString(entry.id)}, ${sqlString(entry.kind)}, ${sqlString(entry.status)}, ${sqlString(entry.title)}, ${sqlString(entry.markdown_path)}, ${sqlString(entry.summary)}, ${sqlString(entry.updated)}, ${sqlJson(publicEntry(entry))});`,
+    );
+    for (const [scopeType, values] of Object.entries({
+      route: entry.routes,
+      file: entry.files,
+      component: entry.components,
+      flow: entry.flows,
+      tag: entry.tags,
+      path_match: entry.load_when.path_matches,
+      task_term: entry.load_when.task_terms,
+    })) {
+      for (const value of values) {
+        statements.push(
+          `insert into scope_bindings values (${sqlString(entry.id)}, ${sqlString(scopeType)}, ${sqlString(value)}, 100);`,
+        );
+      }
+    }
+    for (const component of entry.components) {
+      statements.push(
+        `insert or ignore into relationships values (${sqlString(entry.id)}, 'references_component', ${sqlString(component)});`,
+      );
+    }
+    for (const flow of entry.flows) {
+      statements.push(
+        `insert or ignore into relationships values (${sqlString(entry.id)}, 'references_flow', ${sqlString(flow)});`,
+      );
+    }
+    if (entry.kind === "feedback") {
+      statements.push(
+        `insert into feedback_items values (${sqlString(entry.id)}, ${sqlString(entry.status)}, ${sqlString(entry.severity)}, ${sqlString(entry.source)}, ${sqlString(entry.updated)}, null, ${sqlString(entry.markdown_path)});`,
+      );
+    }
+    if (entry.kind === "component") {
+      statements.push(
+        `insert into component_registry values (${sqlString(entry.id)}, ${sqlString(entry.name ?? entry.title)}, ${sqlString(entry.package_path)}, ${sqlString(entry.import_path)}, ${sqlString(entry.status)}, ${sqlString(entry.markdown_path)});`,
+      );
+    }
+    statements.push(
+      `insert into context_fts (id, title, kind, body, tags) values (${sqlString(entry.id)}, ${sqlString(entry.title)}, ${sqlString(entry.kind)}, ${sqlString(entry.body)}, ${sqlString(entry.tags.join(" "))});`,
+    );
+  }
+  execFileSync("sqlite3", [dbPath], {
+    input: `${statements.join("\n")}\n`,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  return { path: path.relative(root, dbPath), warning: null };
+}
+
 function scan() {
   const entries = readContextEntries();
   const manifest = manifestFor(entries);
   const manifestPath = writeGeneratedManifest(manifest);
+  const sqlite = writeSqliteIndex(entries);
   return {
     ok: true,
     scope: "scan",
     manifest_path: manifestPath,
+    sqlite_path: sqlite.path,
     entry_count: entries.length,
+    warnings: sqlite.warning ? [sqlite.warning] : [],
     entries: entries.map((entry) => ({
       id: entry.id,
       kind: entry.kind,

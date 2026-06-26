@@ -31,6 +31,11 @@
         "Do not collapse negative rules into generic notes.",
         "Do not use this component to edit canonical markdown directly."
       ],
+      "severity": null,
+      "source": null,
+      "name": "ContextEntryCard",
+      "import_path": "@/components/context/ContextEntryCard",
+      "package_path": null,
       "load_when": {
         "path_matches": [
           "components/context/**"
@@ -69,6 +74,11 @@
       ],
       "positive_rules": [],
       "negative_rules": [],
+      "severity": "medium",
+      "source": "implementation-audit",
+      "name": null,
+      "import_path": null,
+      "package_path": null,
       "load_when": {
         "path_matches": [],
         "task_terms": []
@@ -107,6 +117,11 @@
         "Do not treat generated indexes as canonical truth.",
         "Do not implement a ticket that still requires product or architecture decisions."
       ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
       "load_when": {
         "path_matches": [
           "docs/context/**",
@@ -152,6 +167,11 @@
         "Do not make the context lab the canonical authoring surface.",
         "Do not hide scan exclusions from review output."
       ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
       "load_when": {
         "path_matches": [
           "app/context-lab/**"
