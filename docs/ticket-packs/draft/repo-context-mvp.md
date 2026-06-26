@@ -107,7 +107,7 @@ Make this repository its own first usable fixture for repo-local context, canoni
 - `ticket.context.005`: needs-review - Hydrate markdown tickets with scoped context
 - `ticket.context.006`: needs-review - Add impact and regression checks
 - `ticket.context.007`: needs-review - Add canonical ticket statuses and ticket packs
-- `ticket.context.008`: draft - Define Idvisor repo-context plugin integration
+- `ticket.context.008`: needs-review - Define Idvisor repo-context plugin integration
 - `ticket.context.009`: needs-review - Add milestone run orchestration
 - `ticket.context.010`: needs-review - Add Semble-backed code discovery
 - `ticket.context.011`: needs-review - Add daily usability tooling

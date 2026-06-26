@@ -54,6 +54,7 @@ const requiredDirs = [
   "docs/specs",
   "docs/specs/templates",
   "docs/workflows",
+  "docs/idvisor",
   "docs/tickets/templates",
   "docs/tickets/draft",
   "docs/tickets/needs-questions",
@@ -726,6 +727,35 @@ function runStatus(runFile) {
   };
 }
 
+function idvisorWorkflow() {
+  return {
+    ok: true,
+    scope: "idvisor workflow",
+    plugin: "repo-context",
+    source_of_truth: "repo-local markdown",
+    local_commands: [
+      "node tools/context/ctx.mjs scan --json",
+      "node tools/context/ctx.mjs query --path <path> --task <task> --agent codex --budget 6000 --json",
+      "node tools/context/ctx.mjs ticket hydrate <ticket> --json",
+      "node tools/context/ctx.mjs pack status <pack-id> --json",
+      "node tools/context/ctx.mjs run status <run-file> --json",
+    ],
+    gates: [
+      "spec-question-pass",
+      "spec-hardening-pass",
+      "ticket-hardening-pass",
+      "ready-before-dispatch",
+      "commit-and-evidence-before-done",
+      "pack-validation-before-complete",
+    ],
+    dispatch: {
+      default_implementation_agent: "codex",
+      ui_review_agent: "claude-high-effort",
+      merge_strategy: "coordinator-queue",
+    },
+  };
+}
+
 function doctor() {
   const errors = [];
   validateDirs(errors);
@@ -1293,6 +1323,8 @@ if (command === "lint") {
   printResult(impact());
 } else if (command === "run" && subcommand === "status") {
   printResult(runStatus(args[2] ?? ""));
+} else if (command === "idvisor" && subcommand === "workflow") {
+  printResult(idvisorWorkflow());
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
@@ -1336,6 +1368,7 @@ if (command === "lint") {
       "ctx components get component.Button --json",
       "ctx impact --path components/Button.tsx --json",
       "ctx run status docs/runs/RUN.md --json",
+      "ctx idvisor workflow --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",

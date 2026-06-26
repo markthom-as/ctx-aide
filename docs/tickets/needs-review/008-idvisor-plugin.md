@@ -1,6 +1,6 @@
 ---
 id: ticket.context.008
-status: draft
+status: needs-review
 title: Define Idvisor repo-context plugin integration
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -127,7 +127,10 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs idvisor workflow --json`
+  - `node tools/context/ctx.mjs lint --json`
+  - `make validate`
 - Follow-up tickets: pending
