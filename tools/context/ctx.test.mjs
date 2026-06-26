@@ -24,12 +24,17 @@ function write(file, text) {
   fs.writeFileSync(full, text);
 }
 
-function run(args) {
-  return JSON.parse(execFileSync(process.execPath, [ctx, ...args, "--json"], {
-    cwd: fixture,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  }));
+function run(args, options = {}) {
+  try {
+    return JSON.parse(execFileSync(process.execPath, [ctx, ...args, "--json"], {
+      cwd: fixture,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }));
+  } catch (error) {
+    if (!options.allowFailure) throw error;
+    return JSON.parse(error.stdout);
+  }
 }
 
 write("docs/context/routes/context-lab.md", `---
@@ -119,6 +124,22 @@ assert.equal(query.entries.length, 1);
 assert.equal(query.entries[0].id, "route.context-lab");
 assert.deepEqual(query.entries[0].positive_rules, ["Keep positive rules separate."]);
 assert.deepEqual(query.entries[0].negative_rules, ["Do not flatten negative rules."]);
+
+const init = run(["init"]);
+assert.equal(init.ok, true);
+assert.equal(fs.existsSync(path.join(fixture, "docs/tickets/templates/canonical-ticket.md")), true);
+assert.equal(fs.existsSync(path.join(fixture, "AGENTS.md")), true);
+assert.equal(fs.existsSync(path.join(fixture, "CLAUDE.md")), true);
+assert.equal(fs.existsSync(path.join(fixture, ".cursor/rules/repo-context.mdc")), true);
+
+const secondInit = run(["init"], { allowFailure: true });
+assert.equal(secondInit.ok, false);
+assert.equal(secondInit.blocked.includes("AGENTS.md"), true);
+assert.equal(secondInit.blocked.includes("CLAUDE.md"), true);
+assert.equal(secondInit.skipped.includes("docs/tickets/templates/canonical-ticket.md"), true);
+
+const fixtureLint = run(["lint"]);
+assert.equal(fixtureLint.ok, true);
 
 fs.rmSync(fixture, { recursive: true, force: true });
 process.stdout.write("ctx tests passed\n");

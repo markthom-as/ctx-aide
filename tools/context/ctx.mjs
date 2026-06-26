@@ -4,6 +4,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const root = process.cwd();
+const toolRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const args = process.argv.slice(2);
 const command = args[0] ?? "help";
 const subcommand = args[1] ?? "";
@@ -526,6 +527,107 @@ function doctor() {
   };
 }
 
+function writeInitFile(relativePath, content, result, force = false) {
+  const target = path.join(root, relativePath);
+  if (fs.existsSync(target) && !force) {
+    result.blocked.push(relativePath);
+    return;
+  }
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content);
+  result.created.push(relativePath);
+}
+
+function copyInitFile(sourceRelativePath, targetRelativePath, result, force = false) {
+  const source = path.join(toolRoot, sourceRelativePath);
+  const target = path.join(root, targetRelativePath);
+  if (!fs.existsSync(source)) {
+    result.warnings.push(`missing source template: ${sourceRelativePath}`);
+    return;
+  }
+  if (fs.existsSync(target) && !force) {
+    result.skipped.push(targetRelativePath);
+    return;
+  }
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.copyFileSync(source, target);
+  result.created.push(targetRelativePath);
+}
+
+function initRepo() {
+  const force = args.includes("--force");
+  const result = {
+    ok: true,
+    scope: "init",
+    force,
+    created: [],
+    skipped: [],
+    blocked: [],
+    warnings: [],
+  };
+  for (const dir of requiredDirs) {
+    const full = path.join(root, dir);
+    if (fs.existsSync(full)) {
+      result.skipped.push(dir);
+    } else {
+      fs.mkdirSync(full, { recursive: true });
+      result.created.push(dir);
+    }
+  }
+  const templateCopies = [
+    ["docs/specs/templates/spec.md", "docs/specs/templates/spec.md"],
+    ["docs/tickets/templates/canonical-ticket.md", "docs/tickets/templates/canonical-ticket.md"],
+    ["docs/ticket-packs/templates/ticket-pack.md", "docs/ticket-packs/templates/ticket-pack.md"],
+    ["docs/future-work/templates/future-work.md", "docs/future-work/templates/future-work.md"],
+    ["docs/context/schema/context-entry.schema.json", "docs/context/schema/context-entry.schema.json"],
+    ["docs/context/schema/feedback-entry.schema.json", "docs/context/schema/feedback-entry.schema.json"],
+  ];
+  for (const [source, target] of templateCopies) {
+    copyInitFile(source, target, result, force);
+  }
+  writeInitFile(
+    "AGENTS.md",
+    `# Agent Instructions
+
+Before creating or implementing tickets, run:
+
+\`\`\`sh
+node tools/context/ctx.mjs scan --json
+node tools/context/ctx.mjs query --path <target-path> --task "<task>" --agent codex --budget 6000 --json
+\`\`\`
+
+Use markdown specs, tickets, ticket packs, and context entries as source-of-truth planning artifacts.
+`,
+    result,
+    force,
+  );
+  writeInitFile(
+    "CLAUDE.md",
+    `# Claude Instructions
+
+Use repo-context markdown for product-flow, design, copy, and UI hardening passes. Prefer targeted context from \`ctx query\` over broad document loading.
+`,
+    result,
+    force,
+  );
+  writeInitFile(
+    ".cursor/rules/repo-context.mdc",
+    `---
+description: Repo Context
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+Use \`docs/context\`, \`docs/specs\`, \`docs/tickets\`, and \`docs/ticket-packs\` as local context sources. Preserve positive and negative rules separately.
+`,
+    result,
+    force,
+  );
+  result.ok = result.blocked.length === 0;
+  return result;
+}
+
 function validateDirs(errors) {
   for (const dir of requiredDirs) {
     assert(fs.existsSync(path.join(root, dir)), errors, dir, "required directory is missing");
@@ -882,6 +984,8 @@ if (command === "lint") {
   printResult(runChecks("lint"));
 } else if (command === "doctor") {
   printResult(doctor());
+} else if (command === "init") {
+  printResult(initRepo());
 } else if (command === "scan") {
   printResult(scan());
 } else if (command === "query") {
@@ -917,6 +1021,7 @@ if (command === "lint") {
     usage: [
       "ctx lint --json",
       "ctx doctor --json",
+      "ctx init --json",
       "ctx scan --json",
       "ctx query --path <path> --task <task> --agent codex --budget 6000 --json",
       "ctx discover --backend semble --task <task> --repo . --json",

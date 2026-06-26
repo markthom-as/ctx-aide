@@ -1,6 +1,6 @@
 ---
 id: ticket.context.012
-status: draft
+status: needs-review
 title: Implement ctx init bootstrap
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -53,7 +53,7 @@ completion:
   completed_at: null
 ---
 
-# Implement ctx init bootstrap
+# Implement Ctx Init Bootstrap
 
 ## Outcome
 
@@ -124,7 +124,10 @@ This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an 
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs init --json`
+  - `make validate`
 - Follow-up tickets: pending
