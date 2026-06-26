@@ -17,6 +17,19 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
   - Do not collapse negative rules into generic notes.
   - Do not use this component to edit canonical markdown directly.
 
+## design.repo-context-tokens
+
+- Kind: design
+- Status: active
+- Source: docs/context/design/repo-context-design-tokens.md
+- Summary: Define lightweight visual conventions for rendering repo-context catalog entries in a target web app.
+- Positive rules:
+  - Prefer restrained metadata labels for context id, kind, status, and source path.
+  - Use separate visual groups for positive rules and negative rules.
+- Negative rules:
+  - Do not present negative rules as lower-priority suggestions.
+  - Do not hide component status or source paths in catalog views.
+
 ## feedback.2026-06-26.substrate-examples
 
 - Kind: feedback

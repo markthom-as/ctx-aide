@@ -1,6 +1,6 @@
 ---
 id: ticket.context.004
-status: draft
+status: needs-review
 title: Add lightweight component and design catalog
 ticket_pack: pack.repo-context-mvp
 milestones:
@@ -121,7 +121,11 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Completion
 
-- Status: draft
+- Status: needs-review
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence:
+  - `node tools/context/ctx.mjs components list --json`
+  - `node tools/context/ctx.mjs components get component.ContextEntryCard --json`
+  - `node tools/context/ctx.mjs query --path docs/context/components/context-entry-card.md --task "component catalog design token" --agent codex --budget 1200 --json`
+  - `make validate`
 - Follow-up tickets: pending

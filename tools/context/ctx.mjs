@@ -555,6 +555,42 @@ function exportAgent() {
   };
 }
 
+function componentsList() {
+  const components = readContextEntries()
+    .filter((entry) => entry.kind === "component")
+    .map((entry) => ({
+      id: entry.id,
+      name: entry.name ?? entry.title,
+      status: entry.status,
+      import_path: entry.import_path,
+      markdown_path: entry.markdown_path,
+      summary: entry.summary,
+    }));
+  return {
+    ok: true,
+    scope: "components list",
+    count: components.length,
+    components,
+  };
+}
+
+function componentGet(id) {
+  const componentId = id || argValue("--id", "");
+  const component = readContextEntries().find((entry) => entry.id === componentId && entry.kind === "component");
+  if (!component) {
+    return {
+      ok: false,
+      scope: "components get",
+      errors: [{ file: "docs/context/components", message: `unknown component: ${componentId}` }],
+    };
+  }
+  return {
+    ok: true,
+    scope: "components get",
+    component: publicEntry(component),
+  };
+}
+
 function doctor() {
   const errors = [];
   validateDirs(errors);
@@ -1114,6 +1150,10 @@ if (command === "lint") {
   printResult(query());
 } else if (command === "export-agent") {
   printResult(exportAgent());
+} else if (command === "components" && subcommand === "list") {
+  printResult(componentsList());
+} else if (command === "components" && subcommand === "get") {
+  printResult(componentGet(args[2] ?? ""));
 } else if (command === "discover") {
   const result = discover();
   printResult(result);
@@ -1151,6 +1191,8 @@ if (command === "lint") {
       "ctx scan --json",
       "ctx query --path <path> --task <task> --agent codex --budget 6000 --json",
       "ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json",
+      "ctx components list --json",
+      "ctx components get component.Button --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx ticket check --json",
       "ctx pack check --json",

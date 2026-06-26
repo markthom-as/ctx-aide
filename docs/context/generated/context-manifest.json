@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generated_by": "tools/context/ctx.mjs scan",
   "source": "markdown",
-  "entry_count": 4,
+  "entry_count": 5,
   "entries": [
     {
       "id": "component.ContextEntryCard",
@@ -42,6 +42,55 @@
         ],
         "task_terms": [
           "context entry",
+          "component catalog"
+        ]
+      },
+      "updated": "2026-06-26"
+    },
+    {
+      "id": "design.repo-context-tokens",
+      "kind": "design",
+      "status": "active",
+      "title": "Repo Context Design Tokens",
+      "markdown_path": "docs/context/design/repo-context-design-tokens.md",
+      "summary": "Define lightweight visual conventions for rendering repo-context catalog entries in a target web app.",
+      "routes": [
+        "/context-lab"
+      ],
+      "files": [
+        "docs/context/components/context-entry-card.md"
+      ],
+      "components": [
+        "component.ContextEntryCard"
+      ],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "design",
+        "tokens",
+        "catalog"
+      ],
+      "positive_rules": [
+        "Prefer restrained metadata labels for context id, kind, status, and source path.",
+        "Use separate visual groups for positive rules and negative rules."
+      ],
+      "negative_rules": [
+        "Do not present negative rules as lower-priority suggestions.",
+        "Do not hide component status or source paths in catalog views."
+      ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
+      "load_when": {
+        "path_matches": [
+          "components/context/**",
+          "docs/context/components/**"
+        ],
+        "task_terms": [
+          "design token",
           "component catalog"
         ]
       },

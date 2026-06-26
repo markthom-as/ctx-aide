@@ -152,6 +152,10 @@ assert.equal(cursorPack.ok, true);
 assert.equal(cursorPack.out, ".cursor/rules/generated/repo-context.mdc");
 assert.equal(fs.existsSync(path.join(fixture, cursorPack.out)), true);
 
+const componentList = run(["components", "list"]);
+assert.equal(componentList.ok, true);
+assert.equal(componentList.count, 0);
+
 const noBackendDiscovery = run(["discover", "--backend", "none", "--task", "known path", "--out", "docs/context/generated/discovery.none.json"]);
 assert.equal(noBackendDiscovery.ok, true);
 assert.equal(noBackendDiscovery.out, "docs/context/generated/discovery.none.json");
