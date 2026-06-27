@@ -1,0 +1,77 @@
+---
+id: pack.repo-context-agent-capability-policy-2026-06-27
+status: active
+title: Agent Capability Policy
+milestones:
+  - milestone.repo-context-agent-capability-policy
+source_specs:
+  - spec.agent-capability-policy-2026-06-27
+tickets:
+  - ticket.context.030
+  - ticket.context.031
+  - ticket.context.032
+run_policy:
+  max_parallel_agents: 1
+  stale_after_minutes: 20
+  merge_strategy: sequential-ticket-commits
+  worktree_required: false
+parallel_groups:
+  catalog:
+    tickets:
+      - ticket.context.030
+  resolver:
+    tickets:
+      - ticket.context.031
+  closeout:
+    tickets:
+      - ticket.context.032
+blocked_by: []
+created: 2026-06-27
+completion:
+  completed_at: null
+  final_validation: []
+---
+
+# Agent Capability Policy
+
+## Outcome
+
+Repo-context can describe agent tools/skills and resolve repo-local allow/deny policy globally and for workflow steps.
+
+## Scope
+
+- Included: built-in capability catalog, repo-local policy config, CLI policy commands, lint/doctor validation, tests, and docs.
+- Excluded: runtime enforcement inside external agent hosts, paid connector operations, and infrastructure changes.
+
+## Tickets
+
+- `ticket.context.030`: done
+- `ticket.context.031`: ready
+- `ticket.context.032`: ready
+
+## Execution Plan
+
+- Parallel groups: logical groups are listed for review, but implementation is sequential because all tickets touch the CLI.
+- Sequential dependencies: `ticket.context.031` depends on `ticket.context.030`; `ticket.context.032` depends on both.
+- Shared-file coordination: re-read CLI/test command sections before each ticket edit.
+- Worktree strategy: current worktree, one commit per ticket.
+- Merge queue strategy: no queue required.
+
+## Run Policy
+
+- Max parallel agents: 1.
+- Stale lease threshold: 20 minutes.
+- Dead-agent cleanup: check `git status --short` before staging.
+- Requeue rules: move back to needs-hardening if policy needs live host-runtime enforcement or paid connector changes.
+
+## Pack Validation
+
+- Smoke tests: `ctx tools list`, `ctx tools policy`, and `ctx tools check`.
+- Screenshots: none.
+- Full regression checks: `make validate` and `make smoke`.
+
+## Completion
+
+- Completed tickets: `ticket.context.030`.
+- Remaining tickets: `ticket.context.031`, `ticket.context.032`.
+- Final validation: pending.

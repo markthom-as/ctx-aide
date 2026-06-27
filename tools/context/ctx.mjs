@@ -435,6 +435,148 @@ const workflowDependencyCatalog = {
   },
 };
 
+const agentCapabilityCatalog = {
+  "tool.ctx": {
+    kind: "tool",
+    source: "repo-context",
+    risk: "low",
+    purpose: "Run repo-context planning, status, lint, and workflow commands.",
+  },
+  "tool.semble": {
+    kind: "tool",
+    source: "local-cli",
+    risk: "low",
+    purpose: "Perform semantic code discovery for scoped implementation context.",
+  },
+  "tool.shell": {
+    kind: "tool",
+    source: "agent-host",
+    risk: "high",
+    purpose: "Run local commands in the repository workspace.",
+  },
+  "tool.playwright": {
+    kind: "tool",
+    source: "repo-dependency",
+    risk: "medium",
+    purpose: "Run deterministic browser validation and screenshots.",
+  },
+  "tool.chrome-devtools": {
+    kind: "tool",
+    source: "agent-host",
+    risk: "medium",
+    purpose: "Inspect and automate Chrome during debugging and browser validation.",
+  },
+  "tool.computer-use": {
+    kind: "tool",
+    source: "agent-host",
+    risk: "high",
+    purpose: "Control local desktop applications when browser or CLI automation is insufficient.",
+  },
+  "tool.web": {
+    kind: "tool",
+    source: "agent-host",
+    risk: "medium",
+    purpose: "Browse current external web sources for temporally unstable information.",
+  },
+  "tool.imagegen": {
+    kind: "tool",
+    source: "agent-host",
+    risk: "medium",
+    purpose: "Generate or edit raster images when a task explicitly needs visual assets.",
+  },
+  "app.github": {
+    kind: "app",
+    source: "connector",
+    risk: "medium",
+    purpose: "Read and update GitHub repositories, pull requests, issues, and checks.",
+  },
+  "app.gmail": {
+    kind: "app",
+    source: "connector",
+    risk: "high",
+    purpose: "Read and mutate Gmail mailboxes when explicitly authorized.",
+  },
+  "app.google-calendar": {
+    kind: "app",
+    source: "connector",
+    risk: "high",
+    purpose: "Read and mutate Google Calendar events when explicitly authorized.",
+  },
+  "app.google-drive": {
+    kind: "app",
+    source: "connector",
+    risk: "high",
+    purpose: "Read and mutate Google Drive, Docs, Sheets, and Slides files.",
+  },
+  "app.vercel": {
+    kind: "app",
+    source: "connector",
+    risk: "high",
+    purpose: "Inspect and mutate Vercel projects, deployments, domains, and environment config.",
+  },
+  "tool.codex-security": {
+    kind: "tool",
+    source: "plugin",
+    risk: "medium",
+    purpose: "Run repository security scans and finding validation workflows.",
+  },
+  "skill.repo-context": {
+    kind: "skill",
+    source: "repo-skill",
+    risk: "low",
+    purpose: "Use repo-context markdown, tickets, packs, and workflow commands correctly.",
+  },
+  "skill.agent-native-cli-design": {
+    kind: "skill",
+    source: "skill",
+    risk: "low",
+    purpose: "Design and review CLIs for unattended agent use.",
+  },
+  "skill.playwright": {
+    kind: "skill",
+    source: "skill",
+    risk: "low",
+    purpose: "Use browser automation for frontend testing and debugging.",
+  },
+  "skill.security-best-practices": {
+    kind: "skill",
+    source: "skill",
+    risk: "low",
+    purpose: "Apply language and framework-specific security hardening guidance.",
+  },
+  "skill.vercel-deploy": {
+    kind: "skill",
+    source: "skill",
+    risk: "medium",
+    purpose: "Deploy applications and websites through Vercel when explicitly requested.",
+  },
+};
+
+const defaultAgentToolsConfig = {
+  config_version: 1,
+  global: {
+    allow: [
+      "tool.ctx",
+      "tool.semble",
+      "tool.shell",
+      "tool.playwright",
+      "skill.repo-context",
+      "skill.agent-native-cli-design",
+      "skill.playwright",
+      "skill.security-best-practices",
+    ],
+    deny: [
+      "app.gmail",
+      "app.google-calendar",
+      "app.google-drive",
+      "app.vercel",
+      "tool.computer-use",
+    ],
+  },
+  workflows: {},
+  capabilities: {},
+};
+
 const credentialProfileCatalog = {
   "browser-test-user": {
     purpose: "Default logged-in browser validation identity.",
@@ -1105,6 +1247,115 @@ function mergeObjects(base, override) {
 
 function stringArray(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string" && item.trim()) : [];
+}
+
+function agentToolsConfigPath(repoPath, configArg) {
+  const defaultPath = path.join(repoPath, "docs/config/repo-context.tools.json");
+  return configArg
+    ? (path.isAbsolute(configArg) ? configArg : path.join(repoPath, configArg))
+    : defaultPath;
+}
+
+function readAgentToolsConfig(repoPath, configArg = "") {
+  const configPath = agentToolsConfigPath(repoPath, configArg);
+  const display = path.relative(root, configPath) || configArg || "docs/config/repo-context.tools.json";
+  if (!fs.existsSync(configPath)) {
+    return {
+      ok: true,
+      path: display,
+      exists: false,
+      config: defaultAgentToolsConfig,
+      source: "built-in defaults",
+      errors: [],
+    };
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    return {
+      ok: true,
+      path: display,
+      exists: true,
+      config: mergeObjects(defaultAgentToolsConfig, parsed),
+      source: "config file",
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      path: display,
+      exists: true,
+      config: null,
+      source: "config file",
+      errors: [{ file: display, message: `invalid JSON: ${error.message}` }],
+    };
+  }
+}
+
+function mergedCapabilityCatalog(config) {
+  const custom = plainObject(config?.capabilities) ? config.capabilities : {};
+  const catalog = { ...agentCapabilityCatalog };
+  for (const [id, entry] of Object.entries(custom)) {
+    catalog[id] = {
+      kind: entry?.kind ?? "custom",
+      source: entry?.source ?? "repo-config",
+      risk: entry?.risk ?? "custom",
+      purpose: entry?.purpose ?? "Repo-local custom capability.",
+    };
+  }
+  return catalog;
+}
+
+function capabilityRows(catalog, capabilityId = "") {
+  return Object.entries(catalog)
+    .filter(([id]) => !capabilityId || id === capabilityId)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([id, entry]) => ({ id, ...entry }));
+}
+
+function toolsList() {
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  const capabilityId = argValue("--capability", "");
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "tools list",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  const configResult = readAgentToolsConfig(repoPath, argValue("--config", ""));
+  if (!configResult.ok) {
+    return {
+      ok: false,
+      scope: "tools list",
+      errors: configResult.errors,
+    };
+  }
+  const catalog = mergedCapabilityCatalog(configResult.config);
+  const capabilities = capabilityRows(catalog, capabilityId);
+  return {
+    ok: capabilityId ? capabilities.length === 1 : true,
+    scope: "tools list",
+    repo: path.relative(root, repoPath) || ".",
+    config: {
+      path: configResult.path,
+      exists: configResult.exists,
+      source: configResult.source,
+    },
+    catalog: {
+      count: capabilities.length,
+      capabilities,
+    },
+    policy: {
+      global: {
+        allow: stringArray(configResult.config.global?.allow).sort(),
+        deny: stringArray(configResult.config.global?.deny).sort(),
+      },
+    },
+    errors: capabilityId && capabilities.length === 0
+      ? [{ file: configResult.path, message: `unknown capability: ${capabilityId}` }]
+      : [],
+  };
 }
 
 function validateRuntimeSettings(settings, file, errors) {
@@ -3184,6 +3435,8 @@ if (command === "lint") {
   printResult(result);
 } else if (command === "dependency" && subcommand === "audit") {
   printResult(dependencyAudit());
+} else if (command === "tools" && subcommand === "list") {
+  printResult(toolsList());
 } else if (command === "workflow" && subcommand === "deps") {
   printResult(workflowDeps());
 } else if (command === "workflow" && subcommand === "views") {
@@ -3250,6 +3503,7 @@ if (command === "lint") {
       "ctx customize --profile strict --dry-run --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
+      "ctx tools list --json",
       "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
       "ctx workflow views --workflow workflow.browser-validation --repo . --json",
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",

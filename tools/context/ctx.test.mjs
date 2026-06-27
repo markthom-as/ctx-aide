@@ -157,6 +157,34 @@ const componentList = run(["components", "list"]);
 assert.equal(componentList.ok, true);
 assert.equal(componentList.count, 0);
 
+const defaultToolsList = run(["tools", "list"]);
+assert.equal(defaultToolsList.ok, true);
+assert.equal(defaultToolsList.config.exists, false);
+assert.equal(defaultToolsList.catalog.capabilities.some((capability) => capability.id === "tool.semble"), true);
+assert.equal(defaultToolsList.policy.global.deny.includes("app.gmail"), true);
+
+write("docs/config/repo-context.tools.json", `${JSON.stringify({
+  config_version: 1,
+  global: {
+    allow: ["tool.ctx", "custom.internal-linter"],
+    deny: ["app.gmail"],
+  },
+  capabilities: {
+    "custom.internal-linter": {
+      kind: "tool",
+      source: "repo-config",
+      risk: "low",
+      purpose: "Run a repo-local lint wrapper.",
+    },
+  },
+}, null, 2)}\n`);
+const configuredToolsList = run(["tools", "list", "--capability", "custom.internal-linter"]);
+assert.equal(configuredToolsList.ok, true);
+assert.equal(configuredToolsList.config.exists, true);
+assert.equal(configuredToolsList.catalog.count, 1);
+assert.equal(configuredToolsList.catalog.capabilities[0].purpose, "Run a repo-local lint wrapper.");
+assert.deepEqual(configuredToolsList.policy.global.allow, ["custom.internal-linter", "tool.ctx"]);
+
 const noBackendDiscovery = run(["discover", "--backend", "none", "--task", "known path", "--out", "docs/context/generated/discovery.none.json"]);
 assert.equal(noBackendDiscovery.ok, true);
 assert.equal(noBackendDiscovery.out, "docs/context/generated/discovery.none.json");
