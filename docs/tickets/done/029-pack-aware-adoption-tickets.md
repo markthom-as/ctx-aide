@@ -1,6 +1,6 @@
 ---
 id: ticket.context.029
-status: ready
+status: done
 title: Make adoption tickets pack-aware
 ticket_pack: pack.repo-context-pre-production-adoption-hardening-2026-06-27
 milestones:
@@ -22,7 +22,7 @@ scope:
     - tools/context/ctx.mjs
     - tools/context/ctx.test.mjs
     - README.md
-    - docs/ticket-packs/active/pre-production-adoption-hardening-2026-06-27.md
+    - docs/ticket-packs/done/pre-production-adoption-hardening-2026-06-27.md
   directories: []
   components: []
   flows:
@@ -44,8 +44,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: pack-aware-adoption-tickets
+  completed_at: 2026-06-27
 ---
 
 # Make Adoption Tickets Pack-Aware
@@ -110,7 +110,12 @@ This is the closeout ticket for the hardening cycle.
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending.
+- Status: done
+- Commit: pack-aware-adoption-tickets
+- Verification evidence:
+  - `make validate`
+  - `make smoke`
+  - `node tools/context/ctx.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json`
+  - `node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/context blockers
+  - `node tools/context/ctx.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'Repo Context Dogfood' --slug repo-context-dogfood --json`
 - Follow-up tickets: none.

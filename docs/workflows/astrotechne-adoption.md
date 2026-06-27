@@ -74,3 +74,13 @@ Before daily Astrotechne use, repo-context should add:
 9. Validate with focused tests, screenshots for UI, `npm run tickets:status`, typecheck/build as relevant, and route smoke.
 10. Commit each completed ticket separately.
 11. Run coordinator closeout: pack README, completion evidence, final validation, and status drift note.
+
+## Pre-Production Hardening Flow
+
+Before using repo-context on production code:
+
+1. Run `ctx adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json`.
+2. Resolve bootstrap blockers before generating production-code tickets.
+3. Keep dirty target worktree warnings visible; do not stage unrelated target changes into repo-context adoption commits.
+4. Create the packet with `ctx adoption pack` before creating tickets.
+5. Create tickets with both `--pack <pack-id>` and `--pack-slug <pack-slug>` so the ticket file lands in the packet directory.

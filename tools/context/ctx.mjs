@@ -2269,7 +2269,8 @@ function adoptionBootstrap() {
     changes,
     next_commands: [
       `ctx adoption context --repo ${repoPath} --kind flow --title "<flow>" --path "<path>" --task "<task>" --write --json`,
-      `ctx adoption ticket --repo ${repoPath} --title "<ticket>" --task "<task>" --context "<context-id>" --write --json`,
+      `ctx adoption pack --repo ${repoPath} --title "<pack>" --slug <pack-slug> --write --json`,
+      `ctx adoption ticket --repo ${repoPath} --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --context "<context-id>" --write --json`,
     ],
     errors: [],
   };
@@ -2375,6 +2376,13 @@ function adoptionPack() {
   };
 }
 
+function adoptionTicketPath(profile, ticketSlug, packSlug) {
+  if (packSlug && profile.profile === "astrotechne") {
+    return path.join(profile.ticket_root, packSlug, `${ticketSlug}.md`);
+  }
+  return path.join(profile.ticket_root, `${ticketSlug}.md`);
+}
+
 function adoptionTicket() {
   const repoPath = targetRepoPath();
   const write = args.includes("--write");
@@ -2386,13 +2394,27 @@ function adoptionTicket() {
   const title = argValue("--title", argValue("--task", "Adopted Ticket"));
   const task = argValue("--task", title);
   const slug = slugify(argValue("--slug", title));
+  const packSlug = slugify(argValue("--pack-slug", ""));
   const contexts = unique([...argValues("--context"), ...argValues("--context-id")]);
   const files = unique([...argValues("--file"), ...argValues("--path")]);
   const routes = argValues("--route");
   const components = argValues("--component");
   const flows = argValues("--flow");
   const validations = unique([...argValues("--validation"), ...profile.recommended_validation]);
-  const relativePath = path.join(profile.ticket_root, `${slug}.md`);
+  if (packSlug && profile.profile === "astrotechne") {
+    const packReadme = adoptionPackPath(profile, packSlug);
+    if (!fs.existsSync(path.join(repoPath, packReadme))) {
+      return {
+        ok: false,
+        scope: "adoption ticket",
+        repo: displayPath(repoPath),
+        write,
+        profile,
+        errors: [{ file: packReadme, message: "pack does not exist; create it with ctx adoption pack first" }],
+      };
+    }
+  }
+  const relativePath = adoptionTicketPath(profile, slug, packSlug);
   const text = `---\nid: ${argValue("--id", `ticket.${slug}`)}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctx adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
   const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
   return {
@@ -3237,7 +3259,7 @@ if (command === "lint") {
       "ctx adoption bootstrap --repo <target-repo> --profile wetware --write --json",
       "ctx adoption pack --repo <target-repo> --title '<pack>' --slug <slug> --write --json",
       "ctx adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json",
-      "ctx adoption ticket --repo <target-repo> --title '<ticket>' --task '<task>' --context <context-id> --write --json",
+      "ctx adoption ticket --repo <target-repo> --pack <pack-id> --pack-slug <pack-slug> --title '<ticket>' --task '<task>' --context <context-id> --write --json",
       "ctx adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --json",
       "ctx ticket check --json",
       "ctx ticket hydrate docs/tickets/draft/TICKET.md --json",

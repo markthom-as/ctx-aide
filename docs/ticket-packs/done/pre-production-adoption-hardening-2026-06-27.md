@@ -1,6 +1,6 @@
 ---
 id: pack.repo-context-pre-production-adoption-hardening-2026-06-27
-status: active
+status: done
 title: Pre-Production Adoption Hardening
 milestones:
   - milestone.repo-context-pre-production-adoption-hardening
@@ -28,8 +28,13 @@ parallel_groups:
 blocked_by: []
 created: 2026-06-27
 completion:
-  completed_at: null
-  final_validation: []
+  completed_at: 2026-06-27
+  final_validation:
+    - make validate
+    - make smoke
+    - node tools/context/ctx.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/context/ctx.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'Repo Context Dogfood' --slug repo-context-dogfood --json
 ---
 
 # Pre-Production Adoption Hardening
@@ -47,7 +52,7 @@ Make repo-context safer and more complete for target-repo dogfooding before it i
 
 - `ticket.context.027`: done
 - `ticket.context.028`: done
-- `ticket.context.029`: ready
+- `ticket.context.029`: done
 
 ## Execution Plan
 
@@ -72,6 +77,9 @@ Make repo-context safer and more complete for target-repo dogfooding before it i
 
 ## Completion
 
-- Completed tickets: `ticket.context.027`, `ticket.context.028`.
-- Remaining tickets: `ticket.context.029`.
-- Final validation: pending.
+- Completed tickets: `ticket.context.027`, `ticket.context.028`, `ticket.context.029`.
+- Remaining tickets: none.
+- Final validation:
+  - `make validate`
+  - `make smoke`
+  - Astrotechne bootstrap/status/pack dry-runs.

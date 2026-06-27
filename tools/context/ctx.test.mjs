@@ -525,6 +525,63 @@ assert.equal(astrotechnePack.ok, true);
 assert.equal(astrotechnePack.pack.file, "docs/domain-redesign/tickets/public-copy-launch/README.md");
 assert.equal(fs.existsSync(path.join(astrotechneTarget, astrotechnePack.pack.file)), true);
 
+const missingPackTicket = run([
+  "adoption",
+  "ticket",
+  "--repo",
+  astrotechneTarget,
+  "--profile",
+  "astrotechne",
+  "--title",
+  "Missing Pack Ticket",
+  "--slug",
+  "missing-pack-ticket",
+  "--pack-slug",
+  "does-not-exist",
+  "--write",
+], { allowFailure: true });
+assert.equal(missingPackTicket.ok, false);
+assert.equal(missingPackTicket.errors[0].message.includes("pack does not exist"), true);
+
+const astrotechnePackedTicket = run([
+  "adoption",
+  "ticket",
+  "--repo",
+  astrotechneTarget,
+  "--profile",
+  "astrotechne",
+  "--title",
+  "Polish Public Copy",
+  "--slug",
+  "polish-public-copy",
+  "--task",
+  "polish public copy",
+  "--pack",
+  astrotechnePack.pack.id,
+  "--pack-slug",
+  astrotechnePack.pack.slug,
+  "--context",
+  "flow.dependency-audit-clearance",
+  "--file",
+  "app/page.tsx",
+  "--write",
+]);
+assert.equal(astrotechnePackedTicket.ok, true);
+assert.equal(astrotechnePackedTicket.ticket.file, "docs/domain-redesign/tickets/public-copy-launch/polish-public-copy.md");
+assert.equal(fs.existsSync(path.join(astrotechneTarget, astrotechnePackedTicket.ticket.file)), true);
+
+const astrotechnePackedPlan = run([
+  "adoption",
+  "implementation-plan",
+  "--repo",
+  astrotechneTarget,
+  "--ticket",
+  astrotechnePackedTicket.ticket.file,
+]);
+assert.equal(astrotechnePackedPlan.ok, true);
+assert.equal(astrotechnePackedPlan.ticket.file, astrotechnePackedTicket.ticket.file);
+assert.equal(astrotechnePackedPlan.target_paths.includes("app/page.tsx"), true);
+
 write("docs/specs/dependency-upgrade.md", `---
 id: spec.dependency-upgrade
 status: draft

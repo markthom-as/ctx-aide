@@ -169,6 +169,22 @@ Security and truthfulness rules:
 - `ctx workflow validation-plan` is a readiness gate. It returns the full matrix even when blocked, but top-level `ok` is false when a required view lacks credentials or browser storage state.
 - Browser validation plans must keep deploy cost policy explicit; deploy-enabled configs must keep `cost_estimate_required: true`.
 
+## Target Adoption Preflight
+
+Before using repo-context on a production repository, inspect the target state without mutating it:
+
+```sh
+node /path/to/repo-context/tools/context/ctx.mjs adoption status --repo /path/to/target --profile auto --json
+node /path/to/repo-context/tools/context/ctx.mjs adoption bootstrap --repo /path/to/target --profile auto --json
+node /path/to/repo-context/tools/context/ctx.mjs adoption pack --repo /path/to/target --title "<pack>" --slug <pack-slug> --json
+```
+
+For directory-pack repositories such as Astrotechne, create tickets with the pack slug so generated work stays inside the packet:
+
+```sh
+node /path/to/repo-context/tools/context/ctx.mjs adoption ticket --repo /path/to/target --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --write --json
+```
+
 ## Agent Operating Rules
 
 Repo-context should preserve the daily operating rules that make agent work reviewable and parallelizable.
