@@ -229,11 +229,39 @@ node /path/to/repo-context/tools/context/ctx.mjs adoption bootstrap --repo /path
 node /path/to/repo-context/tools/context/ctx.mjs adoption pack --repo /path/to/target --title "<pack>" --slug <pack-slug> --json
 ```
 
+`adoption bootstrap --write` seeds both `docs/config/repo-context.profile.json` and `docs/config/repo-context.tools.json` in the target repo. `adoption status` treats a missing or invalid tools policy as a blocker, but it remains read-only and does not probe live connector auth.
+
 For directory-pack repositories such as Astrotechne, create tickets with the pack slug so generated work stays inside the packet:
 
 ```sh
 node /path/to/repo-context/tools/context/ctx.mjs adoption ticket --repo /path/to/target --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --write --json
 ```
+
+Generated tickets can also pin capability policy context:
+
+```sh
+node /path/to/repo-context/tools/context/ctx.mjs adoption ticket \
+  --repo /path/to/target \
+  --pack <pack-id> \
+  --pack-slug <pack-slug> \
+  --title "<ticket>" \
+  --task "<task>" \
+  --context <context-id> \
+  --capability-workflow workflow.browser-validation \
+  --capability-step browser-smoke \
+  --capability tool.playwright,tool.semble \
+  --write \
+  --json
+```
+
+Before implementation, load the plan and follow the returned `capability_policy` envelope:
+
+```sh
+node /path/to/repo-context/tools/context/ctx.mjs adoption implementation-plan --repo /path/to/target --ticket <ticket.md> --json
+node /path/to/repo-context/tools/context/ctx.mjs tools check --repo /path/to/target --workflow <workflow-id> --step <step-id> --capability <capability-id> --json
+```
+
+`implementation-plan` shows effective allow/deny policy and required capability decisions, but it does not fail only because a required capability is denied. Use `ctx tools check` as the failing guard before choosing a high-risk tool or connector.
 
 ## Agent Operating Rules
 

@@ -1,6 +1,6 @@
 ---
 id: spec.adoption-capability-policy-propagation-2026-06-27
-status: ready
+status: done
 title: Adoption Capability Policy Propagation
 owner_agent: codex-high-effort
 source_feedback: []

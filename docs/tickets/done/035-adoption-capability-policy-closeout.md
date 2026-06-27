@@ -1,6 +1,6 @@
 ---
 id: ticket.context.035
-status: ready
+status: done
 title: Document adoption capability policy propagation
 ticket_pack: pack.repo-context-adoption-capability-policy-propagation-2026-06-27
 milestones:
@@ -39,12 +39,12 @@ validation:
   automated:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json returns expected bootstrap blockers
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: document-adoption-capability-policy-propagation
+  completed_at: 2026-06-27
 ---
 
 # Document Adoption Capability Policy Propagation
@@ -111,7 +111,10 @@ Use exact command examples that match the implemented CLI.
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: document-adoption-capability-policy-propagation
+- Verification evidence:
+  - `make validate`
+  - `make smoke`
+  - `node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/tools policy blockers
 - Follow-up tickets: none.
