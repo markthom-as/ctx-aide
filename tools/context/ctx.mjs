@@ -2036,6 +2036,157 @@ function detectAdoptionProfile(repoPath, explicitProfile = "auto") {
   return profiles[profile] ?? { ...profiles.default, profile };
 }
 
+function readJsonIfExists(filePath) {
+  if (!fs.existsSync(filePath)) return { exists: false, ok: true, value: null, error: null };
+  try {
+    return {
+      exists: true,
+      ok: true,
+      value: JSON.parse(fs.readFileSync(filePath, "utf8")),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      exists: true,
+      ok: false,
+      value: null,
+      error: error.message,
+    };
+  }
+}
+
+function gitStatusSummary(repoPath) {
+  const result = spawnSync("git", ["-C", repoPath, "status", "--short"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 5000,
+  });
+  if (result.status !== 0) {
+    return {
+      available: false,
+      dirty: null,
+      changed_count: null,
+      changed_paths: [],
+      warning: (result.stderr || result.stdout || "git status unavailable").trim(),
+    };
+  }
+  const lines = (result.stdout ?? "").split("\n").filter(Boolean);
+  return {
+    available: true,
+    dirty: lines.length > 0,
+    changed_count: lines.length,
+    changed_paths: lines.slice(0, 20).map((line) => line.slice(3)),
+    truncated: lines.length > 20,
+  };
+}
+
+function targetPackRows(repoPath, profile) {
+  const ticketRoot = path.join(repoPath, profile.ticket_root);
+  if (!fs.existsSync(ticketRoot)) return [];
+  if (profile.profile === "astrotechne") {
+    return fs.readdirSync(ticketRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => {
+        const readme = path.join(ticketRoot, entry.name, "README.md");
+        return {
+          slug: entry.name,
+          file: path.relative(repoPath, readme),
+          exists: fs.existsSync(readme),
+          style: "directory-readme",
+        };
+      })
+      .filter((pack) => pack.exists)
+      .sort((a, b) => a.slug.localeCompare(b.slug));
+  }
+  const packRoot = path.join(repoPath, "docs/ticket-packs");
+  if (!fs.existsSync(packRoot)) return [];
+  return walk(packRoot)
+    .filter((file) => file.endsWith(".md") && !file.includes("/templates/"))
+    .map((file) => ({
+      slug: slugify(path.basename(file, ".md")),
+      file: path.relative(repoPath, file),
+      exists: true,
+      style: "markdown-file",
+    }))
+    .sort((a, b) => a.file.localeCompare(b.file));
+}
+
+function adoptionStatus() {
+  const repoPath = targetRepoPath();
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "adoption status", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
+  const configPath = path.join(repoPath, "docs/config/repo-context.profile.json");
+  const config = readJsonIfExists(configPath);
+  const requiredPaths = [
+    ...adoptionContextDirs,
+    profile.ticket_root,
+    "docs/context/README.md",
+    "docs/config/repo-context.profile.json",
+  ];
+  const pathRows = requiredPaths.map((relativePath) => ({
+    path: relativePath,
+    exists: fs.existsSync(path.join(repoPath, relativePath)),
+  }));
+  const contextEntries = targetContextEntries(repoPath);
+  const packs = targetPackRows(repoPath, profile);
+  const generated = {
+    manifest: fs.existsSync(path.join(repoPath, "docs/context/generated/context-manifest.json")),
+    codex_pack: fs.existsSync(path.join(repoPath, "docs/context/generated/agent-pack.codex.md")),
+    claude_pack: fs.existsSync(path.join(repoPath, "docs/context/generated/agent-pack.claude.md")),
+  };
+  const blockers = [];
+  if (!config.exists) blockers.push("missing docs/config/repo-context.profile.json; run adoption bootstrap with --write");
+  if (config.exists && !config.ok) blockers.push(`invalid profile config JSON: ${config.error}`);
+  if (config.ok && config.value?.profile && config.value.profile !== profile.profile) {
+    blockers.push(`profile config ${config.value.profile} does not match detected profile ${profile.profile}`);
+  }
+  for (const row of pathRows.filter((row) => !row.exists && row.path !== "docs/context/generated")) {
+    blockers.push(`missing ${row.path}`);
+  }
+  if (contextEntries.length === 0) blockers.push("no target context entries found under docs/context");
+  const git = gitStatusSummary(repoPath);
+  const warnings = [];
+  if (!git.available) warnings.push(`git status unavailable: ${git.warning}`);
+  if (git.dirty) warnings.push(`target worktree has ${git.changed_count} changed path(s)`);
+  if (!generated.manifest) warnings.push("generated context manifest is missing; run ctx scan in the target repo after seeding context");
+  const uniqueBlockers = unique(blockers);
+  return {
+    ok: uniqueBlockers.length === 0,
+    scope: "adoption status",
+    repo: displayPath(repoPath),
+    profile,
+    config: {
+      path: displayPath(configPath),
+      exists: config.exists,
+      ok: config.ok,
+      profile: config.value?.profile ?? null,
+    },
+    paths: pathRows,
+    context: {
+      count: contextEntries.length,
+      entries: contextEntries.slice(0, 20).map((entry) => ({
+        id: entry.id,
+        kind: entry.kind,
+        status: entry.status,
+        file: entry.markdown_path,
+      })),
+      truncated: contextEntries.length > 20,
+    },
+    packs: {
+      count: packs.length,
+      entries: packs.slice(0, 20),
+      truncated: packs.length > 20,
+    },
+    generated,
+    git,
+    blockers: uniqueBlockers,
+    warnings,
+    errors: uniqueBlockers.map((message) => ({ file: profile.ticket_root, message })),
+  };
+}
+
 const adoptionContextDirs = [
   "docs/context/routes",
   "docs/context/files",
@@ -2958,6 +3109,8 @@ if (command === "lint") {
   printResult(credentialsCheck());
 } else if (command === "credentials" && subcommand === "import-browser-state") {
   printResult(credentialsImportBrowserState());
+} else if (command === "adoption" && subcommand === "status") {
+  printResult(adoptionStatus());
 } else if (command === "adoption" && subcommand === "bootstrap") {
   printResult(adoptionBootstrap());
 } else if (command === "adoption" && subcommand === "context") {
@@ -3015,6 +3168,7 @@ if (command === "lint") {
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",
       "ctx credentials check --profile browser-test-user --repo . --json",
       "ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
+      "ctx adoption status --repo <target-repo> --profile auto --json",
       "ctx adoption bootstrap --repo <target-repo> --profile wetware --write --json",
       "ctx adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json",
       "ctx adoption ticket --repo <target-repo> --title '<ticket>' --task '<task>' --context <context-id> --write --json",

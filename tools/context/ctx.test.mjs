@@ -343,6 +343,12 @@ assert.equal(adoptionDryRun.ok, true);
 assert.equal(adoptionDryRun.write, false);
 assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), false);
 
+const unbootstrappedAdoptionStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"], { allowFailure: true });
+assert.equal(unbootstrappedAdoptionStatus.ok, false);
+assert.equal(unbootstrappedAdoptionStatus.profile.profile, "wetware");
+assert.equal(unbootstrappedAdoptionStatus.context.count, 0);
+assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.profile.json")), true);
+
 const adoptionBootstrap = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware", "--write"]);
 assert.equal(adoptionBootstrap.ok, true);
 assert.equal(adoptionBootstrap.profile.profile, "wetware");
@@ -372,6 +378,13 @@ const adoptedContext = run([
 assert.equal(adoptedContext.ok, true);
 assert.equal(adoptedContext.context.id, "flow.dependency-audit-clearance");
 assert.equal(fs.existsSync(path.join(adoptedRepo, adoptedContext.context.file)), true);
+
+const bootstrappedAdoptionStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"]);
+assert.equal(bootstrappedAdoptionStatus.ok, true);
+assert.equal(bootstrappedAdoptionStatus.config.exists, true);
+assert.equal(bootstrappedAdoptionStatus.context.count, 1);
+assert.equal(bootstrappedAdoptionStatus.blockers.length, 0);
+assert.equal(bootstrappedAdoptionStatus.warnings.some((warning) => warning.includes("generated context manifest")), true);
 
 const adoptedTicket = run([
   "adoption",
