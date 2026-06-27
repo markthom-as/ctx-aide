@@ -1,6 +1,6 @@
 ---
 id: ticket.context.034
-status: ready
+status: done
 title: Add capability policy to implementation plans
 ticket_pack: pack.repo-context-adoption-capability-policy-propagation-2026-06-27
 milestones:
@@ -41,8 +41,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: add-capability-policy-to-implementation-plans
+  completed_at: 2026-06-27
 ---
 
 # Add Capability Policy To Implementation Plans
@@ -109,7 +109,10 @@ Do not make denied capabilities fail implementation-plan; planning should show p
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: add-capability-policy-to-implementation-plans
+- Verification evidence:
+  - `node --check tools/context/ctx.mjs`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs tools check --repo . --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json`
 - Follow-up tickets: `ticket.context.035`.

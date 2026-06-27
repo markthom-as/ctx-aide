@@ -46,7 +46,7 @@ Target adoption flows seed, report, and consume capability policy so agents get 
 ## Tickets
 
 - `ticket.context.033`: done
-- `ticket.context.034`: ready
+- `ticket.context.034`: done
 - `ticket.context.035`: ready
 
 ## Execution Plan
@@ -72,6 +72,6 @@ Target adoption flows seed, report, and consume capability policy so agents get 
 
 ## Completion
 
-- Completed tickets: `ticket.context.033`.
-- Remaining tickets: `ticket.context.034`, `ticket.context.035`.
+- Completed tickets: `ticket.context.033`, `ticket.context.034`.
+- Remaining tickets: `ticket.context.035`.
 - Final validation: pending.

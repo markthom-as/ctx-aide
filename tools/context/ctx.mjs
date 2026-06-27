@@ -693,8 +693,25 @@ function readWorkflows() {
     .map(({ file, doc }) => ({ file, frontmatter: doc.frontmatter, body: doc.body }));
 }
 
+function readWorkflowsAt(repoPath) {
+  const workflowRoot = path.join(repoPath, "docs/workflows");
+  if (!fs.existsSync(workflowRoot)) return [];
+  return walk(workflowRoot)
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => path.relative(repoPath, file))
+    .map((file) => ({ file, doc: readDocAt(repoPath, file) }))
+    .filter(({ doc }) => !doc.ignored && typeof doc.frontmatter.id === "string")
+    .map(({ file, doc }) => ({ file, frontmatter: doc.frontmatter, body: doc.body }));
+}
+
 function targetWorkflows(workflowArg) {
   const workflows = readWorkflows();
+  if (!workflowArg) return workflows;
+  return workflows.filter((workflow) => workflow.frontmatter.id === workflowArg || workflow.file === workflowArg);
+}
+
+function targetWorkflowsAt(repoPath, workflowArg) {
+  const workflows = repoPath === root ? readWorkflows() : readWorkflowsAt(repoPath);
   if (!workflowArg) return workflows;
   return workflows.filter((workflow) => workflow.frontmatter.id === workflowArg || workflow.file === workflowArg);
 }
@@ -1379,9 +1396,9 @@ function capabilityPolicyDecision(config, catalog, capabilityId, workflowId = ""
   };
 }
 
-function targetWorkflowForPolicy(workflowId) {
+function targetWorkflowForPolicy(workflowId, repoPath = root) {
   if (!workflowId) return { ok: true, workflow: null, errors: [] };
-  const selected = targetWorkflows(workflowId);
+  const selected = targetWorkflowsAt(repoPath, workflowId);
   if (selected.length === 0) {
     return {
       ok: false,
@@ -1412,7 +1429,7 @@ function toolsPolicy({ check = false } = {}) {
       errors: [{ file: "tools check", message: "missing --capability <id>" }],
     };
   }
-  const workflowResult = targetWorkflowForPolicy(workflowId);
+  const workflowResult = targetWorkflowForPolicy(workflowId, repoPath);
   if (!workflowResult.ok) {
     return {
       ok: false,
@@ -2828,6 +2845,9 @@ function adoptionTicket() {
   const components = argValues("--component");
   const flows = argValues("--flow");
   const validations = unique([...argValues("--validation"), ...profile.recommended_validation]);
+  const capabilityWorkflow = argValue("--capability-workflow", argValue("--workflow", ""));
+  const capabilityStep = argValue("--capability-step", argValue("--step", ""));
+  const capabilityRequired = unique(argValues("--capability"));
   if (packSlug && profile.profile === "astrotechne") {
     const packReadme = adoptionPackPath(profile, packSlug);
     if (!fs.existsSync(path.join(repoPath, packReadme))) {
@@ -2842,7 +2862,7 @@ function adoptionTicket() {
     }
   }
   const relativePath = adoptionTicketPath(profile, slug, packSlug);
-  const text = `---\nid: ${argValue("--id", `ticket.${slug}`)}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctx adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
+  const text = `---\nid: ${argValue("--id", `ticket.${slug}`)}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\ncapability_policy:\n  workflow: ${capabilityWorkflow || "null"}\n  step: ${capabilityStep || "null"}\n${yamlKeyList("required", capabilityRequired, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\n  - axiom.capability-policy-deny-wins\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctx adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Check the returned capability policy before using optional tools, connectors, or skills.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not use a denied capability without updating target policy and ticket metadata first.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n- \`axiom.capability-policy-deny-wins\`: Deny entries override allow entries at every policy layer.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n- Capability workflow: ${capabilityWorkflow || "global policy only"}\n- Capability step: ${capabilityStep || "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Capability policy: follow the implementation-plan \`capability_policy\` response and use \`ctx tools check\` before optional high-risk tools.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
   const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
   return {
     ok: change.action !== "skipped" || !write,
@@ -2888,6 +2908,93 @@ function markdownTitle(body) {
   const line = body.split("\n").find((item) => item.startsWith("# "));
   if (!line) return "";
   return line.replace(/^#\s+/, "").replace(/^Ticket:\s*/i, "").trim();
+}
+
+function capabilityPolicyCheckCommand(repoPath, workflowId, stepId, capabilityId) {
+  const parts = [
+    "ctx",
+    "tools",
+    "check",
+    "--repo",
+    repoPath,
+    ...(workflowId ? ["--workflow", workflowId] : []),
+    ...(stepId ? ["--step", stepId] : []),
+    "--capability",
+    capabilityId,
+    "--json",
+  ];
+  return parts.map((part) => String(part).includes(" ") ? `"${String(part).replace(/"/g, '\\"')}"` : String(part)).join(" ");
+}
+
+function implementationCapabilityPolicy(repoPath, doc) {
+  const workflowId = argValue(
+    "--capability-workflow",
+    argValue("--workflow", nestedFrontmatterValue(doc, "capability_policy", "workflow") ?? ""),
+  ) || "";
+  const stepId = argValue(
+    "--capability-step",
+    argValue("--step", nestedFrontmatterValue(doc, "capability_policy", "step") ?? ""),
+  ) || "";
+  const requiredCapabilities = unique([
+    ...nestedFrontmatterList(doc, "capability_policy", "required"),
+    ...argValues("--capability"),
+  ]);
+  const configResult = readAgentToolsConfig(repoPath, argValue("--tools-config", ""));
+  if (!configResult.ok) {
+    return {
+      ok: false,
+      errors: configResult.errors,
+      value: null,
+    };
+  }
+  const policyErrors = configResult.exists ? agentToolsPolicyErrors(configResult, targetWorkflowIds(repoPath)) : [];
+  if (policyErrors.length > 0) {
+    return {
+      ok: false,
+      errors: policyErrors,
+      value: null,
+    };
+  }
+  const catalog = mergedCapabilityCatalog(configResult.config);
+  const effective = resolveAgentPolicy(configResult.config, workflowId, stepId);
+  const decisions = requiredCapabilities.map((capabilityId) =>
+    capabilityPolicyDecision(configResult.config, catalog, capabilityId, workflowId, stepId),
+  );
+  return {
+    ok: true,
+    errors: [],
+    value: {
+      config: {
+        path: configResult.path,
+        exists: configResult.exists,
+        source: configResult.source,
+      },
+      workflow: workflowId || null,
+      step: stepId || null,
+      policy: {
+        layers: effective.layers,
+        effective: {
+          allow: effective.allow,
+          deny: effective.deny,
+        },
+        deny_wins: true,
+      },
+      required: decisions,
+      check_commands: requiredCapabilities.map((capabilityId) =>
+        capabilityPolicyCheckCommand(repoPath, workflowId, stepId, capabilityId),
+      ),
+      policy_command: [
+        "ctx",
+        "tools",
+        "policy",
+        "--repo",
+        repoPath,
+        ...(workflowId ? ["--workflow", workflowId] : []),
+        ...(stepId ? ["--step", stepId] : []),
+        "--json",
+      ].map((part) => String(part).includes(" ") ? `"${String(part).replace(/"/g, '\\"')}"` : String(part)).join(" "),
+    },
+  };
 }
 
 function implementationPlan() {
@@ -2950,6 +3057,22 @@ function implementationPlan() {
       .map((line) => line.match(/`([^`]+)`/)?.[1] ?? line.replace(/^-\s*/, "").trim())
       .filter((line) => line && !line.endsWith(":")),
   ]);
+  const capabilityPolicy = implementationCapabilityPolicy(repoPath, doc);
+  if (!capabilityPolicy.ok) {
+    return {
+      ok: false,
+      scope: "adoption implementation-plan",
+      repo: repoPath,
+      ticket: {
+        file: ticketPath,
+        id: doc.frontmatter.id ?? doc.frontmatter.ticket_id ?? null,
+        title: inferredTitle || null,
+        status: doc.frontmatter.status ?? null,
+        work_type: doc.frontmatter.work_type ?? null,
+      },
+      errors: capabilityPolicy.errors,
+    };
+  }
   return {
     ok: true,
     scope: "adoption implementation-plan",
@@ -2966,6 +3089,7 @@ function implementationPlan() {
     target_paths: targetPaths,
     context_ids: entries.map((entry) => entry.id),
     entries,
+    capability_policy: capabilityPolicy.value,
     validation_commands: validationCommands,
     stop_conditions: [
       "Stop if implementation needs a product, design, architecture, or security decision missing from the ticket/context.",

@@ -532,6 +532,32 @@ assert.equal(invalidTargetToolsPolicyStatus.ok, false);
 assert.equal(invalidTargetToolsPolicyStatus.tools_policy.ok, false);
 assert.equal(invalidTargetToolsPolicyStatus.blockers.some((blocker) => blocker.includes("invalid tools policy")), true);
 run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware", "--write", "--force"]);
+fs.writeFileSync(path.join(adoptedRepo, "docs/workflows/target-implementation.md"), `---
+id: workflow.target-implementation
+status: active
+title: Target Implementation Workflow
+updated: 2026-06-27
+---
+
+# Target Implementation Workflow
+`);
+fs.writeFileSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json"), `${JSON.stringify({
+  config_version: 1,
+  global: {
+    allow: ["tool.ctx", "tool.semble"],
+    deny: ["app.gmail"],
+  },
+  workflows: {
+    "workflow.target-implementation": {
+      steps: {
+        "dependency-audit": {
+          allow: ["tool.semble"],
+          deny: ["app.google-drive"],
+        },
+      },
+    },
+  },
+}, null, 2)}\n`);
 
 const adoptionPackDryRun = run([
   "adoption",
@@ -603,11 +629,20 @@ const adoptedTicket = run([
   "package.json,pnpm-lock.yaml",
   "--validation",
   "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
+  "--capability-workflow",
+  "workflow.target-implementation",
+  "--capability-step",
+  "dependency-audit",
+  "--capability",
+  "tool.semble,app.gmail",
   "--write",
 ]);
 assert.equal(adoptedTicket.ok, true);
 assert.equal(adoptedTicket.ticket.file, "docs/tickets/clear-dependency-audit.md");
 assert.equal(fs.existsSync(path.join(adoptedRepo, adoptedTicket.ticket.file)), true);
+const adoptedTicketText = fs.readFileSync(path.join(adoptedRepo, adoptedTicket.ticket.file), "utf8");
+assert.equal(adoptedTicketText.includes("capability_policy:"), true);
+assert.equal(adoptedTicketText.includes("workflow: workflow.target-implementation"), true);
 
 const adoptedPlan = run([
   "adoption",
@@ -622,6 +657,25 @@ assert.equal(adoptedPlan.explicit_context_loading, true);
 assert.deepEqual(adoptedPlan.context_ids, ["flow.dependency-audit-clearance"]);
 assert.equal(adoptedPlan.entries[0].body, undefined);
 assert.equal(adoptedPlan.validation_commands.some((command) => command.includes("dependency audit")), true);
+assert.equal(adoptedPlan.capability_policy.workflow, "workflow.target-implementation");
+assert.equal(adoptedPlan.capability_policy.step, "dependency-audit");
+assert.equal(adoptedPlan.capability_policy.required.find((item) => item.capability === "tool.semble").allowed, true);
+assert.equal(adoptedPlan.capability_policy.required.find((item) => item.capability === "app.gmail").allowed, false);
+assert.equal(adoptedPlan.capability_policy.check_commands.some((command) => command.includes("--capability tool.semble")), true);
+
+const targetRepoToolsCheck = run([
+  "tools",
+  "check",
+  "--repo",
+  adoptedRepo,
+  "--workflow",
+  "workflow.target-implementation",
+  "--step",
+  "dependency-audit",
+  "--capability",
+  "tool.semble",
+]);
+assert.equal(targetRepoToolsCheck.ok, true);
 
 fs.writeFileSync(path.join(adoptedRepo, "docs/tickets/legacy-dependency-ticket.md"), `---
 status: done
@@ -651,6 +705,8 @@ assert.equal(legacyPlan.ticket.id, "WG-DEPS-LEGACY");
 assert.equal(legacyPlan.ticket.title, "Clear Production Dependency Audit");
 assert.equal(legacyPlan.target_paths.includes("package.json"), true);
 assert.equal(legacyPlan.validation_commands.some((command) => command.includes("pnpm audit --prod")), true);
+assert.equal(legacyPlan.capability_policy.workflow, null);
+assert.equal(legacyPlan.capability_policy.policy.effective.allow.includes("tool.semble"), true);
 
 const astrotechneTarget = path.join(fixture, "astrotechne-target");
 fs.mkdirSync(path.join(astrotechneTarget, "docs/domain-redesign/tickets"), { recursive: true });
