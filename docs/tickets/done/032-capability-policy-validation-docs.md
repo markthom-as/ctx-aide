@@ -1,6 +1,6 @@
 ---
 id: ticket.context.032
-status: ready
+status: done
 title: Validate and document capability policy
 ticket_pack: pack.repo-context-agent-capability-policy-2026-06-27
 milestones:
@@ -45,8 +45,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: validate-and-document-capability-policy
+  completed_at: 2026-06-27
 ---
 
 # Validate And Document Capability Policy
@@ -113,7 +113,14 @@ This ticket performs closeout after the first two implementation commits.
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: validate-and-document-capability-policy
+- Verification evidence:
+  - `node --check tools/context/ctx.mjs`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/context/ctx.mjs tools list --json`
+  - `node tools/context/ctx.mjs tools check --capability tool.semble --json`
+  - `make validate`
+  - `make smoke`
 - Follow-up tickets: none.

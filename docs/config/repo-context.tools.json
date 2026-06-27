@@ -1,0 +1,58 @@
+{
+  "config_version": 1,
+  "global": {
+    "allow": [
+      "tool.ctx",
+      "tool.semble",
+      "tool.shell",
+      "tool.playwright",
+      "tool.codex-security",
+      "skill.repo-context",
+      "skill.agent-native-cli-design",
+      "skill.playwright",
+      "skill.security-best-practices"
+    ],
+    "deny": [
+      "app.gmail",
+      "app.google-calendar",
+      "app.google-drive",
+      "app.vercel",
+      "tool.computer-use"
+    ]
+  },
+  "workflows": {
+    "workflow.browser-validation": {
+      "allow": [
+        "tool.chrome-devtools",
+        "tool.playwright",
+        "skill.playwright"
+      ],
+      "deny": [
+        "tool.computer-use"
+      ],
+      "steps": {
+        "browser-smoke": {
+          "allow": [
+            "tool.playwright",
+            "tool.chrome-devtools",
+            "skill.playwright"
+          ],
+          "deny": [
+            "tool.computer-use"
+          ]
+        },
+        "credential-import": {
+          "allow": [
+            "tool.ctx"
+          ],
+          "deny": [
+            "app.gmail",
+            "app.google-drive",
+            "tool.computer-use"
+          ]
+        }
+      }
+    }
+  },
+  "capabilities": {}
+}

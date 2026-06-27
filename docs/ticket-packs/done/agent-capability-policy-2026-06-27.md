@@ -1,6 +1,6 @@
 ---
 id: pack.repo-context-agent-capability-policy-2026-06-27
-status: active
+status: done
 title: Agent Capability Policy
 milestones:
   - milestone.repo-context-agent-capability-policy
@@ -28,8 +28,15 @@ parallel_groups:
 blocked_by: []
 created: 2026-06-27
 completion:
-  completed_at: null
-  final_validation: []
+  completed_at: 2026-06-27
+  final_validation:
+    - node --check tools/context/ctx.mjs
+    - node tools/context/ctx.test.mjs
+    - node tools/context/ctx.mjs lint --json
+    - node tools/context/ctx.mjs tools list --json
+    - node tools/context/ctx.mjs tools check --capability tool.semble --json
+    - make validate
+    - make smoke
 ---
 
 # Agent Capability Policy
@@ -47,7 +54,7 @@ Repo-context can describe agent tools/skills and resolve repo-local allow/deny p
 
 - `ticket.context.030`: done
 - `ticket.context.031`: done
-- `ticket.context.032`: ready
+- `ticket.context.032`: done
 
 ## Execution Plan
 
@@ -72,6 +79,13 @@ Repo-context can describe agent tools/skills and resolve repo-local allow/deny p
 
 ## Completion
 
-- Completed tickets: `ticket.context.030`, `ticket.context.031`.
-- Remaining tickets: `ticket.context.032`.
-- Final validation: pending.
+- Completed tickets: `ticket.context.030`, `ticket.context.031`, `ticket.context.032`.
+- Remaining tickets: none.
+- Final validation:
+  - `node --check tools/context/ctx.mjs`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/context/ctx.mjs tools list --json`
+  - `node tools/context/ctx.mjs tools check --capability tool.semble --json`
+  - `make validate`
+  - `make smoke`

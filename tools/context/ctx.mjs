@@ -2952,6 +2952,7 @@ function doctor() {
   validateDirs(errors);
   validateContextEntries(errors);
   validateWorkflows(errors);
+  validateAgentToolsPolicy(errors);
   const specs = validateSpecs(errors);
   const tickets = validateTickets(errors, specs);
   const packs = validatePacks(errors, tickets, specs);
@@ -2968,6 +2969,7 @@ function doctor() {
       semble: commandExists("semble"),
       uvx: commandExists("uvx"),
       generated_manifest: fs.existsSync(generatedManifest),
+      agent_tools_policy: !errors.some((error) => error.file.endsWith("repo-context.tools.json")),
     },
     counts: {
       context_entries: readContextEntries().length,
@@ -3393,11 +3395,78 @@ function validateWorkflows(errors) {
   }
 }
 
+function validateCapabilityReferences(ids, catalog, file, errors, label) {
+  for (const id of ids) {
+    assert(typeof id === "string" && id.trim().length > 0, errors, file, `${label} entries must be non-empty strings`);
+    if (typeof id !== "string") continue;
+    assert(capabilityKnown(catalog, id), errors, file, `unknown capability in ${label}: ${id}`);
+  }
+}
+
+function validateAgentPolicyLayer(layer, catalog, file, errors, label) {
+  if (layer === undefined) return;
+  assert(plainObject(layer), errors, file, `${label} policy must be an object`);
+  if (!plainObject(layer)) return;
+  for (const key of ["allow", "deny"]) {
+    if (layer[key] !== undefined) {
+      assert(Array.isArray(layer[key]), errors, file, `${label}.${key} must be an array`);
+      validateCapabilityReferences(stringArray(layer[key]), catalog, file, errors, `${label}.${key}`);
+    }
+  }
+  const allow = new Set(stringArray(layer.allow));
+  const overlap = stringArray(layer.deny).filter((id) => allow.has(id));
+  for (const id of overlap) {
+    errors.push({ file, message: `${label} cannot both allow and deny ${id}` });
+  }
+}
+
+function validateAgentToolsPolicy(errors) {
+  const configResult = readAgentToolsConfig(root, "");
+  if (!configResult.exists && configResult.ok) return;
+  if (!configResult.ok) {
+    errors.push(...configResult.errors);
+    return;
+  }
+  const file = configResult.path;
+  const config = configResult.config;
+  assert(config.config_version === 1, errors, file, "config_version must be 1");
+  const catalog = mergedCapabilityCatalog(config);
+  for (const [id, entry] of Object.entries(config.capabilities ?? {})) {
+    assert(capabilityKnown(agentCapabilityCatalog, id) || id.startsWith("custom."), errors, file, `custom capability id must use custom.* or an existing id: ${id}`);
+    assert(plainObject(entry), errors, file, `capabilities.${id} must be an object`);
+    if (plainObject(entry)) {
+      for (const key of ["kind", "source", "risk", "purpose"]) {
+        if (entry[key] !== undefined) {
+          assert(typeof entry[key] === "string" && entry[key].trim().length > 0, errors, file, `capabilities.${id}.${key} must be a non-empty string`);
+        }
+      }
+    }
+  }
+  validateAgentPolicyLayer(config.global, catalog, file, errors, "global");
+  assert(plainObject(config.workflows), errors, file, "workflows must be an object");
+  const knownWorkflowIds = new Set(readWorkflows().map((workflow) => workflow.frontmatter.id));
+  for (const [workflowId, workflowPolicy] of Object.entries(config.workflows ?? {})) {
+    assert(/^workflow\.[A-Za-z0-9_.-]+$/.test(workflowId), errors, file, `workflow policy id must start with workflow.: ${workflowId}`);
+    assert(knownWorkflowIds.has(workflowId), errors, file, `unknown workflow policy: ${workflowId}`);
+    validateAgentPolicyLayer(workflowPolicy, catalog, file, errors, `workflows.${workflowId}`);
+    if (workflowPolicy?.steps !== undefined) {
+      assert(plainObject(workflowPolicy.steps), errors, file, `workflows.${workflowId}.steps must be an object`);
+      if (plainObject(workflowPolicy.steps)) {
+        for (const [stepId, stepPolicy] of Object.entries(workflowPolicy.steps)) {
+          assert(/^[A-Za-z0-9_.:-]+$/.test(stepId), errors, file, `invalid workflow step id: ${stepId}`);
+          validateAgentPolicyLayer(stepPolicy, catalog, file, errors, `workflows.${workflowId}.steps.${stepId}`);
+        }
+      }
+    }
+  }
+}
+
 function runChecks(scope) {
   const errors = [];
   validateDirs(errors);
   validateContextEntries(errors);
   validateWorkflows(errors);
+  validateAgentToolsPolicy(errors);
   const specs = validateSpecs(errors);
   const tickets = validateTickets(errors, specs);
   const packs = validatePacks(errors, tickets, specs);

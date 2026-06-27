@@ -1,6 +1,6 @@
 ---
 id: spec.agent-capability-policy-2026-06-27
-status: ready
+status: done
 title: Agent Capability Policy
 owner_agent: codex-high-effort
 source_feedback: []

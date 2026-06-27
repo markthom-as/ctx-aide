@@ -169,6 +169,56 @@ Security and truthfulness rules:
 - `ctx workflow validation-plan` is a readiness gate. It returns the full matrix even when blocked, but top-level `ok` is false when a required view lacks credentials or browser storage state.
 - Browser validation plans must keep deploy cost policy explicit; deploy-enabled configs must keep `cost_estimate_required: true`.
 
+## Agent Capability Policy
+
+Repo-context can describe the agent tools, connectors, and skills a repo expects agents to use. This is repo-local policy, not live host-runtime enforcement: it tells agents what is allowed before they choose a tool, but it does not authenticate connectors or prove that a Codex/Claude session actually has the tool loaded.
+
+Use `docs/config/repo-context.tools.json` for global and workflow-step allow/deny rules:
+
+```json
+{
+  "config_version": 1,
+  "global": {
+    "allow": ["tool.ctx", "tool.semble", "tool.shell", "skill.repo-context"],
+    "deny": ["app.gmail", "app.google-drive", "tool.computer-use"]
+  },
+  "workflows": {
+    "workflow.browser-validation": {
+      "allow": ["tool.playwright", "tool.chrome-devtools", "skill.playwright"],
+      "steps": {
+        "browser-smoke": {
+          "allow": ["tool.playwright", "tool.chrome-devtools"],
+          "deny": ["tool.computer-use"]
+        }
+      }
+    }
+  },
+  "capabilities": {
+    "custom.internal-linter": {
+      "kind": "tool",
+      "source": "repo-config",
+      "risk": "low",
+      "purpose": "Run a repo-local lint wrapper."
+    }
+  }
+}
+```
+
+Policy rules:
+
+- Deny wins over allow at every layer.
+- Allowlists are restrictive when at least one allow entry applies after global, workflow, and step policy are combined.
+- Unknown capability ids fail `ctx lint` unless they use the `custom.*` namespace.
+- `ctx lint` and `ctx doctor` validate malformed JSON, same-layer allow/deny overlaps, unknown workflow ids, and invalid capability references.
+
+Useful commands:
+
+```sh
+node tools/context/ctx.mjs tools list --json
+node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
+node tools/context/ctx.mjs tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
+```
+
 ## Target Adoption Preflight
 
 Before using repo-context on a production repository, inspect the target state without mutating it:

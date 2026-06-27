@@ -246,7 +246,7 @@ updated: 2026-06-26
 write("docs/config/repo-context.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx", "tool.playwright", "app.gmail"],
+    allow: ["tool.ctx", "tool.playwright"],
     deny: ["app.gmail"],
   },
   workflows: {
@@ -254,7 +254,7 @@ write("docs/config/repo-context.tools.json", `${JSON.stringify({
       allow: ["tool.chrome-devtools"],
       steps: {
         "browser-smoke": {
-          allow: ["tool.playwright", "tool.computer-use"],
+          allow: ["tool.playwright", "tool.computer-use", "app.gmail"],
           deny: ["tool.computer-use"],
         },
       },
@@ -300,6 +300,41 @@ const denyWinsTool = run([
 ], { allowFailure: true });
 assert.equal(denyWinsTool.ok, false);
 assert.equal(denyWinsTool.decision.deny_layers.includes("global"), true);
+write("docs/config/repo-context.tools.json", `${JSON.stringify({
+  config_version: 1,
+  global: {
+    allow: ["tool.ctx", "tool.unknown"],
+    deny: ["tool.ctx"],
+  },
+  workflows: {
+    "workflow.missing": {
+      allow: ["tool.playwright"],
+    },
+  },
+}, null, 2)}\n`);
+const invalidToolsPolicyLint = run(["lint"], { allowFailure: true });
+assert.equal(invalidToolsPolicyLint.ok, false);
+assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("unknown capability")), true);
+assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("cannot both allow and deny tool.ctx")), true);
+assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("unknown workflow policy: workflow.missing")), true);
+write("docs/config/repo-context.tools.json", `${JSON.stringify({
+  config_version: 1,
+  global: {
+    allow: ["tool.ctx", "tool.playwright"],
+    deny: ["app.gmail"],
+  },
+  workflows: {
+    "workflow.browser-validation": {
+      allow: ["tool.chrome-devtools"],
+      steps: {
+        "browser-smoke": {
+          allow: ["tool.playwright", "tool.computer-use", "app.gmail"],
+          deny: ["tool.computer-use"],
+        },
+      },
+    },
+  },
+}, null, 2)}\n`);
 
 write("package.json", `${JSON.stringify({ name: "fixture-app", private: true }, null, 2)}\n`);
 const missingWorkflowDeps = run(["workflow", "deps", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
