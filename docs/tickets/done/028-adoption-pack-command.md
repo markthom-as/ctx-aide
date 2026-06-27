@@ -1,6 +1,6 @@
 ---
 id: ticket.context.028
-status: ready
+status: done
 title: Add native target adoption pack creation
 ticket_pack: pack.repo-context-pre-production-adoption-hardening-2026-06-27
 milestones:
@@ -40,8 +40,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: native-target-adoption-pack
+  completed_at: 2026-06-27
 ---
 
 # Add Native Target Adoption Pack Creation
@@ -106,7 +106,12 @@ This ticket prepares the target repo for generated tickets but does not change t
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending.
+- Status: done
+- Commit: native-target-adoption-pack
+- Verification evidence:
+  - `node --check tools/context/ctx.mjs`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'Repo Context Dogfood' --slug repo-context-dogfood --json`
+  - `node tools/context/ctx.mjs ticket check --json`
+  - `node tools/context/ctx.mjs pack check --json`
 - Follow-up tickets: none.

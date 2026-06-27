@@ -68,8 +68,9 @@ Before daily Astrotechne use, repo-context should add:
 3. Capture context entries for the current feature area.
 4. Run Semble discovery against Astrotechne to connect context to files and packet examples.
 5. Draft and harden the spec.
-6. Generate atomic implementation tickets with Astrotechne validation commands.
-7. Implement in parallel lanes where write sets are disjoint.
-8. Validate with focused tests, screenshots for UI, `npm run tickets:status`, typecheck/build as relevant, and route smoke.
-9. Commit each completed ticket separately.
-10. Run coordinator closeout: pack README, completion evidence, final validation, and status drift note.
+6. Create a native Astrotechne packet with `ctx adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title "<pack>" --slug <pack-slug> --write --json`.
+7. Generate atomic implementation tickets with Astrotechne validation commands, using the packet slug when the tickets belong inside that packet.
+8. Implement in parallel lanes where write sets are disjoint.
+9. Validate with focused tests, screenshots for UI, `npm run tickets:status`, typecheck/build as relevant, and route smoke.
+10. Commit each completed ticket separately.
+11. Run coordinator closeout: pack README, completion evidence, final validation, and status drift note.

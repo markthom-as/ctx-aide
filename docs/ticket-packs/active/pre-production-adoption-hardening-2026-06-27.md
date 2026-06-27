@@ -46,7 +46,7 @@ Make repo-context safer and more complete for target-repo dogfooding before it i
 ## Tickets
 
 - `ticket.context.027`: done
-- `ticket.context.028`: ready
+- `ticket.context.028`: done
 - `ticket.context.029`: ready
 
 ## Execution Plan
@@ -72,6 +72,6 @@ Make repo-context safer and more complete for target-repo dogfooding before it i
 
 ## Completion
 
-- Completed tickets: `ticket.context.027`.
-- Remaining tickets: `ticket.context.028`, `ticket.context.029`.
+- Completed tickets: `ticket.context.027`, `ticket.context.028`.
+- Remaining tickets: `ticket.context.029`.
 - Final validation: pending.

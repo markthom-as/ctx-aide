@@ -2312,6 +2312,69 @@ function adoptionContext() {
   };
 }
 
+function adoptionPackPath(profile, slug) {
+  if (profile.profile === "astrotechne") {
+    return path.join(profile.ticket_root, slug, "README.md");
+  }
+  return path.join("docs/ticket-packs/draft", `${slug}.md`);
+}
+
+function adoptionPackMarkdown(profile, options) {
+  const packId = options.id;
+  const validation = options.validation.length > 0 ? options.validation : profile.recommended_validation;
+  if (profile.profile === "astrotechne") {
+    return `---\nstatus: active\npack_id: ${packId}\ntitle: ${options.title}\ncreated: ${todayDate()}\nupdated: ${todayDate()}\nrepo_context_profile: ${profile.profile}\nvalidation:\n${yamlKeyList("automated", validation, "  ")}\ntickets: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctx adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctx adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Status: active\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
+  }
+  return `---\nid: ${packId}\nstatus: draft\ntitle: ${options.title}\nmilestones:\n  - ${options.milestone}\nsource_specs: []\ntickets: []\nrun_policy:\n  max_parallel_agents: 2\n  stale_after_minutes: 20\n  merge_strategy: sequential-ticket-commits\n  worktree_required: false\nparallel_groups:\n  default:\n    tickets: []\nblocked_by: []\ncreated: ${todayDate()}\ncompletion:\n  completed_at: null\n  final_validation: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctx adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctx adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Run Policy\n\n- Max parallel agents: 2.\n- Stale lease threshold: 20 minutes.\n- Dead-agent cleanup: inspect target git status before staging.\n- Requeue rules: stop if missing product, design, architecture, or security decisions.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
+}
+
+function adoptionPack() {
+  const repoPath = targetRepoPath();
+  const write = args.includes("--write");
+  const force = args.includes("--force");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "adoption pack", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
+  const title = argValue("--title", argValue("--task", "Adoption Pack"));
+  const slug = slugify(argValue("--slug", title));
+  const id = argValue("--id", `pack.${profile.profile}.${slug}`);
+  const milestone = argValue("--milestone", `milestone.${profile.profile}.adoption`);
+  const validation = unique([...argValues("--validation"), ...profile.recommended_validation]);
+  const relativePath = adoptionPackPath(profile, slug);
+  const text = adoptionPackMarkdown(profile, {
+    id,
+    title,
+    slug,
+    milestone,
+    validation,
+    outcome: argValue("--outcome", `Prepare ${title} as a target-repo adoption pack before implementation.`),
+    scopeIncluded: argValue("--scope", "repo-context generated planning, tickets, and validation evidence"),
+  });
+  const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
+  return {
+    ok: change.action !== "blocked" && (!write || change.action !== "skipped"),
+    scope: "adoption pack",
+    repo: displayPath(repoPath),
+    write,
+    profile,
+    pack: {
+      id,
+      title,
+      slug,
+      file: relativePath,
+      status: profile.profile === "astrotechne" ? "active" : "draft",
+    },
+    changes: [change],
+    next_commands: [
+      `ctx adoption ticket --repo ${repoPath} --pack ${id} --pack-slug ${slug} --title "<ticket>" --task "<task>" --write --json`,
+    ],
+    errors: (write && change.action === "skipped") || change.action === "blocked"
+      ? [{ file: relativePath, message: change.reason === "exists" ? "pack file exists; pass --force to overwrite" : change.reason }]
+      : [],
+  };
+}
+
 function adoptionTicket() {
   const repoPath = targetRepoPath();
   const write = args.includes("--write");
@@ -3113,6 +3176,8 @@ if (command === "lint") {
   printResult(adoptionStatus());
 } else if (command === "adoption" && subcommand === "bootstrap") {
   printResult(adoptionBootstrap());
+} else if (command === "adoption" && subcommand === "pack") {
+  printResult(adoptionPack());
 } else if (command === "adoption" && subcommand === "context") {
   printResult(adoptionContext());
 } else if (command === "adoption" && subcommand === "ticket") {
@@ -3170,6 +3235,7 @@ if (command === "lint") {
       "ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
       "ctx adoption status --repo <target-repo> --profile auto --json",
       "ctx adoption bootstrap --repo <target-repo> --profile wetware --write --json",
+      "ctx adoption pack --repo <target-repo> --title '<pack>' --slug <slug> --write --json",
       "ctx adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json",
       "ctx adoption ticket --repo <target-repo> --title '<ticket>' --task '<task>' --context <context-id> --write --json",
       "ctx adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --json",

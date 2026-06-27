@@ -386,6 +386,55 @@ assert.equal(bootstrappedAdoptionStatus.context.count, 1);
 assert.equal(bootstrappedAdoptionStatus.blockers.length, 0);
 assert.equal(bootstrappedAdoptionStatus.warnings.some((warning) => warning.includes("generated context manifest")), true);
 
+const adoptionPackDryRun = run([
+  "adoption",
+  "pack",
+  "--repo",
+  adoptedRepo,
+  "--profile",
+  "wetware",
+  "--title",
+  "Dependency Audit Pack",
+  "--slug",
+  "dependency-audit-pack",
+]);
+assert.equal(adoptionPackDryRun.ok, true);
+assert.equal(adoptionPackDryRun.write, false);
+assert.equal(adoptionPackDryRun.pack.file, "docs/ticket-packs/draft/dependency-audit-pack.md");
+assert.equal(fs.existsSync(path.join(adoptedRepo, adoptionPackDryRun.pack.file)), false);
+
+const adoptionPackWrite = run([
+  "adoption",
+  "pack",
+  "--repo",
+  adoptedRepo,
+  "--profile",
+  "wetware",
+  "--title",
+  "Dependency Audit Pack",
+  "--slug",
+  "dependency-audit-pack",
+  "--write",
+]);
+assert.equal(adoptionPackWrite.ok, true);
+assert.equal(fs.existsSync(path.join(adoptedRepo, adoptionPackWrite.pack.file)), true);
+
+const adoptionPackNoOverwrite = run([
+  "adoption",
+  "pack",
+  "--repo",
+  adoptedRepo,
+  "--profile",
+  "wetware",
+  "--title",
+  "Dependency Audit Pack",
+  "--slug",
+  "dependency-audit-pack",
+  "--write",
+], { allowFailure: true });
+assert.equal(adoptionPackNoOverwrite.ok, false);
+assert.equal(adoptionPackNoOverwrite.errors[0].message.includes("exists"), true);
+
 const adoptedTicket = run([
   "adoption",
   "ticket",
@@ -455,6 +504,26 @@ assert.equal(legacyPlan.ticket.id, "WG-DEPS-LEGACY");
 assert.equal(legacyPlan.ticket.title, "Clear Production Dependency Audit");
 assert.equal(legacyPlan.target_paths.includes("package.json"), true);
 assert.equal(legacyPlan.validation_commands.some((command) => command.includes("pnpm audit --prod")), true);
+
+const astrotechneTarget = path.join(fixture, "astrotechne-target");
+fs.mkdirSync(path.join(astrotechneTarget, "docs/domain-redesign/tickets"), { recursive: true });
+fs.writeFileSync(path.join(astrotechneTarget, "package.json"), `${JSON.stringify({ name: "astrotechne-target", private: true }, null, 2)}\n`);
+const astrotechnePack = run([
+  "adoption",
+  "pack",
+  "--repo",
+  astrotechneTarget,
+  "--profile",
+  "astrotechne",
+  "--title",
+  "Public Copy Launch",
+  "--slug",
+  "public-copy-launch",
+  "--write",
+]);
+assert.equal(astrotechnePack.ok, true);
+assert.equal(astrotechnePack.pack.file, "docs/domain-redesign/tickets/public-copy-launch/README.md");
+assert.equal(fs.existsSync(path.join(astrotechneTarget, astrotechnePack.pack.file)), true);
 
 write("docs/specs/dependency-upgrade.md", `---
 id: spec.dependency-upgrade
