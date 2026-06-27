@@ -46,7 +46,7 @@ Repo-context can describe agent tools/skills and resolve repo-local allow/deny p
 ## Tickets
 
 - `ticket.context.030`: done
-- `ticket.context.031`: ready
+- `ticket.context.031`: done
 - `ticket.context.032`: ready
 
 ## Execution Plan
@@ -72,6 +72,6 @@ Repo-context can describe agent tools/skills and resolve repo-local allow/deny p
 
 ## Completion
 
-- Completed tickets: `ticket.context.030`.
-- Remaining tickets: `ticket.context.031`, `ticket.context.032`.
+- Completed tickets: `ticket.context.030`, `ticket.context.031`.
+- Remaining tickets: `ticket.context.032`.
 - Final validation: pending.

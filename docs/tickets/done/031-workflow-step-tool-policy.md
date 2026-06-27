@@ -1,6 +1,6 @@
 ---
 id: ticket.context.031
-status: ready
+status: done
 title: Resolve workflow step capability policy
 ticket_pack: pack.repo-context-agent-capability-policy-2026-06-27
 milestones:
@@ -39,12 +39,12 @@ validation:
   automated:
     - node tools/context/ctx.test.mjs
     - node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
-    - node tools/context/ctx.mjs tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.computer-use --json
+    - node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.computer-use --json
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: resolve-workflow-step-tool-policy
+  completed_at: 2026-06-27
 ---
 
 # Resolve Workflow Step Capability Policy
@@ -111,7 +111,11 @@ Return the layered policy and a decision envelope so agents can explain why a ca
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: resolve-workflow-step-tool-policy
+- Verification evidence:
+  - `node --check tools/context/ctx.mjs`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json`
+  - `node tools/context/ctx.mjs tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.computer-use --json` returned the expected denial
 - Follow-up tickets: `ticket.context.032`.

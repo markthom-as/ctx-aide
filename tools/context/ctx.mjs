@@ -1312,6 +1312,153 @@ function capabilityRows(catalog, capabilityId = "") {
     .map(([id, entry]) => ({ id, ...entry }));
 }
 
+function policyLayer(name, policy = {}) {
+  return {
+    name,
+    allow: unique(stringArray(policy?.allow)).sort(),
+    deny: unique(stringArray(policy?.deny)).sort(),
+  };
+}
+
+function agentWorkflowPolicy(config, workflowId) {
+  if (!workflowId) return {};
+  return config?.workflows?.[workflowId] ?? config?.workflow_overrides?.[workflowId] ?? {};
+}
+
+function agentWorkflowStepPolicy(workflowPolicy, stepId) {
+  if (!stepId) return {};
+  return workflowPolicy?.steps?.[stepId] ?? workflowPolicy?.step_overrides?.[stepId] ?? {};
+}
+
+function resolveAgentPolicy(config, workflowId = "", stepId = "") {
+  const workflowPolicy = agentWorkflowPolicy(config, workflowId);
+  const stepPolicy = agentWorkflowStepPolicy(workflowPolicy, stepId);
+  const layers = [
+    policyLayer("global", config?.global),
+    ...(workflowId ? [policyLayer(`workflow:${workflowId}`, workflowPolicy)] : []),
+    ...(stepId ? [policyLayer(`step:${stepId}`, stepPolicy)] : []),
+  ];
+  const allow = unique(layers.flatMap((layer) => layer.allow)).sort();
+  const deny = unique(layers.flatMap((layer) => layer.deny)).sort();
+  return { layers, allow, deny };
+}
+
+function capabilityKnown(catalog, capabilityId) {
+  return Object.hasOwn(catalog, capabilityId) || capabilityId.startsWith("custom.");
+}
+
+function capabilityPolicyDecision(config, catalog, capabilityId, workflowId = "", stepId = "") {
+  const policy = resolveAgentPolicy(config, workflowId, stepId);
+  const allowSet = new Set(policy.allow);
+  const denySet = new Set(policy.deny);
+  const known = capabilityKnown(catalog, capabilityId);
+  const denyLayers = policy.layers.filter((layer) => layer.deny.includes(capabilityId)).map((layer) => layer.name);
+  const allowLayers = policy.layers.filter((layer) => layer.allow.includes(capabilityId)).map((layer) => layer.name);
+  const reasons = [];
+  if (!known) reasons.push(`unknown capability: ${capabilityId}`);
+  if (denyLayers.length > 0) reasons.push(`denied by ${denyLayers.join(", ")}`);
+  if (allowSet.size > 0 && allowLayers.length === 0) reasons.push("not present in effective allowlist");
+  if (known && denyLayers.length === 0 && allowSet.size === 0) reasons.push("allowed because no allowlist is configured");
+  if (known && denyLayers.length === 0 && allowLayers.length > 0) reasons.push(`allowed by ${allowLayers.join(", ")}`);
+  return {
+    capability: capabilityId,
+    known,
+    allowed: known && denyLayers.length === 0 && (allowSet.size === 0 || allowLayers.length > 0),
+    deny_wins: true,
+    allow_layers: allowLayers,
+    deny_layers: denyLayers,
+    reasons,
+  };
+}
+
+function targetWorkflowForPolicy(workflowId) {
+  if (!workflowId) return { ok: true, workflow: null, errors: [] };
+  const selected = targetWorkflows(workflowId);
+  if (selected.length === 0) {
+    return {
+      ok: false,
+      workflow: null,
+      errors: [{ file: "docs/workflows", message: `unknown workflow: ${workflowId}` }],
+    };
+  }
+  return { ok: true, workflow: selected[0], errors: [] };
+}
+
+function toolsPolicy({ check = false } = {}) {
+  const repoArg = argValue("--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  const workflowId = argValue("--workflow", "");
+  const stepId = argValue("--step", "");
+  const capabilityId = argValue("--capability", "");
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: check ? "tools check" : "tools policy",
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+  if (check && !capabilityId) {
+    return {
+      ok: false,
+      scope: "tools check",
+      errors: [{ file: "tools check", message: "missing --capability <id>" }],
+    };
+  }
+  const workflowResult = targetWorkflowForPolicy(workflowId);
+  if (!workflowResult.ok) {
+    return {
+      ok: false,
+      scope: check ? "tools check" : "tools policy",
+      errors: workflowResult.errors,
+    };
+  }
+  const configResult = readAgentToolsConfig(repoPath, argValue("--config", ""));
+  if (!configResult.ok) {
+    return {
+      ok: false,
+      scope: check ? "tools check" : "tools policy",
+      errors: configResult.errors,
+    };
+  }
+  const catalog = mergedCapabilityCatalog(configResult.config);
+  const effective = resolveAgentPolicy(configResult.config, workflowId, stepId);
+  const decision = capabilityId
+    ? capabilityPolicyDecision(configResult.config, catalog, capabilityId, workflowId, stepId)
+    : null;
+  const result = {
+    ok: check ? Boolean(decision?.allowed) : true,
+    scope: check ? "tools check" : "tools policy",
+    repo: path.relative(root, repoPath) || ".",
+    config: {
+      path: configResult.path,
+      exists: configResult.exists,
+      source: configResult.source,
+    },
+    workflow: workflowId
+      ? {
+          id: workflowResult.workflow.frontmatter.id,
+          title: workflowResult.workflow.frontmatter.title,
+          file: workflowResult.workflow.file,
+        }
+      : null,
+    step: stepId || null,
+    policy: {
+      layers: effective.layers,
+      effective: {
+        allow: effective.allow,
+        deny: effective.deny,
+      },
+      deny_wins: true,
+    },
+    decision,
+    errors: [],
+  };
+  if (check && decision && !decision.allowed) {
+    result.errors.push({ file: configResult.path, message: `${capabilityId} is not allowed: ${decision.reasons.join("; ")}` });
+  }
+  return result;
+}
+
 function toolsList() {
   const repoArg = argValue("--repo", ".");
   const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
@@ -3437,6 +3584,10 @@ if (command === "lint") {
   printResult(dependencyAudit());
 } else if (command === "tools" && subcommand === "list") {
   printResult(toolsList());
+} else if (command === "tools" && subcommand === "policy") {
+  printResult(toolsPolicy());
+} else if (command === "tools" && subcommand === "check") {
+  printResult(toolsPolicy({ check: true }));
 } else if (command === "workflow" && subcommand === "deps") {
   printResult(workflowDeps());
 } else if (command === "workflow" && subcommand === "views") {
@@ -3504,6 +3655,8 @@ if (command === "lint") {
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
       "ctx tools list --json",
+      "ctx tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
+      "ctx tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
       "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
       "ctx workflow views --workflow workflow.browser-validation --repo . --json",
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",

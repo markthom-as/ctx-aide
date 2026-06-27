@@ -184,6 +184,12 @@ assert.equal(configuredToolsList.config.exists, true);
 assert.equal(configuredToolsList.catalog.count, 1);
 assert.equal(configuredToolsList.catalog.capabilities[0].purpose, "Run a repo-local lint wrapper.");
 assert.deepEqual(configuredToolsList.policy.global.allow, ["custom.internal-linter", "tool.ctx"]);
+const customCapabilityCheck = run(["tools", "check", "--capability", "custom.internal-linter"]);
+assert.equal(customCapabilityCheck.ok, true);
+assert.equal(customCapabilityCheck.decision.allowed, true);
+const deniedGlobalCapability = run(["tools", "check", "--capability", "app.gmail"], { allowFailure: true });
+assert.equal(deniedGlobalCapability.ok, false);
+assert.equal(deniedGlobalCapability.decision.deny_layers.includes("global"), true);
 
 const noBackendDiscovery = run(["discover", "--backend", "none", "--task", "known path", "--out", "docs/context/generated/discovery.none.json"]);
 assert.equal(noBackendDiscovery.ok, true);
@@ -237,6 +243,64 @@ updated: 2026-06-26
 
 # Browser Validation Workflow
 `);
+write("docs/config/repo-context.tools.json", `${JSON.stringify({
+  config_version: 1,
+  global: {
+    allow: ["tool.ctx", "tool.playwright", "app.gmail"],
+    deny: ["app.gmail"],
+  },
+  workflows: {
+    "workflow.browser-validation": {
+      allow: ["tool.chrome-devtools"],
+      steps: {
+        "browser-smoke": {
+          allow: ["tool.playwright", "tool.computer-use"],
+          deny: ["tool.computer-use"],
+        },
+      },
+    },
+  },
+}, null, 2)}\n`);
+const stepPolicy = run([
+  "tools",
+  "policy",
+  "--workflow",
+  "workflow.browser-validation",
+  "--step",
+  "browser-smoke",
+  "--capability",
+  "tool.playwright",
+]);
+assert.equal(stepPolicy.ok, true);
+assert.equal(stepPolicy.decision.allowed, true);
+assert.equal(stepPolicy.policy.effective.allow.includes("tool.chrome-devtools"), true);
+const workflowAllowedTool = run(["tools", "check", "--workflow", "workflow.browser-validation", "--capability", "tool.chrome-devtools"]);
+assert.equal(workflowAllowedTool.ok, true);
+const stepDeniedTool = run([
+  "tools",
+  "check",
+  "--workflow",
+  "workflow.browser-validation",
+  "--step",
+  "browser-smoke",
+  "--capability",
+  "tool.computer-use",
+], { allowFailure: true });
+assert.equal(stepDeniedTool.ok, false);
+assert.equal(stepDeniedTool.decision.deny_layers.includes("step:browser-smoke"), true);
+const denyWinsTool = run([
+  "tools",
+  "check",
+  "--workflow",
+  "workflow.browser-validation",
+  "--step",
+  "browser-smoke",
+  "--capability",
+  "app.gmail",
+], { allowFailure: true });
+assert.equal(denyWinsTool.ok, false);
+assert.equal(denyWinsTool.decision.deny_layers.includes("global"), true);
+
 write("package.json", `${JSON.stringify({ name: "fixture-app", private: true }, null, 2)}\n`);
 const missingWorkflowDeps = run(["workflow", "deps", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
 assert.equal(missingWorkflowDeps.ok, false);
