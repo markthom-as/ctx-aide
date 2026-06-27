@@ -468,18 +468,23 @@ fs.writeFileSync(path.join(adoptedRepo, "pnpm-lock.yaml"), "lockfileVersion: '9.
 const adoptionDryRun = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware"]);
 assert.equal(adoptionDryRun.ok, true);
 assert.equal(adoptionDryRun.write, false);
+assert.equal(adoptionDryRun.changes.some((change) => change.file === "docs/config/repo-context.tools.json" && change.action === "planned"), true);
 assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), false);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json")), false);
 
 const unbootstrappedAdoptionStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"], { allowFailure: true });
 assert.equal(unbootstrappedAdoptionStatus.ok, false);
 assert.equal(unbootstrappedAdoptionStatus.profile.profile, "wetware");
 assert.equal(unbootstrappedAdoptionStatus.context.count, 0);
+assert.equal(unbootstrappedAdoptionStatus.tools_policy.exists, false);
 assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.profile.json")), true);
+assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.tools.json")), true);
 
 const adoptionBootstrap = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware", "--write"]);
 assert.equal(adoptionBootstrap.ok, true);
 assert.equal(adoptionBootstrap.profile.profile, "wetware");
 assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), true);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json")), true);
 
 const adoptedContext = run([
   "adoption",
@@ -509,9 +514,24 @@ assert.equal(fs.existsSync(path.join(adoptedRepo, adoptedContext.context.file)),
 const bootstrappedAdoptionStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"]);
 assert.equal(bootstrappedAdoptionStatus.ok, true);
 assert.equal(bootstrappedAdoptionStatus.config.exists, true);
+assert.equal(bootstrappedAdoptionStatus.tools_policy.exists, true);
+assert.equal(bootstrappedAdoptionStatus.tools_policy.ok, true);
 assert.equal(bootstrappedAdoptionStatus.context.count, 1);
 assert.equal(bootstrappedAdoptionStatus.blockers.length, 0);
 assert.equal(bootstrappedAdoptionStatus.warnings.some((warning) => warning.includes("generated context manifest")), true);
+
+fs.writeFileSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json"), `${JSON.stringify({
+  config_version: 1,
+  global: {
+    allow: ["tool.ctx"],
+    deny: ["tool.ctx"],
+  },
+}, null, 2)}\n`);
+const invalidTargetToolsPolicyStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"], { allowFailure: true });
+assert.equal(invalidTargetToolsPolicyStatus.ok, false);
+assert.equal(invalidTargetToolsPolicyStatus.tools_policy.ok, false);
+assert.equal(invalidTargetToolsPolicyStatus.blockers.some((blocker) => blocker.includes("invalid tools policy")), true);
+run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware", "--write", "--force"]);
 
 const adoptionPackDryRun = run([
   "adoption",

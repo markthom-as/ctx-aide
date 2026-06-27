@@ -1291,6 +1291,14 @@ function readAgentToolsConfig(repoPath, configArg = "") {
   }
 }
 
+function targetAgentToolsConfig(profile) {
+  return mergeObjects(defaultAgentToolsConfig, {
+    generated_by: "repo-context adoption bootstrap",
+    profile: profile.profile,
+    updated: todayDate(),
+  });
+}
+
 function mergedCapabilityCatalog(config) {
   const custom = plainObject(config?.capabilities) ? config.capabilities : {};
   const catalog = { ...agentCapabilityCatalog };
@@ -2517,11 +2525,16 @@ function adoptionStatus() {
   const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
   const configPath = path.join(repoPath, "docs/config/repo-context.profile.json");
   const config = readJsonIfExists(configPath);
+  const toolsPolicyResult = readAgentToolsConfig(repoPath, "");
+  const toolsPolicyErrors = toolsPolicyResult.exists
+    ? agentToolsPolicyErrors(toolsPolicyResult, targetWorkflowIds(repoPath))
+    : [];
   const requiredPaths = [
     ...adoptionContextDirs,
     profile.ticket_root,
     "docs/context/README.md",
     "docs/config/repo-context.profile.json",
+    "docs/config/repo-context.tools.json",
   ];
   const pathRows = requiredPaths.map((relativePath) => ({
     path: relativePath,
@@ -2539,6 +2552,10 @@ function adoptionStatus() {
   if (config.exists && !config.ok) blockers.push(`invalid profile config JSON: ${config.error}`);
   if (config.ok && config.value?.profile && config.value.profile !== profile.profile) {
     blockers.push(`profile config ${config.value.profile} does not match detected profile ${profile.profile}`);
+  }
+  if (!toolsPolicyResult.exists) blockers.push("missing docs/config/repo-context.tools.json; run adoption bootstrap with --write");
+  for (const error of toolsPolicyErrors) {
+    blockers.push(`invalid tools policy: ${error.message}`);
   }
   for (const row of pathRows.filter((row) => !row.exists && row.path !== "docs/context/generated")) {
     blockers.push(`missing ${row.path}`);
@@ -2560,6 +2577,12 @@ function adoptionStatus() {
       exists: config.exists,
       ok: config.ok,
       profile: config.value?.profile ?? null,
+    },
+    tools_policy: {
+      path: toolsPolicyResult.path,
+      exists: toolsPolicyResult.exists,
+      ok: toolsPolicyResult.exists && toolsPolicyResult.ok && toolsPolicyErrors.length === 0,
+      errors: toolsPolicyErrors.map((error) => error.message),
     },
     paths: pathRows,
     context: {
@@ -2651,6 +2674,12 @@ function adoptionBootstrap() {
     updated: todayDate(),
   };
   changes.push(writeFileIfAllowed(repoPath, "docs/config/repo-context.profile.json", `${JSON.stringify(config, null, 2)}\n`, { write, force }));
+  changes.push(writeFileIfAllowed(
+    repoPath,
+    "docs/config/repo-context.tools.json",
+    `${JSON.stringify(targetAgentToolsConfig(profile), null, 2)}\n`,
+    { write, force },
+  ));
   changes.push(writeFileIfAllowed(
     repoPath,
     "docs/context/README.md",
@@ -3423,10 +3452,12 @@ function validateAgentPolicyLayer(layer, catalog, file, errors, label) {
 function validateAgentToolsPolicy(errors) {
   const configResult = readAgentToolsConfig(root, "");
   if (!configResult.exists && configResult.ok) return;
-  if (!configResult.ok) {
-    errors.push(...configResult.errors);
-    return;
-  }
+  errors.push(...agentToolsPolicyErrors(configResult, new Set(readWorkflows().map((workflow) => workflow.frontmatter.id))));
+}
+
+function agentToolsPolicyErrors(configResult, knownWorkflowIds = new Set()) {
+  const errors = [];
+  if (!configResult.ok) return configResult.errors;
   const file = configResult.path;
   const config = configResult.config;
   assert(config.config_version === 1, errors, file, "config_version must be 1");
@@ -3444,7 +3475,6 @@ function validateAgentToolsPolicy(errors) {
   }
   validateAgentPolicyLayer(config.global, catalog, file, errors, "global");
   assert(plainObject(config.workflows), errors, file, "workflows must be an object");
-  const knownWorkflowIds = new Set(readWorkflows().map((workflow) => workflow.frontmatter.id));
   for (const [workflowId, workflowPolicy] of Object.entries(config.workflows ?? {})) {
     assert(/^workflow\.[A-Za-z0-9_.-]+$/.test(workflowId), errors, file, `workflow policy id must start with workflow.: ${workflowId}`);
     assert(knownWorkflowIds.has(workflowId), errors, file, `unknown workflow policy: ${workflowId}`);
@@ -3459,6 +3489,18 @@ function validateAgentToolsPolicy(errors) {
       }
     }
   }
+  return errors;
+}
+
+function targetWorkflowIds(repoPath) {
+  const workflowRoot = path.join(repoPath, "docs/workflows");
+  if (!fs.existsSync(workflowRoot)) return new Set();
+  return new Set(walk(workflowRoot)
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => path.relative(repoPath, file))
+    .map((file) => readDocAt(repoPath, file))
+    .filter((doc) => !doc.ignored && typeof doc.frontmatter.id === "string")
+    .map((doc) => doc.frontmatter.id));
 }
 
 function runChecks(scope) {
