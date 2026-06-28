@@ -1664,6 +1664,129 @@ function feedbackClarifyingQuestions(feedbackText, context = {}) {
   return unique(questions);
 }
 
+function cleanFeedbackPoint(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/^[-*]\s+/, "")
+    .replace(/^\d+[.)]\s+/, "")
+    .trim();
+}
+
+function splitFeedbackBody(body) {
+  const text = String(body ?? "").trim();
+  if (!text) return [];
+  const rawLines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const bulletLines = rawLines.filter((line) => /^[-*]\s+/.test(line) || /^\d+[.)]\s+/.test(line));
+  const lines = rawLines.map(cleanFeedbackPoint).filter(Boolean);
+  const candidates = bulletLines.length > 0
+    ? bulletLines.map(cleanFeedbackPoint)
+    : lines.flatMap((line) => line.split(/(?:\n+|;\s+|\.\s+(?=[A-Z0-9]))/));
+  return unique(candidates.map(cleanFeedbackPoint).filter((line) => line.length > 0));
+}
+
+function splitFeedbackSubpoints(text) {
+  const parts = String(text ?? "")
+    .split(/\s+(?:and also|also|plus)\s+|;\s+/i)
+    .map(cleanFeedbackPoint)
+    .filter((part) => part.length >= 12);
+  return parts.length > 1 ? unique(parts) : [];
+}
+
+function titleFromFeedback(text) {
+  const cleaned = cleanFeedbackPoint(text)
+    .replace(/\b(please|should|needs?|fix|make|change|update)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const title = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  return title.length > 72 ? `${title.slice(0, 69).trim()}...` : (title || "Feedback follow-up");
+}
+
+function promotionSuggestion(text) {
+  if (/\b(copy|label|wording|acceptance|criterion|criteria|current ticket|block|blocking)\b/i.test(text)) {
+    return "acceptance-criteria";
+  }
+  return "follow-up-ticket";
+}
+
+function feedbackPointPlan(text, index, context = {}) {
+  const subpoints = splitFeedbackSubpoints(text);
+  const questions = feedbackClarifyingQuestions(text, context);
+  const suggestedPromotion = promotionSuggestion(text);
+  const title = titleFromFeedback(text);
+  return {
+    id: `point-${String(index + 1).padStart(2, "0")}`,
+    text,
+    suggested_title: title,
+    suggested_promotion: suggestedPromotion,
+    suggested_ticket_status: questions.length > 0 ? "needs-questions" : "needs-hardening",
+    suggested_acceptance_criterion: `Reviewed feedback is addressed: ${text}`,
+    should_split_further: subpoints.length > 1,
+    subpoints: subpoints.map((subpoint, subIndex) => ({
+      id: `point-${String(index + 1).padStart(2, "0")}.${subIndex + 1}`,
+      text: subpoint,
+      suggested_title: titleFromFeedback(subpoint),
+      suggested_promotion: promotionSuggestion(subpoint),
+    })),
+    clarifying_questions: questions,
+    suggested_user_prompt: questions.length > 0
+      ? `For "${title}", should I treat this as ${suggestedPromotion}, and what exact expected result should the ticket enforce?`
+      : `For "${title}", I can make this ${suggestedPromotion === "acceptance-criteria" ? "acceptance criteria on the current ticket" : "a follow-up ticket"}.`,
+  };
+}
+
+function feedbackPlanRows(body, context = {}) {
+  const points = splitFeedbackBody(body);
+  return points.map((point, index) => feedbackPointPlan(point, index, context));
+}
+
+function feedbackPlan() {
+  const repoPath = targetRepoPath();
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "feedback plan", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const ticketArg = argValue("--ticket", "");
+  const ticketPath = ticketArg ? (path.isAbsolute(ticketArg) ? path.relative(repoPath, ticketArg) : ticketArg) : "";
+  const body = argValue("--body", argValue("--feedback", ""));
+  const files = unique(argValues("--file"));
+  const routes = unique(argValues("--route"));
+  const artifactPaths = unique([...argValues("--artifact"), ...argValues("--screenshot")]);
+  const points = feedbackPlanRows(body, {
+    ticket: ticketPath,
+    files,
+    routes,
+    artifacts: artifactPaths,
+  });
+  const clarifyingQuestions = unique(points.flatMap((point) => point.clarifying_questions));
+  const atomicPoints = points.flatMap((point) => point.should_split_further ? point.subpoints : [point]);
+  const followUpCount = atomicPoints.filter((point) => point.suggested_promotion === "follow-up-ticket").length;
+  const acceptanceCriteriaCount = atomicPoints.filter((point) => point.suggested_promotion === "acceptance-criteria").length;
+  return {
+    ok: points.length > 0,
+    scope: "feedback plan",
+    repo: displayPath(repoPath),
+    ticket: ticketPath || null,
+    point_count: points.length,
+    needs_clarification: clarifyingQuestions.length > 0,
+    clarifying_questions: clarifyingQuestions,
+    suggested_summary: {
+      follow_up_tickets: followUpCount,
+      acceptance_criteria: acceptanceCriteriaCount,
+      split_further: points.filter((point) => point.should_split_further).length,
+    },
+    points,
+    suggested_next_steps: [
+      "Confirm or answer any clarifying questions before writing tickets.",
+      "Capture each distinct feedback point with ctx feedback capture --write.",
+      "Promote clear points with ctx feedback promote --mode acceptance-criteria or --mode follow-up-ticket.",
+      "Split points marked should_split_further into separate ticket candidates before implementation.",
+    ],
+    errors: points.length > 0 ? [] : [{ file: "feedback plan", message: "missing --body <feedback text>" }],
+  };
+}
+
 function feedbackReview() {
   const repoPath = targetRepoPath();
   const ticketArg = argValue("--ticket", "");
@@ -1774,6 +1897,12 @@ function feedbackCapture() {
   const artifactPaths = unique([...argValues("--artifact"), ...argValues("--screenshot")]);
   const urls = unique(argValues("--url"));
   const artifacts = artifactPaths.map((artifact, index) => artifactRow(repoPath, artifact, urls, index));
+  const plan = feedbackPlanRows(body, {
+    ticket: ticketPath,
+    files,
+    routes,
+    artifacts: artifactPaths,
+  });
   const clarifyingQuestions = feedbackClarifyingQuestions(body, {
     ticket: ticketPath,
     files,
@@ -1820,6 +1949,11 @@ function feedbackCapture() {
       clarifying_questions: clarifyingQuestions,
     },
     artifacts,
+    decomposition: {
+      point_count: plan.length,
+      points: plan,
+      should_split: plan.length > 1 || plan.some((point) => point.should_split_further),
+    },
     changes: [change],
     next_commands: [
       `ctx feedback promote --repo ${displayPath(repoPath)} --feedback ${id} --ticket ${ticketPath || "<ticket>"} --mode follow-up-ticket --write --json`,
@@ -2639,6 +2773,7 @@ function idvisorWorkflow() {
       "node tools/context/ctx.mjs query --path <path> --task <task> --agent codex --budget 6000 --json",
       "node tools/context/ctx.mjs ticket hydrate <ticket> --json",
       "node tools/context/ctx.mjs feedback review --ticket <ticket> --screenshot <path> --json",
+      "node tools/context/ctx.mjs feedback plan --ticket <ticket> --body '<natural feedback>' --json",
       "node tools/context/ctx.mjs feedback capture --ticket <ticket> --body '<feedback>' --write --json",
       "node tools/context/ctx.mjs feedback promote --feedback <feedback-id> --ticket <ticket> --mode follow-up-ticket --write --json",
       "node tools/context/ctx.mjs pack status <pack-id> --json",
@@ -4195,6 +4330,8 @@ if (command === "lint") {
   printResult(workflowViews());
 } else if (command === "workflow" && subcommand === "validation-plan") {
   printResult(workflowValidationPlan());
+} else if (command === "feedback" && subcommand === "plan") {
+  printResult(feedbackPlan());
 } else if (command === "feedback" && subcommand === "review") {
   printResult(feedbackReview());
 } else if (command === "feedback" && subcommand === "capture") {
@@ -4267,6 +4404,7 @@ if (command === "lint") {
       "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
       "ctx workflow views --workflow workflow.browser-validation --repo . --json",
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",
+      "ctx feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json",
       "ctx feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .repo-context/artifacts/screenshots/example.png --url http://localhost:3000 --json",
       "ctx feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json",
       "ctx feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json",

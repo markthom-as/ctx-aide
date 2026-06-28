@@ -691,6 +691,29 @@ assert.equal(feedbackReview.artifacts[0].height, 844);
 assert.equal(feedbackReview.artifacts[0].url, "http://localhost:3000/settings");
 assert.equal(feedbackReview.changed_files.includes("package.json"), true);
 
+const feedbackPlan = run([
+  "feedback",
+  "plan",
+  "--repo",
+  adoptedRepo,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--body",
+  [
+    "- The mobile spacing is too tight under the heading.",
+    "- Change the button copy to Save changes.",
+    "- The account settings nav is confusing and also the empty state is unclear.",
+  ].join("\n"),
+  "--file",
+  "app/settings/page.tsx",
+]);
+assert.equal(feedbackPlan.ok, true);
+assert.equal(feedbackPlan.point_count, 3);
+assert.equal(feedbackPlan.suggested_summary.acceptance_criteria >= 1, true);
+assert.equal(feedbackPlan.points[2].should_split_further, true);
+assert.equal(feedbackPlan.points[2].subpoints.length, 2);
+assert.equal(feedbackPlan.suggested_next_steps.some((step) => step.includes("clarifying")), true);
+
 const capturedFeedback = run([
   "feedback",
   "capture",
@@ -712,6 +735,7 @@ const capturedFeedback = run([
 ]);
 assert.equal(capturedFeedback.ok, true);
 assert.equal(capturedFeedback.feedback.needs_clarification, true);
+assert.equal(capturedFeedback.decomposition.should_split, false);
 assert.equal(fs.existsSync(path.join(adoptedRepo, capturedFeedback.feedback.file)), true);
 const feedbackText = fs.readFileSync(path.join(adoptedRepo, capturedFeedback.feedback.file), "utf8");
 assert.equal(feedbackText.includes("## Feedback"), true);

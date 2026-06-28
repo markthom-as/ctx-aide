@@ -20,10 +20,12 @@ Turn screenshot and artifact review into a guided repo-local loop instead of a m
 1. Generate or collect screenshot artifacts during ticket validation.
 2. Build a review packet with `ctx feedback review --repo <repo> --ticket <ticket> --screenshot <path> --url <url> --json`.
 3. Inspect the packet fields for ticket status, URL, scoped files, changed files, screenshot path, byte size, and image dimensions.
-4. Capture operator feedback with `ctx feedback capture --repo <repo> --ticket <ticket> --title "<title>" --body "<feedback>" --screenshot <path> --url <url> --write --json`.
-5. Resolve clarification prompts before implementation when the feedback does not define the correct behavior or promotion target.
-6. Promote clear feedback with `ctx feedback promote --mode acceptance-criteria` when it should tighten the current ticket.
-7. Promote separate work with `ctx feedback promote --mode follow-up-ticket` when it should become a new atomic ticket.
+4. Plan a natural-language feedback response with `ctx feedback plan --repo <repo> --ticket <ticket> --body "<feedback>" --json`.
+5. Split the response into distinct feedback points, then split any mixed point again when it covers multiple behaviors, surfaces, or acceptance checks.
+6. Offer the operator suggested interpretations and clarification questions before writing tickets when the correct outcome or promotion target is ambiguous.
+7. Capture operator feedback with `ctx feedback capture --repo <repo> --ticket <ticket> --title "<title>" --body "<feedback>" --screenshot <path> --url <url> --write --json`.
+8. Promote clear feedback with `ctx feedback promote --mode acceptance-criteria` when it should tighten the current ticket.
+9. Promote separate work with `ctx feedback promote --mode follow-up-ticket` when it should become a new atomic ticket.
 
 ## Readiness Gates
 
@@ -31,6 +33,8 @@ Turn screenshot and artifact review into a guided repo-local loop instead of a m
 - Review packets must be JSON-readable and must not require an interactive prompt.
 - Feedback entries must live under `docs/context/feedback/` and remain the source of truth.
 - Ambiguous feedback should produce clarifying questions before becoming implementation-ready work.
+- Multi-point feedback must be decomposed before promotion; mixed points should be split again before tickets are created.
+- Agents should offer suggested ticket titles, promotion modes, and clarifying questions instead of asking blank-ended questions.
 - Follow-up tickets generated from feedback should start outside `done` and be hardened before implementation.
 - Acceptance-criteria promotion must keep the original ticket as the source of truth for current-ticket completion.
 
@@ -47,10 +51,13 @@ Turn screenshot and artifact review into a guided repo-local loop instead of a m
 - `status: proposed` means the feedback has been captured but not yet accepted, rejected, resolved, or superseded.
 - Feedback may be promoted into acceptance criteria for the current ticket or into a new follow-up ticket.
 - The system should ask questions when feedback is too vague to implement safely, when it lacks a target surface, or when the operator has not said whether it blocks current work.
+- When the operator gives several points in one response, the agent should first propose a split plan and then write one feedback entry or ticket per distinct action.
+- When one point combines separate concerns, the agent should suggest subpoints and ask whether to split before implementation.
 
 ## Validation
 
 - `ctx feedback review --repo <repo> --ticket <ticket> --screenshot <path> --url <url> --json`
+- `ctx feedback plan --repo <repo> --ticket <ticket> --body "<natural feedback>" --json`
 - `ctx feedback capture --repo <repo> --ticket <ticket> --title "<title>" --body "<feedback>" --write --json`
 - `ctx feedback promote --repo <repo> --feedback <feedback-id-or-path> --ticket <ticket> --mode acceptance-criteria --write --json`
 - `ctx feedback promote --repo <repo> --feedback <feedback-id-or-path> --ticket <ticket> --mode follow-up-ticket --write --json`
