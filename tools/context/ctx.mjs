@@ -1711,11 +1711,43 @@ function promotionSuggestion(text) {
   return "follow-up-ticket";
 }
 
+function ruleText(value) {
+  return cleanFeedbackPoint(value)
+    .replace(/\s+/g, " ")
+    .replace(/[.]+$/, ".");
+}
+
+function feedbackRuleSuggestions(text) {
+  const value = ruleText(text);
+  if (!value) return { positive_rules: [], negative_rules: [], axioms: [] };
+  const positive = [];
+  const negative = [];
+  if (/\b(always|must|should|required|require|needs? to|prefer|preserve|keep|ensure)\b/i.test(value)) {
+    positive.push(value);
+  }
+  if (/\b(never|must not|should not|don't|do not|avoid|stop|forbid|without)\b/i.test(value)) {
+    negative.push(value);
+  }
+  const durable = /\b(always|never|must|must not|required|require|do not|should not)\b/i.test(value);
+  const axioms = durable
+    ? [{
+        id: `axiom.feedback.${slugify(value).slice(0, 48)}`,
+        statement: value,
+      }]
+    : [];
+  return {
+    positive_rules: unique(positive),
+    negative_rules: unique(negative),
+    axioms,
+  };
+}
+
 function feedbackPointPlan(text, index, context = {}) {
   const subpoints = splitFeedbackSubpoints(text);
   const questions = feedbackClarifyingQuestions(text, context);
   const suggestedPromotion = promotionSuggestion(text);
   const title = titleFromFeedback(text);
+  const ruleSuggestions = feedbackRuleSuggestions(text);
   return {
     id: `point-${String(index + 1).padStart(2, "0")}`,
     text,
@@ -1729,7 +1761,9 @@ function feedbackPointPlan(text, index, context = {}) {
       text: subpoint,
       suggested_title: titleFromFeedback(subpoint),
       suggested_promotion: promotionSuggestion(subpoint),
+      suggested_rules: feedbackRuleSuggestions(subpoint),
     })),
+    suggested_rules: ruleSuggestions,
     clarifying_questions: questions,
     suggested_user_prompt: questions.length > 0
       ? `For "${title}", should I treat this as ${suggestedPromotion}, and what exact expected result should the ticket enforce?`
@@ -1874,7 +1908,16 @@ function feedbackMarkdown(entry) {
   const questionLines = entry.clarifying_questions.length > 0
     ? entry.clarifying_questions.map((question) => `- ${question}`).join("\n")
     : "- None.";
-  return `---\nid: ${entry.id}\nkind: feedback\nstatus: proposed\nseverity: ${entry.severity}\nsource: ${entry.source}\napplies_to:\n${routes}\n${files}\n${components}\n${flows}\ntitle: ${entry.title}\ncreated: ${todayDate()}\n---\n\n# ${entry.title}\n\n## Feedback\n\n${entry.body}\n\n## Decision\n\n- Status: proposed.\n- Promotion target: ${entry.promotion_target}.\n- Clarifying questions:\n${questionLines}\n\n## Regression Risk\n\n- Review artifacts:\n${artifactLines}\n- Risk: ${entry.regression_risk}\n`;
+  const positiveRules = entry.rule_suggestions.positive_rules.length > 0
+    ? entry.rule_suggestions.positive_rules.map((rule) => `- ${rule}`).join("\n")
+    : "- None.";
+  const negativeRules = entry.rule_suggestions.negative_rules.length > 0
+    ? entry.rule_suggestions.negative_rules.map((rule) => `- ${rule}`).join("\n")
+    : "- None.";
+  const axiomLines = entry.rule_suggestions.axioms.length > 0
+    ? entry.rule_suggestions.axioms.map((axiom) => `- \`${axiom.id}\`: ${axiom.statement}`).join("\n")
+    : "- None.";
+  return `---\nid: ${entry.id}\nkind: feedback\nstatus: proposed\nseverity: ${entry.severity}\nsource: ${entry.source}\napplies_to:\n${routes}\n${files}\n${components}\n${flows}\ntitle: ${entry.title}\ncreated: ${todayDate()}\n---\n\n# ${entry.title}\n\n## Feedback\n\n${entry.body}\n\n## Decision\n\n- Status: proposed.\n- Promotion target: ${entry.promotion_target}.\n- Clarifying questions:\n${questionLines}\n\n## Suggested Rules and Axioms\n\nPositive rules:\n${positiveRules}\n\nNegative rules:\n${negativeRules}\n\nAxioms:\n${axiomLines}\n\n## Regression Risk\n\n- Review artifacts:\n${artifactLines}\n- Risk: ${entry.regression_risk}\n`;
 }
 
 function feedbackCapture() {
@@ -1903,6 +1946,7 @@ function feedbackCapture() {
     routes,
     artifacts: artifactPaths,
   });
+  const ruleSuggestions = feedbackRuleSuggestions(body);
   const clarifyingQuestions = feedbackClarifyingQuestions(body, {
     ticket: ticketPath,
     files,
@@ -1921,6 +1965,7 @@ function feedbackCapture() {
     components,
     flows,
     artifacts,
+    rule_suggestions: ruleSuggestions,
     clarifying_questions: clarifyingQuestions,
     promotion_target: argValue("--promotion-target", "follow-up-ticket-or-acceptance-criteria"),
     regression_risk: argValue("--regression-risk", "Current ticket may pass validation without covering this reviewed state."),
@@ -1949,6 +1994,7 @@ function feedbackCapture() {
       clarifying_questions: clarifyingQuestions,
     },
     artifacts,
+    suggested_rules: ruleSuggestions,
     decomposition: {
       point_count: plan.length,
       points: plan,
@@ -2006,6 +2052,7 @@ function feedbackPromote() {
   const ticketArg = argValue("--ticket", "");
   const ticketPath = ticketArg ? (path.isAbsolute(ticketArg) ? path.relative(repoPath, ticketArg) : ticketArg) : "";
   const feedbackText = bodySectionLines(feedback.doc.body, "Feedback").join("\n").trim() || feedback.doc.frontmatter.title;
+  const ruleSuggestions = feedbackRuleSuggestions(feedbackText);
   const clarifyingQuestions = feedbackClarifyingQuestions(feedbackText, { ticket: ticketPath });
   const title = argValue("--title", feedback.doc.frontmatter.title ?? "Feedback Follow-up");
   const criterion = argValue("--criterion", `Address feedback ${feedback.doc.frontmatter.id}: ${title}.`);
@@ -2042,7 +2089,20 @@ function feedbackPromote() {
     ...(ticketPath ? [ticketPath] : []),
   ]);
   const sourceRoutes = nestedFrontmatterList(feedback.doc, "applies_to", "routes");
-  const ticketMarkdown = `---\nid: ${argValue("--id", `ticket.feedback.${todayDate()}.${slug}`)}\nstatus: ${status}\ntitle: ${title}\nticket_pack: ${argValue("--pack", "pack.feedback-review")}\nmilestones:\n  - ${argValue("--milestone", "milestone.feedback-review")}\nsource_spec: null\nsource_feedback:\n  - ${sourceFeedback}\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "feedback")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", sourceRoutes, "  ")}\n${yamlKeyList("files", sourceFiles, "  ")}\n  directories: []\n  components: []\n  flows: []\ncontext_query:\n  task: "${title.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n  context_ids:\n    - ${sourceFeedback}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.feedback-review-promotes-actionable-work\nvalidation:\n  automated: []\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\nResolve the captured review feedback without changing unrelated behavior.\n\n## Context\n\nSource feedback: \`${sourceFeedback}\` in \`${feedback.file}\`.\n\n## Positive Rules\n\n- Preserve the reviewed URL, file, screenshot, and ticket context from the feedback entry.\n- Convert ambiguous feedback into questions before implementation.\n\n## Negative Rules\n\n- Do not implement while implementation-changing clarifying questions remain.\n- Do not broaden the ticket beyond the reviewed state.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical authoring surface.\n- \`axiom.ticket-done-requires-commit\`: Completion requires commit and verification evidence.\n- \`axiom.feedback-review-promotes-actionable-work\`: Operator feedback becomes either acceptance criteria or follow-up tickets.\n\n## Frozen Decisions\n\n- Source feedback id: \`${sourceFeedback}\`.\n- Promotion mode: follow-up-ticket.\n\n## Implementation Rules\n\n- Required approach: harden this ticket until all clarifying questions are answered, then implement the smallest scoped change.\n- Stop and escalate if: the correct behavior is not clear from the feedback entry.\n\n## Scope\n\n- In: ${sourceFiles.concat(sourceRoutes).join(", ") || "the reviewed state"}.\n- Out: unrelated routes, files, or broad visual redesigns.\n\n## Acceptance Criteria\n\n- ${criterion}\n\n## Validation\n\n- Automated: add repo-appropriate checks during hardening.\n- Smoke: review the affected URL/state again.\n- Screenshots: capture before/after evidence when the feedback is visual.\n\n## Completion\n\n- Status: ${status}\n- Commit: pending\n- Verification evidence: pending\n- Follow-up tickets: pending\n`;
+  const axiomIds = ruleSuggestions.axioms.map((axiom) => axiom.id);
+  const axiomFrontmatter = axiomIds.map((id) => `  - ${id}`).join("\n");
+  const positiveRules = [
+    "Preserve the reviewed URL, file, screenshot, and ticket context from the feedback entry.",
+    "Convert ambiguous feedback into questions before implementation.",
+    ...ruleSuggestions.positive_rules,
+  ];
+  const negativeRules = [
+    "Do not implement while implementation-changing clarifying questions remain.",
+    "Do not broaden the ticket beyond the reviewed state.",
+    ...ruleSuggestions.negative_rules,
+  ];
+  const bodyAxioms = ruleSuggestions.axioms.map((axiom) => `- \`${axiom.id}\`: ${axiom.statement}`);
+  const ticketMarkdown = `---\nid: ${argValue("--id", `ticket.feedback.${todayDate()}.${slug}`)}\nstatus: ${status}\ntitle: ${title}\nticket_pack: ${argValue("--pack", "pack.feedback-review")}\nmilestones:\n  - ${argValue("--milestone", "milestone.feedback-review")}\nsource_spec: null\nsource_feedback:\n  - ${sourceFeedback}\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "feedback")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", sourceRoutes, "  ")}\n${yamlKeyList("files", sourceFiles, "  ")}\n  directories: []\n  components: []\n  flows: []\ncontext_query:\n  task: "${title.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n  context_ids:\n    - ${sourceFeedback}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.feedback-review-promotes-actionable-work${axiomFrontmatter ? `\n${axiomFrontmatter}` : ""}\nvalidation:\n  automated: []\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\nResolve the captured review feedback without changing unrelated behavior.\n\n## Context\n\nSource feedback: \`${sourceFeedback}\` in \`${feedback.file}\`.\n\n## Positive Rules\n\n${positiveRules.map((rule) => `- ${rule}`).join("\n")}\n\n## Negative Rules\n\n${negativeRules.map((rule) => `- ${rule}`).join("\n")}\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical authoring surface.\n- \`axiom.ticket-done-requires-commit\`: Completion requires commit and verification evidence.\n- \`axiom.feedback-review-promotes-actionable-work\`: Operator feedback becomes either acceptance criteria or follow-up tickets.\n${bodyAxioms.length > 0 ? `${bodyAxioms.join("\n")}\n` : ""}\n## Frozen Decisions\n\n- Source feedback id: \`${sourceFeedback}\`.\n- Promotion mode: follow-up-ticket.\n\n## Implementation Rules\n\n- Required approach: harden this ticket until all clarifying questions are answered, then implement the smallest scoped change.\n- Stop and escalate if: the correct behavior is not clear from the feedback entry.\n\n## Scope\n\n- In: ${sourceFiles.concat(sourceRoutes).join(", ") || "the reviewed state"}.\n- Out: unrelated routes, files, or broad visual redesigns.\n\n## Acceptance Criteria\n\n- ${criterion}\n\n## Validation\n\n- Automated: add repo-appropriate checks during hardening.\n- Smoke: review the affected URL/state again.\n- Screenshots: capture before/after evidence when the feedback is visual.\n\n## Completion\n\n- Status: ${status}\n- Commit: pending\n- Verification evidence: pending\n- Follow-up tickets: pending\n`;
   const change = writeFileIfAllowed(repoPath, relativePath, ticketMarkdown, {
     write,
     force,
@@ -2062,6 +2122,7 @@ function feedbackPromote() {
       title,
     },
     clarifying_questions: clarifyingQuestions,
+    suggested_rules: ruleSuggestions,
     changes: [change],
     errors: change.action === "skipped" && write ? [{ file: relativePath, message: "ticket file exists; pass --force to overwrite" }] : [],
   };

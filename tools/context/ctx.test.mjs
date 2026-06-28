@@ -714,6 +714,20 @@ assert.equal(feedbackPlan.points[2].should_split_further, true);
 assert.equal(feedbackPlan.points[2].subpoints.length, 2);
 assert.equal(feedbackPlan.suggested_next_steps.some((step) => step.includes("clarifying")), true);
 
+const feedbackRulesPlan = run([
+  "feedback",
+  "plan",
+  "--repo",
+  adoptedRepo,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--body",
+  "Never ship visual tickets without mobile and desktop screenshots.",
+]);
+assert.equal(feedbackRulesPlan.ok, true);
+assert.equal(feedbackRulesPlan.points[0].suggested_rules.negative_rules.length, 1);
+assert.equal(feedbackRulesPlan.points[0].suggested_rules.axioms[0].id.startsWith("axiom.feedback."), true);
+
 const capturedFeedback = run([
   "feedback",
   "capture",
@@ -740,6 +754,28 @@ assert.equal(fs.existsSync(path.join(adoptedRepo, capturedFeedback.feedback.file
 const feedbackText = fs.readFileSync(path.join(adoptedRepo, capturedFeedback.feedback.file), "utf8");
 assert.equal(feedbackText.includes("## Feedback"), true);
 assert.equal(feedbackText.includes("Settings spacing needs review"), true);
+
+const capturedRuleFeedback = run([
+  "feedback",
+  "capture",
+  "--repo",
+  adoptedRepo,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--title",
+  "Visual evidence rule",
+  "--body",
+  "Never ship visual tickets without mobile and desktop screenshots.",
+  "--file",
+  "app/settings/page.tsx",
+  "--write",
+]);
+assert.equal(capturedRuleFeedback.ok, true);
+assert.equal(capturedRuleFeedback.suggested_rules.negative_rules.length, 1);
+assert.equal(capturedRuleFeedback.suggested_rules.axioms[0].id.startsWith("axiom.feedback."), true);
+const ruleFeedbackText = fs.readFileSync(path.join(adoptedRepo, capturedRuleFeedback.feedback.file), "utf8");
+assert.equal(ruleFeedbackText.includes("## Suggested Rules and Axioms"), true);
+assert.equal(ruleFeedbackText.includes("Never ship visual tickets"), true);
 
 const promotedCriterion = run([
   "feedback",
@@ -779,6 +815,24 @@ assert.equal(fs.existsSync(path.join(adoptedRepo, promotedFollowUp.ticket.file))
 const followUpText = fs.readFileSync(path.join(adoptedRepo, promotedFollowUp.ticket.file), "utf8");
 assert.equal(followUpText.includes("source_feedback:"), true);
 assert.equal(followUpText.includes(capturedFeedback.feedback.id), true);
+
+const promotedRuleFollowUp = run([
+  "feedback",
+  "promote",
+  "--repo",
+  adoptedRepo,
+  "--feedback",
+  capturedRuleFeedback.feedback.id,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--mode",
+  "follow-up-ticket",
+  "--write",
+]);
+assert.equal(promotedRuleFollowUp.ok, true);
+const ruleFollowUpText = fs.readFileSync(path.join(adoptedRepo, promotedRuleFollowUp.ticket.file), "utf8");
+assert.equal(ruleFollowUpText.includes("axiom.feedback."), true);
+assert.equal(ruleFollowUpText.includes("Never ship visual tickets"), true);
 
 const targetRepoToolsCheck = run([
   "tools",
