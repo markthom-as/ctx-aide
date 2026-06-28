@@ -37,6 +37,7 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 6. Generate the breakpoint validation matrix with `ctx workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`; this command fails when any required view is not ready, while still returning the matrix and blockers.
 7. For logged-in validation, satisfy the `browser-test-user` profile through environment variables, an untracked env file, or an imported browser storage-state file.
 8. Record the dependency check, view-state check, breakpoint matrix, test runner, screenshot output path, CI gates, deploy policy, install command, and browser validation evidence on the ticket.
+9. For visual review, pass the screenshot paths into `ctx feedback review` so the operator sees URL, scoped files, changed files, artifact size, and image dimensions before capturing feedback.
 
 ## Readiness Gates
 
@@ -50,6 +51,7 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 - Test runner behavior, screenshot save location, CI gates, and deploy policy must be included in the validation plan.
 - Validation-plan `ok` must be false when required views lack credentials or storage state.
 - Deploy settings must keep `cost_estimate_required: true` whenever deploy is enabled.
+- Screenshot feedback must be captured through `workflow.feedback-review` when operator review changes acceptance criteria or creates follow-up work.
 
 ## Dependency Policy
 

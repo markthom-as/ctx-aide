@@ -1571,6 +1571,368 @@ function screenshotPathFor(settings, workflowId, viewId, breakpointId) {
   return path.posix.join(String(settings.screenshots.output_dir), filename);
 }
 
+function imageDimensions(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  const buffer = fs.readFileSync(filePath);
+  if (buffer.length >= 24 && buffer.toString("ascii", 1, 4) === "PNG") {
+    return {
+      width: buffer.readUInt32BE(16),
+      height: buffer.readUInt32BE(20),
+      format: "png",
+    };
+  }
+  if (buffer.length >= 4 && buffer[0] === 0xff && buffer[1] === 0xd8) {
+    let offset = 2;
+    while (offset + 9 < buffer.length) {
+      if (buffer[offset] !== 0xff) {
+        offset += 1;
+        continue;
+      }
+      const marker = buffer[offset + 1];
+      const length = buffer.readUInt16BE(offset + 2);
+      if (length < 2) break;
+      if ((marker >= 0xc0 && marker <= 0xc3) || (marker >= 0xc5 && marker <= 0xc7) || (marker >= 0xc9 && marker <= 0xcb) || (marker >= 0xcd && marker <= 0xcf)) {
+        return {
+          width: buffer.readUInt16BE(offset + 7),
+          height: buffer.readUInt16BE(offset + 5),
+          format: "jpeg",
+        };
+      }
+      offset += 2 + length;
+    }
+  }
+  return null;
+}
+
+function artifactRow(repoPath, artifactPath, urls = [], index = 0) {
+  const resolved = path.isAbsolute(artifactPath) ? artifactPath : path.join(repoPath, artifactPath);
+  const exists = fs.existsSync(resolved);
+  const dimensions = exists ? imageDimensions(resolved) : null;
+  const stats = exists ? fs.statSync(resolved) : null;
+  return {
+    path: displayPath(resolved),
+    exists,
+    size_bytes: stats?.size ?? null,
+    width: dimensions?.width ?? null,
+    height: dimensions?.height ?? null,
+    format: dimensions?.format ?? null,
+    url: urls[index] ?? urls[0] ?? null,
+  };
+}
+
+function validGitCommitish(value) {
+  return /^[0-9a-f]{7,40}$/i.test(String(value ?? ""));
+}
+
+function ticketChangedFiles(repoPath, doc) {
+  const commit = nestedFrontmatterValue(doc, "completion", "commit");
+  if (validGitCommitish(commit)) {
+    const result = spawnSync("git", ["-C", repoPath, "show", "--name-only", "--format=", commit], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 5000,
+    });
+    if (result.status === 0) {
+      return unique(result.stdout.split("\n").map((line) => line.trim()).filter(Boolean));
+    }
+  }
+  const status = gitStatusSummary(repoPath);
+  return status.available ? status.changed_paths : [];
+}
+
+function feedbackClarifyingQuestions(feedbackText, context = {}) {
+  const questions = [];
+  const text = String(feedbackText ?? "").trim();
+  if (!text) {
+    questions.push("What feedback should be captured from this review?");
+  }
+  if (text.length > 0 && text.length < 48 && /\b(wrong|off|bad|weird|broken|fix|unclear)\b/i.test(text)) {
+    questions.push("What should the correct behavior, copy, or visual state be?");
+  }
+  const scoped = [
+    ...(context.files ?? []),
+    ...(context.routes ?? []),
+    ...(context.artifacts ?? []),
+    ...(context.screenshots ?? []),
+  ].length > 0;
+  if (!scoped && !context.ticket) {
+    questions.push("Which ticket, route, file, URL, or screenshot does this feedback apply to?");
+  }
+  if (!/\b(follow[- ]?up|acceptance|criteria|block|blocking|current ticket)\b/i.test(text)) {
+    questions.push("Should this revise the current acceptance criteria, block completion, or become a follow-up ticket?");
+  }
+  return unique(questions);
+}
+
+function feedbackReview() {
+  const repoPath = targetRepoPath();
+  const ticketArg = argValue("--ticket", "");
+  const urls = unique(argValues("--url"));
+  const artifactPaths = unique([
+    ...argValues("--artifact"),
+    ...argValues("--screenshot"),
+  ]);
+  const out = argValue("--out", "");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "feedback review", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  if (!ticketArg) {
+    return { ok: false, scope: "feedback review", errors: [{ file: "feedback review", message: "missing --ticket <path>" }] };
+  }
+  const ticketPath = path.isAbsolute(ticketArg) ? path.relative(repoPath, ticketArg) : ticketArg;
+  const fullTicketPath = path.join(repoPath, ticketPath);
+  if (!fs.existsSync(fullTicketPath)) {
+    return { ok: false, scope: "feedback review", errors: [{ file: ticketArg, message: "ticket file does not exist" }] };
+  }
+  const doc = readDocAt(repoPath, ticketPath);
+  const validationScreenshots = nestedFrontmatterList(doc, "validation", "screenshots");
+  const screenshots = unique([...validationScreenshots, ...artifactPaths]);
+  const files = unique([
+    ...nestedFrontmatterList(doc, "scope", "files"),
+    ...argValues("--file"),
+  ]);
+  const routes = unique([
+    ...nestedFrontmatterList(doc, "scope", "routes"),
+    ...argValues("--route"),
+  ]);
+  const artifacts = screenshots.map((screenshot, index) => artifactRow(repoPath, screenshot, urls, index));
+  const changedFiles = ticketChangedFiles(repoPath, doc);
+  const packet = {
+    ok: true,
+    scope: "feedback review",
+    repo: displayPath(repoPath),
+    ticket: {
+      file: ticketPath,
+      id: doc.frontmatter.id ?? doc.frontmatter.ticket_id ?? null,
+      title: doc.frontmatter.title ?? markdownTitle(doc.body) ?? null,
+      status: doc.frontmatter.status ?? null,
+      source_feedback: Array.isArray(doc.frontmatter.source_feedback) ? doc.frontmatter.source_feedback : [],
+    },
+    urls,
+    scope_files: files,
+    changed_files: unique([...files, ...changedFiles]),
+    routes,
+    artifacts,
+    guided_questions: [
+      "Does the screenshot satisfy the ticket acceptance criteria?",
+      "If not, what exact behavior, copy, layout, or state should change?",
+      "Should the feedback block this ticket, revise acceptance criteria, or become a follow-up ticket?",
+    ],
+    next_commands: [
+      `ctx feedback capture --repo ${displayPath(repoPath)} --ticket ${ticketPath} --title "<feedback title>" --body "<feedback>" --write --json`,
+      `ctx feedback promote --repo ${displayPath(repoPath)} --feedback <feedback-id-or-path> --ticket ${ticketPath} --mode follow-up-ticket --write --json`,
+    ],
+    errors: [],
+  };
+  if (out) {
+    const outPath = resolveRepoWritePath(repoPath, out, { allowOutsideRepo: args.includes("--allow-outside-repo") });
+    if (!outPath.ok) {
+      return {
+        ...packet,
+        ok: false,
+        errors: [{ file: outPath.file, message: outPath.message }],
+      };
+    }
+    fs.mkdirSync(path.dirname(outPath.path), { recursive: true });
+    fs.writeFileSync(outPath.path, `${JSON.stringify(packet, null, 2)}\n`);
+    packet.out = displayPath(outPath.path);
+  }
+  return packet;
+}
+
+function feedbackMarkdown(entry) {
+  const routes = entry.routes.length > 0 ? yamlKeyList("routes", entry.routes, "  ") : "  routes: []";
+  const files = entry.files.length > 0 ? yamlKeyList("files", entry.files, "  ") : "  files: []";
+  const components = entry.components.length > 0 ? yamlKeyList("components", entry.components, "  ") : "  components: []";
+  const flows = entry.flows.length > 0 ? yamlKeyList("flows", entry.flows, "  ") : "  flows: []";
+  const artifactLines = entry.artifacts.length > 0
+    ? entry.artifacts.map((artifact) => `- ${artifact.path}${artifact.url ? ` (${artifact.url})` : ""}`).join("\n")
+    : "- none";
+  const questionLines = entry.clarifying_questions.length > 0
+    ? entry.clarifying_questions.map((question) => `- ${question}`).join("\n")
+    : "- None.";
+  return `---\nid: ${entry.id}\nkind: feedback\nstatus: proposed\nseverity: ${entry.severity}\nsource: ${entry.source}\napplies_to:\n${routes}\n${files}\n${components}\n${flows}\ntitle: ${entry.title}\ncreated: ${todayDate()}\n---\n\n# ${entry.title}\n\n## Feedback\n\n${entry.body}\n\n## Decision\n\n- Status: proposed.\n- Promotion target: ${entry.promotion_target}.\n- Clarifying questions:\n${questionLines}\n\n## Regression Risk\n\n- Review artifacts:\n${artifactLines}\n- Risk: ${entry.regression_risk}\n`;
+}
+
+function feedbackCapture() {
+  const repoPath = targetRepoPath();
+  const write = args.includes("--write");
+  const force = args.includes("--force");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "feedback capture", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const ticketArg = argValue("--ticket", "");
+  const ticketPath = ticketArg ? (path.isAbsolute(ticketArg) ? path.relative(repoPath, ticketArg) : ticketArg) : "";
+  const body = argValue("--body", argValue("--feedback", ""));
+  const title = argValue("--title", body.split("\n").find(Boolean)?.slice(0, 80) || "Review Feedback");
+  const slug = slugify(argValue("--slug", title));
+  const id = argValue("--id", `feedback.${todayDate()}.${slug}`);
+  const routes = unique(argValues("--route"));
+  const files = unique(argValues("--file"));
+  const components = unique(argValues("--component"));
+  const flows = unique(argValues("--flow"));
+  const artifactPaths = unique([...argValues("--artifact"), ...argValues("--screenshot")]);
+  const urls = unique(argValues("--url"));
+  const artifacts = artifactPaths.map((artifact, index) => artifactRow(repoPath, artifact, urls, index));
+  const clarifyingQuestions = feedbackClarifyingQuestions(body, {
+    ticket: ticketPath,
+    files,
+    routes,
+    artifacts: artifactPaths,
+  });
+  const relativePath = argValue("--out", `docs/context/feedback/${todayDate()}-${slug}.md`);
+  const entry = {
+    id,
+    severity: argValue("--severity", "medium"),
+    source: ticketPath ? `ticket-review:${ticketPath}` : "operator-review",
+    title,
+    body: body || "_No feedback text provided yet._",
+    routes,
+    files,
+    components,
+    flows,
+    artifacts,
+    clarifying_questions: clarifyingQuestions,
+    promotion_target: argValue("--promotion-target", "follow-up-ticket-or-acceptance-criteria"),
+    regression_risk: argValue("--regression-risk", "Current ticket may pass validation without covering this reviewed state."),
+  };
+  if (!feedbackSeverities.has(entry.severity)) {
+    return { ok: false, scope: "feedback capture", errors: [{ file: "feedback capture", message: `invalid severity: ${entry.severity}` }] };
+  }
+  const text = feedbackMarkdown(entry);
+  const change = writeFileIfAllowed(repoPath, relativePath, text, {
+    write,
+    force,
+    allowOutsideRepo: args.includes("--allow-outside-repo"),
+  });
+  return {
+    ok: change.action !== "skipped" || !write,
+    scope: "feedback capture",
+    repo: displayPath(repoPath),
+    write,
+    feedback: {
+      id,
+      file: relativePath,
+      title,
+      status: "proposed",
+      severity: entry.severity,
+      needs_clarification: clarifyingQuestions.length > 0,
+      clarifying_questions: clarifyingQuestions,
+    },
+    artifacts,
+    changes: [change],
+    next_commands: [
+      `ctx feedback promote --repo ${displayPath(repoPath)} --feedback ${id} --ticket ${ticketPath || "<ticket>"} --mode follow-up-ticket --write --json`,
+      `ctx feedback promote --repo ${displayPath(repoPath)} --feedback ${id} --ticket ${ticketPath || "<ticket>"} --mode acceptance-criteria --write --json`,
+    ],
+    errors: change.action === "skipped" && write ? [{ file: relativePath, message: "feedback file exists; pass --force to overwrite" }] : [],
+  };
+}
+
+function findFeedbackDoc(repoPath, feedbackArg) {
+  if (!feedbackArg) return { ok: false, errors: [{ file: "feedback promote", message: "missing --feedback <id-or-path>" }] };
+  const candidate = path.isAbsolute(feedbackArg) ? path.relative(repoPath, feedbackArg) : feedbackArg;
+  if (candidate.endsWith(".md") && fs.existsSync(path.join(repoPath, candidate))) {
+    const doc = readDocAt(repoPath, candidate);
+    return { ok: true, file: candidate, doc };
+  }
+  const entry = targetContextEntries(repoPath).find((item) => item.id === feedbackArg && item.kind === "feedback");
+  if (!entry) return { ok: false, errors: [{ file: "docs/context/feedback", message: `unknown feedback: ${feedbackArg}` }] };
+  return { ok: true, file: entry.markdown_path, doc: readDocAt(repoPath, entry.markdown_path) };
+}
+
+function appendAcceptanceCriterion(repoPath, ticketPath, criterion, write) {
+  const fullPath = path.join(repoPath, ticketPath);
+  const text = fs.readFileSync(fullPath, "utf8");
+  const heading = "\n## Acceptance Criteria\n";
+  const start = text.indexOf(heading);
+  if (start === -1) {
+    return { ok: false, message: "ticket is missing Acceptance Criteria section" };
+  }
+  const insertStart = start + heading.length;
+  const nextHeading = text.indexOf("\n## ", insertStart);
+  const insertAt = nextHeading === -1 ? text.length : nextHeading;
+  const prefix = text.slice(0, insertAt).replace(/\s*$/, "\n");
+  const suffix = text.slice(insertAt);
+  const nextText = `${prefix}- ${criterion}\n${suffix}`;
+  if (write) fs.writeFileSync(fullPath, nextText);
+  return { ok: true, file: ticketPath };
+}
+
+function feedbackPromote() {
+  const repoPath = targetRepoPath();
+  const write = args.includes("--write");
+  const force = args.includes("--force");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "feedback promote", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const feedback = findFeedbackDoc(repoPath, argValue("--feedback", ""));
+  if (!feedback.ok) return { ok: false, scope: "feedback promote", errors: feedback.errors };
+  const mode = argValue("--mode", "follow-up-ticket");
+  const ticketArg = argValue("--ticket", "");
+  const ticketPath = ticketArg ? (path.isAbsolute(ticketArg) ? path.relative(repoPath, ticketArg) : ticketArg) : "";
+  const feedbackText = bodySectionLines(feedback.doc.body, "Feedback").join("\n").trim() || feedback.doc.frontmatter.title;
+  const clarifyingQuestions = feedbackClarifyingQuestions(feedbackText, { ticket: ticketPath });
+  const title = argValue("--title", feedback.doc.frontmatter.title ?? "Feedback Follow-up");
+  const criterion = argValue("--criterion", `Address feedback ${feedback.doc.frontmatter.id}: ${title}.`);
+  if (mode === "acceptance-criteria") {
+    if (!ticketPath || !fs.existsSync(path.join(repoPath, ticketPath))) {
+      return { ok: false, scope: "feedback promote", errors: [{ file: "feedback promote", message: "acceptance-criteria mode requires --ticket <path>" }] };
+    }
+    const append = appendAcceptanceCriterion(repoPath, ticketPath, criterion, write);
+    return {
+      ok: append.ok,
+      scope: "feedback promote",
+      repo: displayPath(repoPath),
+      write,
+      mode,
+      feedback: { id: feedback.doc.frontmatter.id, file: feedback.file },
+      ticket: { file: ticketPath },
+      changes: append.ok ? [{ action: write ? "updated" : "planned", file: ticketPath }] : [],
+      clarifying_questions: clarifyingQuestions,
+      errors: append.ok ? [] : [{ file: ticketPath, message: append.message }],
+    };
+  }
+  if (mode !== "follow-up-ticket") {
+    return { ok: false, scope: "feedback promote", errors: [{ file: "feedback promote", message: `unsupported mode: ${mode}` }] };
+  }
+  const status = argValue("--status", clarifyingQuestions.length > 0 ? "needs-questions" : "needs-hardening");
+  if (!ticketStatuses.has(status)) {
+    return { ok: false, scope: "feedback promote", errors: [{ file: "feedback promote", message: `invalid ticket status: ${status}` }] };
+  }
+  const slug = slugify(argValue("--slug", title));
+  const relativePath = argValue("--out", `docs/tickets/${status}/${slug}.md`);
+  const sourceFeedback = feedback.doc.frontmatter.id;
+  const sourceFiles = unique([
+    ...nestedFrontmatterList(feedback.doc, "applies_to", "files"),
+    ...(ticketPath ? [ticketPath] : []),
+  ]);
+  const sourceRoutes = nestedFrontmatterList(feedback.doc, "applies_to", "routes");
+  const ticketMarkdown = `---\nid: ${argValue("--id", `ticket.feedback.${todayDate()}.${slug}`)}\nstatus: ${status}\ntitle: ${title}\nticket_pack: ${argValue("--pack", "pack.feedback-review")}\nmilestones:\n  - ${argValue("--milestone", "milestone.feedback-review")}\nsource_spec: null\nsource_feedback:\n  - ${sourceFeedback}\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "feedback")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", sourceRoutes, "  ")}\n${yamlKeyList("files", sourceFiles, "  ")}\n  directories: []\n  components: []\n  flows: []\ncontext_query:\n  task: "${title.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n  context_ids:\n    - ${sourceFeedback}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.feedback-review-promotes-actionable-work\nvalidation:\n  automated: []\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\nResolve the captured review feedback without changing unrelated behavior.\n\n## Context\n\nSource feedback: \`${sourceFeedback}\` in \`${feedback.file}\`.\n\n## Positive Rules\n\n- Preserve the reviewed URL, file, screenshot, and ticket context from the feedback entry.\n- Convert ambiguous feedback into questions before implementation.\n\n## Negative Rules\n\n- Do not implement while implementation-changing clarifying questions remain.\n- Do not broaden the ticket beyond the reviewed state.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical authoring surface.\n- \`axiom.ticket-done-requires-commit\`: Completion requires commit and verification evidence.\n- \`axiom.feedback-review-promotes-actionable-work\`: Operator feedback becomes either acceptance criteria or follow-up tickets.\n\n## Frozen Decisions\n\n- Source feedback id: \`${sourceFeedback}\`.\n- Promotion mode: follow-up-ticket.\n\n## Implementation Rules\n\n- Required approach: harden this ticket until all clarifying questions are answered, then implement the smallest scoped change.\n- Stop and escalate if: the correct behavior is not clear from the feedback entry.\n\n## Scope\n\n- In: ${sourceFiles.concat(sourceRoutes).join(", ") || "the reviewed state"}.\n- Out: unrelated routes, files, or broad visual redesigns.\n\n## Acceptance Criteria\n\n- ${criterion}\n\n## Validation\n\n- Automated: add repo-appropriate checks during hardening.\n- Smoke: review the affected URL/state again.\n- Screenshots: capture before/after evidence when the feedback is visual.\n\n## Completion\n\n- Status: ${status}\n- Commit: pending\n- Verification evidence: pending\n- Follow-up tickets: pending\n`;
+  const change = writeFileIfAllowed(repoPath, relativePath, ticketMarkdown, {
+    write,
+    force,
+    allowOutsideRepo: args.includes("--allow-outside-repo"),
+  });
+  return {
+    ok: change.action !== "skipped" || !write,
+    scope: "feedback promote",
+    repo: displayPath(repoPath),
+    write,
+    mode,
+    feedback: { id: sourceFeedback, file: feedback.file },
+    ticket: {
+      id: argValue("--id", `ticket.feedback.${todayDate()}.${slug}`),
+      file: relativePath,
+      status,
+      title,
+    },
+    clarifying_questions: clarifyingQuestions,
+    changes: [change],
+    errors: change.action === "skipped" && write ? [{ file: relativePath, message: "ticket file exists; pass --force to overwrite" }] : [],
+  };
+}
+
 function normalizeBreakpointEntry(entry) {
   if (typeof entry === "string") {
     const preset = workflowBreakpointCatalog[entry];
@@ -2276,6 +2638,9 @@ function idvisorWorkflow() {
       "node tools/context/ctx.mjs scan --json",
       "node tools/context/ctx.mjs query --path <path> --task <task> --agent codex --budget 6000 --json",
       "node tools/context/ctx.mjs ticket hydrate <ticket> --json",
+      "node tools/context/ctx.mjs feedback review --ticket <ticket> --screenshot <path> --json",
+      "node tools/context/ctx.mjs feedback capture --ticket <ticket> --body '<feedback>' --write --json",
+      "node tools/context/ctx.mjs feedback promote --feedback <feedback-id> --ticket <ticket> --mode follow-up-ticket --write --json",
       "node tools/context/ctx.mjs pack status <pack-id> --json",
       "node tools/context/ctx.mjs run status <run-file> --json",
     ],
@@ -2283,6 +2648,7 @@ function idvisorWorkflow() {
       "spec-question-pass",
       "spec-hardening-pass",
       "ticket-hardening-pass",
+      "feedback-review-pass",
       "ready-before-dispatch",
       "commit-and-evidence-before-done",
       "pack-validation-before-complete",
@@ -3829,6 +4195,12 @@ if (command === "lint") {
   printResult(workflowViews());
 } else if (command === "workflow" && subcommand === "validation-plan") {
   printResult(workflowValidationPlan());
+} else if (command === "feedback" && subcommand === "review") {
+  printResult(feedbackReview());
+} else if (command === "feedback" && subcommand === "capture") {
+  printResult(feedbackCapture());
+} else if (command === "feedback" && subcommand === "promote") {
+  printResult(feedbackPromote());
 } else if (command === "credentials" && subcommand === "check") {
   printResult(credentialsCheck());
 } else if (command === "credentials" && subcommand === "import-browser-state") {
@@ -3895,6 +4267,9 @@ if (command === "lint") {
       "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
       "ctx workflow views --workflow workflow.browser-validation --repo . --json",
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",
+      "ctx feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .repo-context/artifacts/screenshots/example.png --url http://localhost:3000 --json",
+      "ctx feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json",
+      "ctx feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json",
       "ctx credentials check --profile browser-test-user --repo . --json",
       "ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
       "ctx adoption status --repo <target-repo> --profile auto --json",

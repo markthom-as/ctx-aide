@@ -22,7 +22,9 @@ Turn rough implementation intent into hardened, atomic tickets that can be execu
 7. Create a ticket pack for the milestone-shaped unit of work.
 8. Split the spec into atomic tickets, each scoped for one clean commit.
 9. Harden tickets until implementation agents can execute without inventing decisions.
-10. Validate and commit each completed ticket independently.
+10. For visual or artifact-backed work, run the feedback review workflow before closing the ticket.
+11. Promote review feedback into tighter acceptance criteria or follow-up tickets.
+12. Validate and commit each completed ticket independently.
 
 ## Readiness Gates
 
@@ -30,6 +32,7 @@ Turn rough implementation intent into hardened, atomic tickets that can be execu
 - A ticket is not implementation-ready unless status is `ready`.
 - A ticket is not done unless it records a commit hash and verification evidence.
 - A ticket that requires new product, design, architecture, or security decisions returns to hardening.
+- A ticket with unresolved operator feedback returns to hardening or produces a follow-up ticket before closeout.
 
 ## Parallelization Rules
 
@@ -38,9 +41,18 @@ Turn rough implementation intent into hardened, atomic tickets that can be execu
 - Record dependencies in frontmatter before dispatch.
 - For long milestone runs, use worktrees, leases, heartbeat timestamps, stale-agent cleanup, and pack-level validation.
 
+## Feedback Review
+
+- Use `ctx feedback review` to produce a review packet with ticket status, URL, scoped files, changed files, screenshot path, screenshot byte size, and image dimensions.
+- Use `ctx feedback capture --write` to save operator notes under `docs/context/feedback/`.
+- Use `ctx feedback promote --mode acceptance-criteria --write` when the feedback should tighten the current ticket.
+- Use `ctx feedback promote --mode follow-up-ticket --write` when the feedback is separate work.
+- Answer clarifying questions before treating promoted feedback as implementation-ready.
+
 ## Validation
 
 - Run `node tools/context/ctx.mjs spec check --json` after spec edits.
 - Run `node tools/context/ctx.mjs ticket check --json` after ticket edits.
 - Run `node tools/context/ctx.mjs pack check --json` after pack edits.
+- Run `node tools/context/ctx.mjs feedback review --ticket <ticket> --json` for artifact-backed ticket closeout.
 - Run `make validate` before committing workflow changes.

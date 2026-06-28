@@ -663,6 +663,99 @@ assert.equal(adoptedPlan.capability_policy.required.find((item) => item.capabili
 assert.equal(adoptedPlan.capability_policy.required.find((item) => item.capability === "app.gmail").allowed, false);
 assert.equal(adoptedPlan.capability_policy.check_commands.some((command) => command.includes("--capability tool.semble")), true);
 
+const screenshotPath = path.join(adoptedRepo, ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png");
+fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
+const pngHeader = Buffer.alloc(24);
+pngHeader[1] = 0x50;
+pngHeader[2] = 0x4e;
+pngHeader[3] = 0x47;
+pngHeader.writeUInt32BE(390, 16);
+pngHeader.writeUInt32BE(844, 20);
+fs.writeFileSync(screenshotPath, pngHeader);
+const feedbackReview = run([
+  "feedback",
+  "review",
+  "--repo",
+  adoptedRepo,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--screenshot",
+  ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png",
+  "--url",
+  "http://localhost:3000/settings",
+]);
+assert.equal(feedbackReview.ok, true);
+assert.equal(feedbackReview.ticket.id, "ticket.clear-dependency-audit");
+assert.equal(feedbackReview.artifacts[0].width, 390);
+assert.equal(feedbackReview.artifacts[0].height, 844);
+assert.equal(feedbackReview.artifacts[0].url, "http://localhost:3000/settings");
+assert.equal(feedbackReview.changed_files.includes("package.json"), true);
+
+const capturedFeedback = run([
+  "feedback",
+  "capture",
+  "--repo",
+  adoptedRepo,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--title",
+  "Settings spacing needs review",
+  "--body",
+  "Spacing is weird",
+  "--file",
+  "app/settings/page.tsx",
+  "--screenshot",
+  ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png",
+  "--url",
+  "http://localhost:3000/settings",
+  "--write",
+]);
+assert.equal(capturedFeedback.ok, true);
+assert.equal(capturedFeedback.feedback.needs_clarification, true);
+assert.equal(fs.existsSync(path.join(adoptedRepo, capturedFeedback.feedback.file)), true);
+const feedbackText = fs.readFileSync(path.join(adoptedRepo, capturedFeedback.feedback.file), "utf8");
+assert.equal(feedbackText.includes("## Feedback"), true);
+assert.equal(feedbackText.includes("Settings spacing needs review"), true);
+
+const promotedCriterion = run([
+  "feedback",
+  "promote",
+  "--repo",
+  adoptedRepo,
+  "--feedback",
+  capturedFeedback.feedback.id,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--mode",
+  "acceptance-criteria",
+  "--criterion",
+  "Settings spacing matches the reviewed screenshot at desktop and mobile breakpoints.",
+  "--write",
+]);
+assert.equal(promotedCriterion.ok, true);
+const updatedTicketText = fs.readFileSync(path.join(adoptedRepo, adoptedTicket.ticket.file), "utf8");
+assert.equal(updatedTicketText.includes("Settings spacing matches the reviewed screenshot"), true);
+
+const promotedFollowUp = run([
+  "feedback",
+  "promote",
+  "--repo",
+  adoptedRepo,
+  "--feedback",
+  capturedFeedback.feedback.id,
+  "--ticket",
+  adoptedTicket.ticket.file,
+  "--mode",
+  "follow-up-ticket",
+  "--write",
+]);
+assert.equal(promotedFollowUp.ok, true);
+assert.equal(promotedFollowUp.ticket.status, "needs-questions");
+assert.equal(fs.existsSync(path.join(adoptedRepo, promotedFollowUp.ticket.file)), true);
+const followUpText = fs.readFileSync(path.join(adoptedRepo, promotedFollowUp.ticket.file), "utf8");
+assert.equal(followUpText.includes("source_feedback:"), true);
+assert.equal(followUpText.includes(capturedFeedback.feedback.id), true);
+
 const targetRepoToolsCheck = run([
   "tools",
   "check",
