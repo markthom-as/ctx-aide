@@ -1,8 +1,8 @@
-.PHONY: validate smoke ctx-doctor ctx-lint ctx-test ctx-scan ctx-query-smoke future-check skill-validate install-skill
+.PHONY: validate smoke ctx-doctor ctx-lint ctx-test ctx-loc-check ctx-scan ctx-query-smoke future-check skill-validate install-skill
 
 CODEX_SKILLS_DIR ?= $(HOME)/.codex/skills
 
-validate: ctx-lint ctx-test future-check skill-validate
+validate: ctx-lint ctx-test ctx-loc-check future-check skill-validate
 
 smoke: validate ctx-scan ctx-query-smoke ctx-doctor
 
@@ -14,6 +14,9 @@ ctx-lint:
 
 ctx-test:
 	node tools/context/ctx.test.mjs
+
+ctx-loc-check:
+	node tools/context/ctx.mjs loc check --json
 
 ctx-scan:
 	node tools/context/ctx.mjs scan --json

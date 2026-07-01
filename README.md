@@ -158,6 +158,7 @@ node tools/context/ctx.mjs scan --json
 node tools/context/ctx.mjs ticket check --json
 node tools/context/ctx.mjs pack check --json
 node tools/context/ctx.mjs doctor --json
+node tools/context/ctx.mjs loc check --json
 make validate
 make smoke
 ```
@@ -168,6 +169,18 @@ Security and truthfulness rules:
 - Generated output writes stay inside the active repo or target repo by default; pass `--allow-outside-repo` only when the destination is intentionally outside that boundary.
 - `ctx workflow validation-plan` is a readiness gate. It returns the full matrix even when blocked, but top-level `ok` is false when a required view lacks credentials or browser storage state.
 - Browser validation plans must keep deploy cost policy explicit; deploy-enabled configs must keep `cost_estimate_required: true`.
+
+## LOC Volume Tracking
+
+Repo-context can measure and enforce source-volume targets without leaving the local repo. Configure path-scoped targets in `docs/config/repo-context.loc.json`, then use `ctx loc` for measurement and `ctx loc check` as a validation gate.
+
+```sh
+node tools/context/ctx.mjs loc --repo . --json
+node tools/context/ctx.mjs loc check --repo . --target-id repo-context-source --json
+node tools/context/ctx.mjs loc check --repo . --path tools/context --max-lines 25000 --json
+```
+
+The default scan excludes generated context packs, VCS directories, dependency folders, and common build outputs. Targets can compare `nonblank_lines` or `total_lines` across the whole repo or selected path prefixes.
 
 ## Agent Capability Policy
 

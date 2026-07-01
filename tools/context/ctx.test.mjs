@@ -157,6 +157,34 @@ const componentList = run(["components", "list"]);
 assert.equal(componentList.ok, true);
 assert.equal(componentList.count, 0);
 
+write("src/feature.ts", "export const first = 1;\n\nexport const second = 2;\n");
+write("node_modules/pkg/index.js", "module.exports = 1;\n");
+write("docs/context/generated/generated.js", "const generated = true;\n");
+write("docs/config/repo-context.loc.json", `${JSON.stringify({
+  config_version: 1,
+  targets: {
+    source: {
+      paths: ["src"],
+      max_lines: 3,
+      line_kind: "nonblank_lines",
+    },
+  },
+}, null, 2)}\n`);
+const loc = run(["loc", "--limit", "100"]);
+assert.equal(loc.ok, true);
+assert.equal(loc.config.exists, true);
+assert.equal(loc.targets.find((target) => target.id === "source").actual_lines, 3);
+assert.equal(loc.targets.find((target) => target.id === "source").status, "within_range");
+assert.equal(loc.largest_files.some((file) => file.file.includes("node_modules")), false);
+assert.equal(loc.largest_files.some((file) => file.file.includes("docs/context/generated")), false);
+
+const locCheck = run(["loc", "check", "--target-id", "source"]);
+assert.equal(locCheck.ok, true);
+
+const locCheckViolation = run(["loc", "check", "--path", "src", "--max-lines", "1"], { allowFailure: true });
+assert.equal(locCheckViolation.ok, false);
+assert.equal(locCheckViolation.errors.some((error) => error.message.includes("LOC target cli is over")), true);
+
 const defaultToolsList = run(["tools", "list"]);
 assert.equal(defaultToolsList.ok, true);
 assert.equal(defaultToolsList.config.exists, false);

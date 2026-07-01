@@ -1,0 +1,23 @@
+{
+  "config_version": 1,
+  "targets": {
+    "repo-context-source": {
+      "paths": [
+        "docs",
+        "scripts",
+        "skills",
+        "tools"
+      ],
+      "line_kind": "nonblank_lines",
+      "min_lines": 1000,
+      "max_lines": 50000
+    },
+    "ctx-cli": {
+      "paths": [
+        "tools/context"
+      ],
+      "line_kind": "nonblank_lines",
+      "max_lines": 25000
+    }
+  }
+}

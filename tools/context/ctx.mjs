@@ -413,6 +413,317 @@ function dependencyAudit() {
   return payload;
 }
 
+const defaultLocConfig = {
+  config_version: 1,
+  include_extensions: [
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cs",
+    ".css",
+    ".go",
+    ".h",
+    ".hpp",
+    ".html",
+    ".java",
+    ".js",
+    ".json",
+    ".jsx",
+    ".kt",
+    ".md",
+    ".mjs",
+    ".py",
+    ".rb",
+    ".rs",
+    ".scss",
+    ".sh",
+    ".swift",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".yaml",
+    ".yml",
+  ],
+  include_filenames: ["Dockerfile", "Makefile"],
+  exclude_dirs: [
+    ".git",
+    ".hg",
+    ".next",
+    ".repo-context",
+    ".svn",
+    "build",
+    "coverage",
+    "dist",
+    "node_modules",
+    "target",
+    "vendor",
+  ],
+  exclude_paths: [
+    ".cursor/rules/generated",
+    "docs/context/generated",
+  ],
+  targets: {},
+};
+
+function readLocConfig(repoPath, configArg = "") {
+  const configPath = configArg
+    ? (path.isAbsolute(configArg) ? configArg : path.join(repoPath, configArg))
+    : path.join(repoPath, "docs/config/repo-context.loc.json");
+  const display = displayPath(configPath);
+  if (!fs.existsSync(configPath)) {
+    return {
+      ok: true,
+      path: display,
+      exists: false,
+      source: "built-in defaults",
+      config: defaultLocConfig,
+      errors: [],
+    };
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    return {
+      ok: true,
+      path: display,
+      exists: true,
+      source: "config file",
+      config: {
+        ...defaultLocConfig,
+        ...parsed,
+        include_extensions: stringArray(parsed.include_extensions ?? defaultLocConfig.include_extensions),
+        include_filenames: stringArray(parsed.include_filenames ?? defaultLocConfig.include_filenames),
+        exclude_dirs: unique([...defaultLocConfig.exclude_dirs, ...stringArray(parsed.exclude_dirs)]),
+        exclude_paths: unique([...defaultLocConfig.exclude_paths, ...stringArray(parsed.exclude_paths)]),
+        targets: plainObject(parsed.targets) ? parsed.targets : {},
+      },
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      path: display,
+      exists: true,
+      source: "config file",
+      config: null,
+      errors: [{ file: display, message: `invalid JSON: ${error.message}` }],
+    };
+  }
+}
+
+function locRelativePath(filePath, repoPath) {
+  return path.relative(repoPath, filePath).split(path.sep).join("/");
+}
+
+function locPathMatchesPrefix(relativePath, prefix) {
+  const cleanPrefix = String(prefix ?? "").replace(/^\.?\//, "").replace(/\/+$/, "");
+  if (!cleanPrefix || cleanPrefix === ".") return true;
+  return relativePath === cleanPrefix || relativePath.startsWith(`${cleanPrefix}/`);
+}
+
+function locPathExcluded(relativePath, config) {
+  return stringArray(config.exclude_paths).some((prefix) => locPathMatchesPrefix(relativePath, prefix));
+}
+
+function locWalk(repoPath, config, dir = repoPath) {
+  if (!fs.existsSync(dir)) return [];
+  const rows = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    const relativePath = locRelativePath(full, repoPath);
+    if (entry.isDirectory()) {
+      if (stringArray(config.exclude_dirs).includes(entry.name)) continue;
+      if (locPathExcluded(relativePath, config)) continue;
+      rows.push(...locWalk(repoPath, config, full));
+      continue;
+    }
+    if (entry.isFile()) rows.push(full);
+  }
+  return rows;
+}
+
+function locFileIncluded(relativePath, config) {
+  if (locPathExcluded(relativePath, config)) return false;
+  const filename = path.posix.basename(relativePath);
+  const extension = path.posix.extname(relativePath);
+  return stringArray(config.include_filenames).includes(filename)
+    || stringArray(config.include_extensions).includes(extension);
+}
+
+function countFileLines(filePath) {
+  const text = fs.readFileSync(filePath, "utf8");
+  if (text.length === 0) return { total_lines: 0, nonblank_lines: 0 };
+  const lines = text.split(/\r\n|\n|\r/);
+  if (lines.at(-1) === "") lines.pop();
+  return {
+    total_lines: lines.length,
+    nonblank_lines: lines.filter((line) => line.trim().length > 0).length,
+  };
+}
+
+function addLocTotals(left, right) {
+  left.total_lines += right.total_lines;
+  left.nonblank_lines += right.nonblank_lines;
+  left.file_count += right.file_count ?? 1;
+}
+
+function locSummaryRows(map) {
+  return [...map.entries()]
+    .map(([key, value]) => ({ key, ...value }))
+    .sort((a, b) => b.nonblank_lines - a.nonblank_lines || a.key.localeCompare(b.key));
+}
+
+function collectLoc(repoPath, config) {
+  const warnings = [];
+  const files = [];
+  const totals = { file_count: 0, total_lines: 0, nonblank_lines: 0 };
+  const byExtension = new Map();
+  const byTopLevel = new Map();
+  for (const filePath of locWalk(repoPath, config)) {
+    const relativePath = locRelativePath(filePath, repoPath);
+    if (!locFileIncluded(relativePath, config)) continue;
+    let counts;
+    try {
+      counts = countFileLines(filePath);
+    } catch (error) {
+      warnings.push(`skipped unreadable file ${relativePath}: ${error.message}`);
+      continue;
+    }
+    const extension = path.posix.extname(relativePath) || path.posix.basename(relativePath);
+    const topLevel = relativePath.split("/")[0] || ".";
+    const row = { file: relativePath, extension, top_level: topLevel, ...counts };
+    files.push(row);
+    addLocTotals(totals, { ...counts, file_count: 1 });
+    for (const [map, key] of [[byExtension, extension], [byTopLevel, topLevel]]) {
+      if (!map.has(key)) map.set(key, { file_count: 0, total_lines: 0, nonblank_lines: 0 });
+      addLocTotals(map.get(key), { ...counts, file_count: 1 });
+    }
+  }
+  return {
+    files,
+    totals,
+    by_extension: locSummaryRows(byExtension),
+    by_top_level: locSummaryRows(byTopLevel),
+    largest_files: [...files]
+      .sort((a, b) => b.nonblank_lines - a.nonblank_lines || a.file.localeCompare(b.file))
+      .slice(0, Number.parseInt(argValue("--limit", "20"), 10)),
+    warnings,
+  };
+}
+
+function locNumber(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const number = Number.parseInt(value, 10);
+  return Number.isFinite(number) ? number : null;
+}
+
+function locStringArray(value) {
+  if (typeof value === "string") return splitCsv(value);
+  return stringArray(value);
+}
+
+function normalizeLocTarget(id, value) {
+  const target = plainObject(value) ? value : {};
+  return {
+    id,
+    paths: locStringArray(target.paths ?? target.path ?? "."),
+    include_extensions: locStringArray(target.include_extensions ?? target.extensions ?? []),
+    line_kind: ["total_lines", "nonblank_lines"].includes(target.line_kind) ? target.line_kind : "nonblank_lines",
+    min_lines: locNumber(target.min_lines ?? target.min),
+    max_lines: locNumber(target.max_lines ?? target.max),
+    target_lines: locNumber(target.target_lines ?? target.target),
+    tolerance_lines: locNumber(target.tolerance_lines ?? target.tolerance) ?? 0,
+  };
+}
+
+function cliLocTarget() {
+  const targetLines = locNumber(argValue("--target-lines", ""));
+  const minLines = locNumber(argValue("--min-lines", ""));
+  const maxLines = locNumber(argValue("--max-lines", ""));
+  if (targetLines === null && minLines === null && maxLines === null) return null;
+  const lineKind = argValue("--line-kind", "nonblank_lines");
+  return {
+    id: argValue("--target-id", "cli"),
+    paths: unique(argValues("--path")).length > 0 ? unique(argValues("--path")) : ["."],
+    include_extensions: unique(argValues("--extension")),
+    line_kind: ["total_lines", "nonblank_lines"].includes(lineKind) ? lineKind : "nonblank_lines",
+    min_lines: minLines,
+    max_lines: maxLines,
+    target_lines: targetLines,
+    tolerance_lines: locNumber(argValue("--tolerance-lines", "0")) ?? 0,
+  };
+}
+
+function evaluateLocTarget(target, files) {
+  const matched = files.filter((file) => {
+    const pathMatch = target.paths.some((prefix) => locPathMatchesPrefix(file.file, prefix));
+    const extensionMatch = target.include_extensions.length === 0 || target.include_extensions.includes(file.extension);
+    return pathMatch && extensionMatch;
+  });
+  const actual = matched.reduce((sum, file) => sum + file[target.line_kind], 0);
+  let status = "tracking";
+  if (target.max_lines !== null && actual > target.max_lines) status = "over";
+  else if (target.min_lines !== null && actual < target.min_lines) status = "under";
+  else if (target.target_lines !== null) {
+    const lower = target.target_lines - target.tolerance_lines;
+    const upper = target.target_lines + target.tolerance_lines;
+    status = actual < lower ? "under" : (actual > upper ? "over" : "on_target");
+  } else if (target.min_lines !== null || target.max_lines !== null) {
+    status = "within_range";
+  }
+  return {
+    ...target,
+    actual_lines: actual,
+    matched_file_count: matched.length,
+    status,
+  };
+}
+
+function locVolume(options = {}) {
+  const repoPath = targetRepoPath();
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: options.check ? "loc check" : "loc", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const configResult = readLocConfig(repoPath, argValue("--config", ""));
+  if (!configResult.ok) {
+    return {
+      ok: false,
+      scope: options.check ? "loc check" : "loc",
+      repo: displayPath(repoPath),
+      config: { path: configResult.path, exists: configResult.exists, source: configResult.source },
+      errors: configResult.errors,
+    };
+  }
+  const measured = collectLoc(repoPath, configResult.config);
+  const configuredTargets = Object.entries(configResult.config.targets ?? {})
+    .map(([id, target]) => normalizeLocTarget(id, target));
+  const inlineTarget = cliLocTarget();
+  const requestedTargetId = argValue("--target-id", "");
+  const targets = [...configuredTargets, ...(inlineTarget ? [inlineTarget] : [])]
+    .filter((target) => !requestedTargetId || target.id === requestedTargetId)
+    .map((target) => evaluateLocTarget(target, measured.files));
+  const violations = targets.filter((target) => target.status === "over" || target.status === "under");
+  return {
+    ok: options.check ? violations.length === 0 : true,
+    scope: options.check ? "loc check" : "loc",
+    repo: displayPath(repoPath),
+    checked_at: new Date().toISOString(),
+    config: {
+      path: configResult.path,
+      exists: configResult.exists,
+      source: configResult.source,
+    },
+    totals: measured.totals,
+    by_extension: measured.by_extension,
+    by_top_level: measured.by_top_level,
+    largest_files: measured.largest_files,
+    targets,
+    warnings: measured.warnings,
+    errors: options.check
+      ? violations.map((target) => ({ file: configResult.path, message: `LOC target ${target.id} is ${target.status}: ${target.actual_lines} ${target.line_kind}` }))
+      : [],
+  };
+}
+
 const workflowDependencyCatalog = {
   node: {
     kind: "command",
@@ -4379,6 +4690,10 @@ if (command === "lint") {
   printResult(result);
 } else if (command === "dependency" && subcommand === "audit") {
   printResult(dependencyAudit());
+} else if (command === "loc" && subcommand === "check") {
+  printResult(locVolume({ check: true }));
+} else if (command === "loc") {
+  printResult(locVolume());
 } else if (command === "tools" && subcommand === "list") {
   printResult(toolsList());
 } else if (command === "tools" && subcommand === "policy") {
@@ -4459,6 +4774,8 @@ if (command === "lint") {
       "ctx customize --profile strict --dry-run --json",
       "ctx discover --backend semble --task <task> --repo . --json",
       "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
+      "ctx loc --repo . --json",
+      "ctx loc check --repo . --target-id source --json",
       "ctx tools list --json",
       "ctx tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
       "ctx tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
