@@ -1,6 +1,6 @@
 ---
 id: ticket.context.051
-status: ready
+status: done
 title: Add pull request preflight command
 ticket_pack: pack.pull-request-review-usability-2026-07-05
 milestones:
@@ -42,14 +42,14 @@ validation:
   automated:
     - node --check tools/context/ctx.mjs
     - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs pr preflight --repo . --json
+    - node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json
     - node tools/context/ctx.mjs ticket check --json
     - node tools/context/ctx.mjs pack check --json
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-05
 ---
 
 # Add Pull Request Preflight Command
@@ -113,7 +113,7 @@ The runbook gives a manual command path. A preflight command should return one J
 - Automated:
   - `node --check tools/context/ctx.mjs`
   - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs pr preflight --repo . --json`
+  - `node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json`
   - `node tools/context/ctx.mjs ticket check --json`
   - `node tools/context/ctx.mjs pack check --json`
 - Smoke: none.
@@ -121,7 +121,13 @@ The runbook gives a manual command path. A preflight command should return one J
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending.
+- Status: done
+- Commit: current-change
+- Verification evidence:
+  - `node --check tools/context/ctx.mjs`
+  - `node tools/context/ctx.test.mjs`
+  - `node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json`
+  - `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
+  - `node tools/context/ctx.mjs ticket check --json`
+  - `node tools/context/ctx.mjs pack check --json`
 - Follow-up tickets: none.

@@ -32,6 +32,7 @@ ctx tools check --workflow workflow.pull-request-review --step pr-review --capab
 git status --short --branch
 gh auth status
 gh pr view <pr> --json number,title,author,headRefName,baseRefName,url,isDraft,reviewDecision,mergeStateStatus,statusCheckRollup
+ctx pr preflight --repo . --pr <pr> --json
 ```
 
 Stop before checkout if `git status --short --branch` shows unrelated local changes that could be staged, overwritten, or confused with PR changes.
@@ -115,6 +116,12 @@ git diff --stat origin/<base>...HEAD
 ```
 
 If status checks are pending or failing, stop unless the ticket records an accepted exception.
+
+Run preflight again before merge:
+
+```bash
+ctx pr preflight --repo . --pr <pr> --json
+```
 
 ## Merge
 

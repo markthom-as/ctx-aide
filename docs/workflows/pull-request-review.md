@@ -18,24 +18,26 @@ Give agents a complete local CLI path for reviewing a GitHub pull request, leavi
 ## Stages
 
 1. Check workflow dependencies with `ctx workflow deps --workflow workflow.pull-request-review --repo <repo> --json`.
-2. Confirm `git status --short --branch` is understood before touching files; stop if unrelated local changes would be staged or overwritten.
-3. Identify the target pull request with `gh pr status`, `gh pr list`, or an operator-provided PR URL or number.
-4. Inspect PR metadata with `gh pr view <pr> --json number,title,author,headRefName,baseRefName,mergeStateStatus,reviewDecision,statusCheckRollup,url`.
-5. Fetch and check out the PR with `gh pr checkout <pr>` or fetch the head ref explicitly with `git fetch` and `git switch`.
-6. Review the diff with `git diff --stat <base>...HEAD`, `git diff <base>...HEAD`, and targeted `gh pr diff <pr>` calls when GitHub's rendered patch is needed.
-7. Run repo-native discovery and validation commands from the ticket, pack, or README before forming final review feedback.
-8. Leave review comments with `gh pr review <pr> --comment --body-file <file>` when feedback is summary-level.
-9. Leave line-specific comments with `gh pr review <pr> --comment --body-file <file>` plus the GitHub review UI or `gh api` only when the agent has exact file, line, side, and commit context.
-10. For requested fixes, make scoped edits, run the same validation commands, and commit each completed ticket or feedback point separately.
-11. Push fixes to the PR branch with `git push` only after checking the branch still matches the PR head and the worktree contains only intended changes.
-12. Re-review the updated diff and status checks with `gh pr view <pr> --json reviewDecision,statusCheckRollup,mergeStateStatus`.
-13. Merge with `gh pr merge <pr> --merge|--squash|--rebase` only when required reviews, checks, branch freshness, and operator/repo merge policy are satisfied.
-14. Record review feedback, fix commits, validation evidence, and merge outcome in the ticket or run log.
+2. Run `ctx pr preflight --repo <repo> --pr <pr> --json` before PR mutation steps.
+3. Confirm `git status --short --branch` is understood before touching files; stop if unrelated local changes would be staged or overwritten.
+4. Identify the target pull request with `gh pr status`, `gh pr list`, or an operator-provided PR URL or number.
+5. Inspect PR metadata with `gh pr view <pr> --json number,title,author,headRefName,baseRefName,mergeStateStatus,reviewDecision,statusCheckRollup,url`.
+6. Fetch and check out the PR with `gh pr checkout <pr>` or fetch the head ref explicitly with `git fetch` and `git switch`.
+7. Review the diff with `git diff --stat <base>...HEAD`, `git diff <base>...HEAD`, and targeted `gh pr diff <pr>` calls when GitHub's rendered patch is needed.
+8. Run repo-native discovery and validation commands from the ticket, pack, or README before forming final review feedback.
+9. Leave review comments with `gh pr review <pr> --comment --body-file <file>` when feedback is summary-level.
+10. Leave line-specific comments with `gh pr review <pr> --comment --body-file <file>` plus the GitHub review UI or `gh api` only when the agent has exact file, line, side, and commit context.
+11. For requested fixes, make scoped edits, run the same validation commands, and commit each completed ticket or feedback point separately.
+12. Push fixes to the PR branch with `git push` only after checking the branch still matches the PR head and the worktree contains only intended changes.
+13. Re-review the updated diff and status checks with `gh pr view <pr> --json reviewDecision,statusCheckRollup,mergeStateStatus`.
+14. Merge with `gh pr merge <pr> --merge|--squash|--rebase` only when required reviews, checks, branch freshness, and operator/repo merge policy are satisfied.
+15. Record review feedback, fix commits, validation evidence, and merge outcome in the ticket or run log.
 
 ## Readiness Gates
 
 - PR review work must name the PR number or URL, base branch, and head branch before checkout.
 - Agents must run `ctx tools check --workflow workflow.pull-request-review --step <step> --capability tool.shell --json` before PR mutation steps in policy-managed repos.
+- Agents should run `ctx pr preflight --repo <repo> --pr <pr> --json` before comments, pushes, and merges.
 - `gh auth status` must pass before any comment, push, or merge step that talks to GitHub.
 - The workflow may inspect with `git` alone, but comment, push, status-check, and merge stages require an authenticated `gh` session or an explicit operator handoff.
 - Review feedback must distinguish blocking defects from non-blocking suggestions.
@@ -80,6 +82,7 @@ Give agents a complete local CLI path for reviewing a GitHub pull request, leavi
 ## Validation
 
 - `ctx workflow deps --workflow workflow.pull-request-review --repo <repo> --json`
+- `ctx pr preflight --repo <repo> --pr <pr> --json`
 - `ctx tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
 - `ctx tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json`
 - `git status --short --branch`

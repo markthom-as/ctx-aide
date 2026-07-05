@@ -1,6 +1,6 @@
 ---
 id: pack.pull-request-review-usability-2026-07-05
-status: active
+status: done
 title: Pull Request Review Usability
 milestones:
   - milestone.repo-context-pr-review-usability
@@ -24,8 +24,14 @@ parallel_groups:
 blocked_by: []
 created: 2026-07-05
 completion:
-  completed_at: null
-  final_validation: []
+  completed_at: 2026-07-05
+  final_validation:
+    - node --check tools/context/ctx.mjs
+    - node tools/context/ctx.test.mjs
+    - node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json
+    - node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json
+    - node tools/context/ctx.mjs ticket check --json
+    - node tools/context/ctx.mjs pack check --json
 ---
 
 # Pull Request Review Usability
@@ -42,7 +48,7 @@ Make `workflow.pull-request-review` immediately usable through copy-paste docs, 
 ## Tickets
 
 - `ticket.context.050`: done
-- `ticket.context.051`: ready
+- `ticket.context.051`: done
 
 ## Execution Plan
 
@@ -59,6 +65,9 @@ Make `workflow.pull-request-review` immediately usable through copy-paste docs, 
 
 ## Pack Validation
 
+- `node --check tools/context/ctx.mjs`
+- `node tools/context/ctx.test.mjs`
+- `node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json`
 - `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
 - `node tools/context/ctx.mjs ticket check --json`
 - `node tools/context/ctx.mjs pack check --json`
@@ -66,6 +75,6 @@ Make `workflow.pull-request-review` immediately usable through copy-paste docs, 
 
 ## Completion
 
-- Completed tickets: `ticket.context.050`.
-- Remaining tickets: `ticket.context.051`.
-- Final validation: pending.
+- Completed tickets: `ticket.context.050`, `ticket.context.051`.
+- Remaining tickets: none.
+- Final validation: see frontmatter.

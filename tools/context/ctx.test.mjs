@@ -379,6 +379,77 @@ write("package-lock.json", "{}\n");
 const pinnedWorkflowDeps = run(["workflow", "deps", "--workflow", "workflow.browser-validation", "--repo", "."]);
 assert.equal(pinnedWorkflowDeps.ok, true);
 
+if (commandExists("git")) {
+  const prRepo = path.join(fixture, "pr-fixture");
+  fs.mkdirSync(prRepo, { recursive: true });
+  execFileSync("git", ["init"], { cwd: prRepo, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "agent@example.test"], { cwd: prRepo, stdio: "ignore" });
+  execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: prRepo, stdio: "ignore" });
+  fs.writeFileSync(path.join(prRepo, "README.md"), "# PR Fixture\n");
+  execFileSync("git", ["add", "README.md"], { cwd: prRepo, stdio: "ignore" });
+  execFileSync("git", ["commit", "-m", "Initial fixture"], { cwd: prRepo, stdio: "ignore" });
+
+  const fakeBin = path.join(fixture, "fake-bin");
+  fs.mkdirSync(fakeBin, { recursive: true });
+  const fakeGh = path.join(fakeBin, "gh");
+  fs.writeFileSync(fakeGh, `#!/bin/sh
+if [ "$1" = "auth" ] && [ "$2" = "status" ]; then
+  echo "Logged in to github.com as agent"
+  echo "Token: gho_fixturesecret"
+  exit 0
+fi
+if [ "$1" = "pr" ] && [ "$2" = "view" ]; then
+  cat <<'JSON'
+{"number":12,"title":"Fixture PR","author":{"login":"contributor"},"headRefName":"feature/pr-fixture","baseRefName":"main","url":"https://github.com/example/repo/pull/12","isDraft":false,"reviewDecision":"APPROVED","mergeStateStatus":"CLEAN","statusCheckRollup":[{"name":"test","status":"COMPLETED","conclusion":"SUCCESS"}]}
+JSON
+  exit 0
+fi
+echo "unexpected gh args: $*" >&2
+exit 1
+`);
+  fs.chmodSync(fakeGh, 0o755);
+  const fakeEnv = { PATH: `${fakeBin}${path.delimiter}${process.env.PATH}` };
+  const localPreflight = run(["pr", "preflight", "--repo", "pr-fixture"], { env: fakeEnv });
+  assert.equal(localPreflight.ok, true);
+  assert.equal(localPreflight.git.dirty, false);
+  assert.equal(localPreflight.gh.authenticated, true);
+  assert.equal(localPreflight.gh.auth_output_excerpt.includes("gho_fixturesecret"), false);
+  assert.equal(localPreflight.gh.auth_output_excerpt.includes("[redacted-token]"), true);
+  assert.equal(localPreflight.pr, null);
+  assert.equal(localPreflight.warnings.some((warning) => warning.includes("no --pr provided")), true);
+
+  const prPreflight = run(["pr", "preflight", "--repo", "pr-fixture", "--pr", "12"], { env: fakeEnv });
+  assert.equal(prPreflight.ok, true);
+  assert.equal(prPreflight.pr.number, 12);
+  assert.equal(prPreflight.pr.status_checks.passed, 1);
+  assert.equal(prPreflight.warnings.some((warning) => warning.includes("does not match PR head")), true);
+
+  fs.writeFileSync(fakeGh, `#!/bin/sh
+if [ "$1" = "auth" ] && [ "$2" = "status" ]; then
+  echo "Logged in to github.com as agent"
+  exit 0
+fi
+if [ "$1" = "pr" ] && [ "$2" = "view" ]; then
+  cat <<'JSON'
+{"number":13,"title":"Blocked PR","author":{"login":"contributor"},"headRefName":"main","baseRefName":"main","url":"https://github.com/example/repo/pull/13","isDraft":true,"reviewDecision":"CHANGES_REQUESTED","mergeStateStatus":"DIRTY","statusCheckRollup":[{"name":"test","status":"COMPLETED","conclusion":"FAILURE"},{"name":"lint","status":"IN_PROGRESS","conclusion":null}]}
+JSON
+  exit 0
+fi
+exit 1
+`);
+  const blockedPrPreflight = run(["pr", "preflight", "--repo", "pr-fixture", "--pr", "13"], { env: fakeEnv, allowFailure: true });
+  assert.equal(blockedPrPreflight.ok, false);
+  assert.equal(blockedPrPreflight.blockers.some((blocker) => blocker.includes("draft")), true);
+  assert.equal(blockedPrPreflight.blockers.some((blocker) => blocker.includes("CHANGES_REQUESTED")), true);
+  assert.equal(blockedPrPreflight.pr.status_checks.failed, 1);
+  assert.equal(blockedPrPreflight.pr.status_checks.pending, 1);
+
+  fs.writeFileSync(path.join(prRepo, "dirty.txt"), "dirty\n");
+  const dirtyPreflight = run(["pr", "preflight", "--repo", "pr-fixture"], { env: fakeEnv, allowFailure: true });
+  assert.equal(dirtyPreflight.ok, false);
+  assert.equal(dirtyPreflight.blockers.some((blocker) => blocker.includes("worktree has")), true);
+}
+
 const missingViewCredentials = run(["workflow", "views", "--workflow", "workflow.browser-validation", "--repo", "."], { allowFailure: true });
 assert.equal(missingViewCredentials.ok, false);
 assert.equal(missingViewCredentials.workflows[0].views.find((view) => view.id === "logged-out").ready, true);

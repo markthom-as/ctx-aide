@@ -254,6 +254,12 @@ function boundedText(text, max = 4000) {
   return `${value.slice(0, max)}\n...[truncated ${value.length - max} chars]`;
 }
 
+function redactTokenLikeText(text) {
+  return String(text ?? "")
+    .replace(/Token:\s+\S+/g, "Token: [redacted-token]")
+    .replace(/\b(?:gh[oprsu]|github_pat)_[A-Za-z0-9_]+/g, "[redacted-token]");
+}
+
 function pathInside(basePath, targetPath) {
   const base = path.resolve(basePath);
   const target = path.resolve(targetPath);
@@ -3386,6 +3392,184 @@ function gitStatusSummary(repoPath) {
   };
 }
 
+function gitCurrentBranch(repoPath) {
+  const result = spawnSync("git", ["-C", repoPath, "branch", "--show-current"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 5000,
+  });
+  if (result.status !== 0) return null;
+  return (result.stdout ?? "").trim() || null;
+}
+
+function runGh(argsList, repoPath, timeout = 10000) {
+  if (!commandExists("gh")) {
+    return {
+      available: false,
+      ok: false,
+      exit_code: null,
+      stdout: "",
+      stderr: "missing command: gh",
+    };
+  }
+  const result = spawnSync("gh", argsList, {
+    cwd: repoPath,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout,
+  });
+  return {
+    available: true,
+    ok: result.status === 0,
+    exit_code: result.status,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  };
+}
+
+function summarizeStatusChecks(statusCheckRollup) {
+  const checks = Array.isArray(statusCheckRollup) ? statusCheckRollup : [];
+  const summary = {
+    total: checks.length,
+    passed: 0,
+    failed: 0,
+    pending: 0,
+    skipped: 0,
+    unknown: 0,
+    failing: [],
+    pending_checks: [],
+  };
+  for (const check of checks) {
+    const name = check.name ?? check.context ?? check.workflowName ?? check.__typename ?? "unknown";
+    const conclusion = String(check.conclusion ?? "").toUpperCase();
+    const status = String(check.status ?? check.state ?? "").toUpperCase();
+    if (["SUCCESS", "NEUTRAL"].includes(conclusion) || (status === "COMPLETED" && !["FAILURE", "CANCELLED", "TIMED_OUT", "ACTION_REQUIRED"].includes(conclusion))) {
+      summary.passed += 1;
+    } else if (["FAILURE", "CANCELLED", "TIMED_OUT", "ACTION_REQUIRED"].includes(conclusion) || ["FAILURE", "ERROR"].includes(status)) {
+      summary.failed += 1;
+      summary.failing.push(name);
+    } else if (conclusion === "SKIPPED") {
+      summary.skipped += 1;
+    } else if (["PENDING", "QUEUED", "IN_PROGRESS", "REQUESTED", "WAITING", "EXPECTED"].includes(status) || (!conclusion && status)) {
+      summary.pending += 1;
+      summary.pending_checks.push(name);
+    } else {
+      summary.unknown += 1;
+    }
+  }
+  return summary;
+}
+
+function pullRequestPreflight() {
+  const repoArg = argValue("--repo", ".");
+  const prArg = argValue("--pr", "");
+  const allowDirty = args.includes("--allow-dirty");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  const checkedAt = new Date().toISOString();
+  const blockers = [];
+  const warnings = [];
+  const errors = [];
+
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "pr preflight",
+      repo: repoArg,
+      checked_at: checkedAt,
+      blockers: ["repo path does not exist"],
+      warnings,
+      errors: [{ file: repoArg, message: "repo path does not exist" }],
+    };
+  }
+
+  const git = gitStatusSummary(repoPath);
+  git.branch = git.available ? gitCurrentBranch(repoPath) : null;
+  if (!git.available) blockers.push(`git status unavailable: ${git.warning}`);
+  if (git.dirty && !allowDirty) blockers.push(`worktree has ${git.changed_count} changed path(s)`);
+  if (git.dirty && allowDirty) warnings.push(`worktree has ${git.changed_count} changed path(s); allowed by --allow-dirty`);
+
+  const ghAuth = runGh(["auth", "status", "--active"], repoPath);
+  const gh = {
+    available: ghAuth.available,
+    authenticated: ghAuth.ok,
+    auth_status: ghAuth.ok ? "ok" : "failed",
+    auth_exit_code: ghAuth.exit_code,
+    auth_output_excerpt: boundedText(redactTokenLikeText(`${ghAuth.stdout}\n${ghAuth.stderr}`), 1200),
+  };
+  if (!gh.available) blockers.push("gh command is not available");
+  else if (!gh.authenticated) blockers.push("gh auth status failed");
+
+  let pr = null;
+  if (prArg) {
+    const fields = [
+      "number",
+      "title",
+      "author",
+      "headRefName",
+      "baseRefName",
+      "url",
+      "isDraft",
+      "reviewDecision",
+      "mergeStateStatus",
+      "statusCheckRollup",
+    ].join(",");
+    const prView = runGh(["pr", "view", prArg, "--json", fields], repoPath, 15000);
+    if (!prView.ok) {
+      blockers.push(`unable to read PR metadata for ${prArg}`);
+      errors.push({
+        file: "gh pr view",
+        message: boundedText((prView.stderr || prView.stdout || "gh pr view failed").trim(), 1000),
+      });
+    } else {
+      try {
+        const parsed = JSON.parse(prView.stdout);
+        const checks = summarizeStatusChecks(parsed.statusCheckRollup);
+        pr = {
+          number: parsed.number ?? null,
+          title: parsed.title ?? null,
+          author: parsed.author ?? null,
+          head_ref: parsed.headRefName ?? null,
+          base_ref: parsed.baseRefName ?? null,
+          url: parsed.url ?? null,
+          is_draft: Boolean(parsed.isDraft),
+          review_decision: parsed.reviewDecision ?? null,
+          merge_state_status: parsed.mergeStateStatus ?? null,
+          status_checks: checks,
+        };
+        if (pr.is_draft) blockers.push("PR is a draft");
+        if (["CHANGES_REQUESTED", "REVIEW_REQUIRED"].includes(String(pr.review_decision ?? "").toUpperCase())) {
+          blockers.push(`review decision is ${pr.review_decision}`);
+        }
+        if (checks.failed > 0) blockers.push(`${checks.failed} status check(s) failing`);
+        if (checks.pending > 0 || checks.unknown > 0) blockers.push(`${checks.pending + checks.unknown} status check(s) pending or unknown`);
+        if (git.branch && pr.head_ref && git.branch !== pr.head_ref) {
+          warnings.push(`current branch ${git.branch} does not match PR head ${pr.head_ref}`);
+        }
+      } catch (error) {
+        blockers.push(`unable to parse PR metadata for ${prArg}`);
+        errors.push({ file: "gh pr view", message: error.message });
+      }
+    }
+  } else {
+    warnings.push("no --pr provided; skipped PR metadata, review-decision, and status-check checks");
+  }
+
+  return {
+    ok: blockers.length === 0,
+    scope: "pr preflight",
+    repo: displayPath(repoPath),
+    checked_at: checkedAt,
+    pr_input: prArg || null,
+    allow_dirty: allowDirty,
+    blockers,
+    warnings,
+    git,
+    gh,
+    pr,
+    errors,
+  };
+}
+
 function targetPackRows(repoPath, profile) {
   const ticketRoot = path.join(repoPath, profile.ticket_root);
   if (!fs.existsSync(ticketRoot)) return [];
@@ -4716,6 +4900,8 @@ if (command === "lint") {
   printResult(workflowViews());
 } else if (command === "workflow" && subcommand === "validation-plan") {
   printResult(workflowValidationPlan());
+} else if (command === "pr" && subcommand === "preflight") {
+  printResult(pullRequestPreflight());
 } else if (command === "feedback" && subcommand === "plan") {
   printResult(feedbackPlan());
 } else if (command === "feedback" && subcommand === "review") {

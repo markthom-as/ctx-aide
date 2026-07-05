@@ -791,6 +791,7 @@ ctx workflow views --workflow workflow.browser-validation --repo . --json
 ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json
 ctx workflow deps --workflow workflow.pull-request-review --repo . --json
 ctx tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
+ctx pr preflight --repo . --pr 123 --json
 ctx credentials check --profile browser-test-user --repo . --json
 ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json
 ctx adoption bootstrap --repo /path/to/app --profile wetware --write --json
@@ -955,6 +956,17 @@ node tools/context/ctx.mjs tools check \
 ```
 
 This workflow is command-line first: agents inspect local state with `git`, inspect and mutate PR state with authenticated `gh`, leave review comments or requested changes, commit scoped fixes, push only the intended PR branch, re-check review and CI status, then merge with the repository's documented merge strategy. `gh auth status` must pass before any comment, push, status-check, or merge operation that talks to GitHub.
+
+Run PR preflight before comments, pushes, or merges:
+
+```bash
+node tools/context/ctx.mjs pr preflight \
+  --repo /path/to/app \
+  --pr 123 \
+  --json
+```
+
+The command is read-only. It returns git worktree state, `gh auth status`, optional PR metadata, review decision, status-check summary, blockers, and warnings. Dirty worktrees block by default; pass `--allow-dirty` only when the ticket explicitly accepts that local state.
 
 ### Validation Breakpoints
 
