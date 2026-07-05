@@ -1,6 +1,6 @@
 ---
 id: ticket.context.041
-status: ready
+status: done
 title: Complete public-release safety audit
 ticket_pack: pack.repo-context-public-release-2026-07-01
 milestones:
@@ -44,8 +44,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-05
 ---
 
 # Complete Public-Release Safety Audit
@@ -111,7 +111,7 @@ If no dedicated history scanner is installed, document that limitation and eithe
 
 ## Completion
 
-- Status: pending
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `gitleaks git . --no-banner --redact --report-format json --report-path /tmp/repo-context-gitleaks-report.json` scanned 57 commits and reported no leaks; `uvx detect-secrets scan $(git ls-files)` only flagged the deliberate redaction test fixture in `tools/context/ctx.test.mjs`; generated-artifact and literal scans found no live credentials; `node tools/context/ctx.mjs ticket check --json` and `node tools/context/ctx.mjs pack check --json` passed on 2026-07-05.
 - Follow-up tickets: none
