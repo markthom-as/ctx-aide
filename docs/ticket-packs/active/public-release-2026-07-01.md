@@ -51,7 +51,7 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 
 ## Tickets
 
-- `ticket.context.040`: ready
+- `ticket.context.040`: done
 - `ticket.context.041`: ready
 - `ticket.context.042`: ready
 - `ticket.context.043`: ready
@@ -80,6 +80,6 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 
 ## Completion
 
-- Completed tickets: none.
-- Remaining tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.044`.
+- Completed tickets: `ticket.context.040`.
+- Remaining tickets: `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.044`.
 - Final validation: pending.

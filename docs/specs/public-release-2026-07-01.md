@@ -38,8 +38,8 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 - Rationale: a half-prepared public repo weakens the portfolio signal and increases risk of leaking private workflow traces or confusing readers.
 - Regression risk: delaying visibility can slow application support; mitigate by keeping the release pack atomic and parallelizable.
 
-- Decision: `repo-context` remains the internal working name during planning, but the public release should choose a more memorable product name.
-- Rationale: `repo-context` describes a mechanism, not the broader workflow system: context, tickets, decisions, validation, and agent handoff.
+- Decision: `Repo Charter` is the public display name for this release, while `repo-context` remains the internal repository and command name until a dedicated rename ticket exists.
+- Rationale: `repo-context` describes a mechanism, while `Repo Charter` describes the repo-local agreement that gives agents context, tickets, decisions, validation, and handoff rules.
 - Regression risk: renaming can break command references and docs; mitigate with an explicit naming ticket before downstream copy changes.
 
 - Decision: the public story should emphasize practical engineering workflow leverage, not AI hype.
@@ -70,7 +70,7 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 
 ## Open Questions
 
-None at spec level. The public name is intentionally resolved by `ticket.context.040` before downstream naming-dependent work.
+None at spec level. `ticket.context.040` resolved the public display name as `Repo Charter` on 2026-07-05.
 
 ## Hardening Review
 

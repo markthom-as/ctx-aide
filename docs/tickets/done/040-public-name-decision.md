@@ -1,6 +1,6 @@
 ---
 id: ticket.context.040
-status: ready
+status: done
 title: Choose and document public name
 ticket_pack: pack.repo-context-public-release-2026-07-01
 milestones:
@@ -45,8 +45,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-05
 ---
 
 # Choose and Document Public Name
@@ -116,7 +116,7 @@ Possible name criteria: short, searchable, not over-AI-branded, credible for dev
 
 ## Completion
 
-- Status: pending
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: documented `Repo Charter` as the public display name in `docs/context/architecture/public-name-decision-2026-07-05.md`; `node tools/context/ctx.mjs spec check --json`, `node tools/context/ctx.mjs ticket check --json`, and `node tools/context/ctx.mjs pack check --json` passed on 2026-07-05.
 - Follow-up tickets: none
