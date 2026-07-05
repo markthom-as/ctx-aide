@@ -52,6 +52,53 @@
           ]
         }
       }
+    },
+    "workflow.pull-request-review": {
+      "allow": [
+        "tool.ctx",
+        "tool.semble",
+        "tool.shell"
+      ],
+      "deny": [
+        "app.gmail",
+        "app.google-calendar",
+        "app.google-drive",
+        "app.vercel",
+        "tool.computer-use"
+      ],
+      "steps": {
+        "pr-orient": {
+          "allow": [
+            "tool.ctx",
+            "tool.shell"
+          ]
+        },
+        "pr-review": {
+          "allow": [
+            "tool.ctx",
+            "tool.semble",
+            "tool.shell"
+          ]
+        },
+        "pr-comment": {
+          "allow": [
+            "tool.shell"
+          ]
+        },
+        "pr-fix": {
+          "allow": [
+            "tool.ctx",
+            "tool.semble",
+            "tool.shell"
+          ]
+        },
+        "pr-merge": {
+          "allow": [
+            "tool.ctx",
+            "tool.shell"
+          ]
+        }
+      }
     }
   },
   "capabilities": {}

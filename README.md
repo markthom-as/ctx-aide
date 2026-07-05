@@ -789,6 +789,8 @@ ctx workflow deps --workflow workflow.browser-validation --repo . --json
 ctx workflow deps --workflow workflow.browser-validation --repo . --write --json
 ctx workflow views --workflow workflow.browser-validation --repo . --json
 ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json
+ctx workflow deps --workflow workflow.pull-request-review --repo . --json
+ctx tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
 ctx credentials check --profile browser-test-user --repo . --json
 ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json
 ctx adoption bootstrap --repo /path/to/app --profile wetware --write --json
@@ -936,6 +938,23 @@ node tools/context/ctx.mjs workflow deps \
 This updates `package.json` with an exact `@playwright/test` dev dependency pin. It does not install packages or create paid infrastructure. The operator still runs the repo's package-manager install command so the lockfile records the resolved tree.
 
 Codex native browser plugins are treated as optional external runtime tools. They can help with interactive validation, but they are not the pinned source of truth for browser workflow readiness.
+
+Pull request review uses `workflow.pull-request-review`:
+
+```bash
+node tools/context/ctx.mjs workflow deps \
+  --workflow workflow.pull-request-review \
+  --repo /path/to/app \
+  --json
+
+node tools/context/ctx.mjs tools check \
+  --workflow workflow.pull-request-review \
+  --step pr-review \
+  --capability tool.shell \
+  --json
+```
+
+This workflow is command-line first: agents inspect local state with `git`, inspect and mutate PR state with authenticated `gh`, leave review comments or requested changes, commit scoped fixes, push only the intended PR branch, re-check review and CI status, then merge with the repository's documented merge strategy. `gh auth status` must pass before any comment, push, status-check, or merge operation that talks to GitHub.
 
 ### Validation Breakpoints
 

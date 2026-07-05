@@ -730,6 +730,16 @@ const workflowDependencyCatalog = {
     command: "node",
     purpose: "Run repo-context and JavaScript workflow tooling.",
   },
+  git: {
+    kind: "command",
+    command: "git",
+    purpose: "Inspect branches, commits, diffs, remotes, and worktree state.",
+  },
+  "github-cli": {
+    kind: "command",
+    command: "gh",
+    purpose: "Inspect and mutate GitHub pull requests from an authenticated CLI session.",
+  },
   "package-manager-lockfile": {
     kind: "lockfile",
     purpose: "Keep workflow package pins reproducible for agents and local runs.",
