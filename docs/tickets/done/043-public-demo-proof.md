@@ -1,6 +1,6 @@
 ---
 id: ticket.context.043
-status: ready
+status: done
 title: Create public demo proof
 ticket_pack: pack.repo-context-public-release-2026-07-01
 milestones:
@@ -43,8 +43,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-05
 ---
 
 # Create Public Demo Proof
@@ -110,7 +110,7 @@ Prefer a single `examples/public-release-demo/` fixture or a concise `docs/publi
 
 ## Completion
 
-- Status: pending
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: added `examples/public-release-demo/README.md`, linked it from `README.md`, and ran the documented scan, query, pack status, ticket check, pack check, and `make smoke` commands on 2026-07-05.
 - Follow-up tickets: none

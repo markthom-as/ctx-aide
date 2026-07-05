@@ -44,6 +44,7 @@ make smoke
 
 - `AGENTS.md`: the repo-local operating contract for agents.
 - `tools/context/ctx.mjs`: the implemented local CLI.
+- `examples/public-release-demo/README.md`: a runnable public-safe walkthrough of scan, query, ticket, pack, and smoke checks.
 - `docs/specs/public-release-2026-07-01.md`: the current public-release spec.
 - `docs/ticket-packs/active/public-release-2026-07-01.md`: the active public-release ticket pack.
 - `docs/context/architecture/public-name-decision-2026-07-05.md`: the public name decision.
