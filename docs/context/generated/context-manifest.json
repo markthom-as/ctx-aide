@@ -80,7 +80,8 @@
       ],
       "negative_rules": [
         "Do not reuse Concordat for this project.",
-        "Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision."
+        "Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision.",
+        "Do not abbreviate Repo Charter to Charter in public copy."
       ],
       "severity": null,
       "source": null,

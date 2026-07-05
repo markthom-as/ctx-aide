@@ -19,6 +19,7 @@ positive_rules:
 negative_rules:
   - Do not reuse Concordat for this project.
   - Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision.
+  - Do not abbreviate Repo Charter to Charter in public copy.
 load_when:
   path_matches:
     - README.md
@@ -65,6 +66,7 @@ The name is broad enough to cover markdown context, generated agent packs, valid
 - `Repo Charter`: selected. It is concrete, readable, and maps to the repo-local workflow contract.
 - `repo-context`: rejected as the public name because it describes an implementation mechanism rather than the broader workflow.
 - `Concordat`: rejected because `/Users/jove/code/concordat` is a separate local project and should not carry this product surface.
+- `Workmark`: rejected because it is less semantically tied to repo-local context and live search surfaced generic software/font-management usage.
 - `Context Accord`: rejected because search results surfaced the existing Accord Project ecosystem and related package/project names.
 - `Agent Loom` / `Context Loom`: rejected because search results surfaced an existing Agent Loom project in the same agent-workflow space.
 - `Context Ledger`: rejected because search results surfaced adjacent AI context ledger usage and projects.
@@ -72,7 +74,9 @@ The name is broad enough to cover markdown context, generated agent packs, valid
 
 ## Collision Notes
 
-Searches on 2026-07-05 did not surface an exact `Repo Charter` project/package collision in the same developer-tooling category. Adjacent terms exist around `charter`, `code charter`, and repo charter concepts, so this decision is appropriate for a public display name but does not claim trademark clearance or package-name availability.
+Live checks on 2026-07-05 did not surface an exact package collision for `repo-charter` or `repocharter` in npm or PyPI, and `cargo search` did not return exact crate candidates for `repo-charter`, `repocharter`, `workmark`, `context-accord`, or `specrail`.
+
+GitHub repository search did surface generic and unrelated `repo charter` usage, including one unrelated `repo-charter` repository. Web search also surfaced an adjacent developer-tooling product named `Charter` for AI-agent readiness scanning and GitHub Actions integration. That makes `Repo Charter` acceptable as a public display name, but public copy should not shorten it to `Charter`, and this decision does not claim trademark clearance, domain availability, or package-name availability beyond the checked package names.
 
 If a future ticket turns Repo Charter into a package, command, domain, or commercial mark, that ticket should perform a fresh package-registry, GitHub, domain, and trademark review before renaming code or publishing artifacts.
 

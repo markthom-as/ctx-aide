@@ -45,7 +45,7 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: current-change
+  commit: this-commit
   completed_at: 2026-07-05
 ---
 
@@ -117,6 +117,6 @@ Possible name criteria: short, searchable, not over-AI-branded, credible for dev
 ## Completion
 
 - Status: done
-- Commit: current-change
-- Verification evidence: documented `Repo Charter` as the public display name in `docs/context/architecture/public-name-decision-2026-07-05.md`; `node tools/context/ctx.mjs spec check --json`, `node tools/context/ctx.mjs ticket check --json`, and `node tools/context/ctx.mjs pack check --json` passed on 2026-07-05.
+- Commit: this commit (`Complete public name decision`)
+- Verification evidence: documented `Repo Charter` as the public display name in `docs/context/architecture/public-name-decision-2026-07-05.md`; refreshed collision notes for npm, PyPI, crates.io, GitHub, and web-search adjacency on 2026-07-05; `node tools/context/ctx.mjs scan --json`, `node tools/context/ctx.mjs spec check --json`, `node tools/context/ctx.mjs ticket check --json`, and `node tools/context/ctx.mjs pack check --json` passed on 2026-07-05.
 - Follow-up tickets: none
