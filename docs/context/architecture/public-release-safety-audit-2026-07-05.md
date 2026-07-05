@@ -36,11 +36,25 @@ updated: 2026-07-05
 
 # Public Release Safety Audit
 
-## Status
+## Purpose
+
+Record public-release safety evidence for credentials, private traces, generated artifacts, git history, and dependency/license surfaces.
+
+## Current Decisions
 
 No credential, private-data, or generated-artifact safety blocker was found for the public-release launch gate on 2026-07-05.
 
 The release still needs an explicit license decision in the final launch checklist before external users should treat the project as open source. That is a launch metadata issue, not a secret or privacy finding.
+
+## Positive Rules
+
+- Rerun history and working-tree scans after public README, demo, and launch metadata changes land.
+- Keep generated SQLite as a local cache artifact unless a future ticket explicitly changes that policy.
+
+## Negative Rules
+
+- Do not make the repository public if a future scan finds real credentials, private client data, or sensitive local workflow traces.
+- Do not claim package publishing or open-source reuse readiness until the license decision is recorded.
 
 ## Commands Run
 
@@ -68,3 +82,9 @@ node tools/context/ctx.mjs pack check --json
 ## Release Guidance
 
 The safety audit clears `ticket.context.041` for the current repository state. Before flipping GitHub visibility, rerun `gitleaks`, `detect-secrets`, the literal `rg` scan, and the generated-artifact check after all public README/demo/launch metadata changes have landed.
+
+## Implementation Rules
+
+- Treat `tools/context/ctx.test.mjs` fixture secrets as test data only when they are redaction assertions, not credential material.
+- Keep `.repo-context/` and generated SQLite files out of public artifacts unless a later ticket introduces a sanitized export format.
+- Update this audit note if future scans identify new findings or accepted launch risks.

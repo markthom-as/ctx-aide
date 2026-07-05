@@ -1,6 +1,6 @@
 ---
 id: ticket.context.042
-status: ready
+status: done
 title: Polish public README and positioning
 ticket_pack: pack.repo-context-public-release-2026-07-01
 milestones:
@@ -44,8 +44,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-05
 ---
 
 # Polish Public README and Positioning
@@ -111,7 +111,7 @@ Assume the reader is an engineering leader or staff/platform engineer looking fo
 
 ## Completion
 
-- Status: pending
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: README now introduces Repo Charter as the public display name, documents the local quickstart, identifies canonical markdown and generated-cache boundaries, and links current proof surfaces; `node tools/context/ctx.mjs scan --json`, README query smoke, pack status, spec check, ticket check, pack check, and `make validate` passed on 2026-07-05.
 - Follow-up tickets: none

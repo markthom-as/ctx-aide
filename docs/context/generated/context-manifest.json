@@ -2,8 +2,108 @@
   "schema_version": 1,
   "generated_by": "tools/context/ctx.mjs scan",
   "source": "markdown",
-  "entry_count": 5,
+  "entry_count": 7,
   "entries": [
+    {
+      "id": "architecture.public-name-decision-2026-07-05",
+      "kind": "architecture",
+      "status": "active",
+      "title": "Public Name Decision",
+      "markdown_path": "docs/context/architecture/public-name-decision-2026-07-05.md",
+      "summary": "Record the public display name that downstream README, demo, and launch-gate work should use.",
+      "routes": [],
+      "files": [
+        "README.md",
+        "docs/specs/public-release-2026-07-01.md"
+      ],
+      "components": [],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "public-release",
+        "naming",
+        "positioning"
+      ],
+      "positive_rules": [
+        "Use Repo Charter as the public display name for the public-release pack.",
+        "Preserve repo-context as the internal repository and command name until a dedicated rename ticket exists."
+      ],
+      "negative_rules": [
+        "Do not reuse Concordat for this project.",
+        "Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision."
+      ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
+      "load_when": {
+        "path_matches": [
+          "README.md",
+          "docs/specs/public-release-2026-07-01.md",
+          "docs/ticket-packs/**"
+        ],
+        "task_terms": [
+          "public name",
+          "public release",
+          "Repo Charter",
+          "repo-context"
+        ]
+      },
+      "updated": "2026-07-05"
+    },
+    {
+      "id": "architecture.public-release-safety-audit-2026-07-05",
+      "kind": "architecture",
+      "status": "active",
+      "title": "Public Release Safety Audit",
+      "markdown_path": "docs/context/architecture/public-release-safety-audit-2026-07-05.md",
+      "summary": "Record public-release safety evidence for credentials, private traces, generated artifacts, git history, and dependency/license surfaces.",
+      "routes": [],
+      "files": [
+        "README.md",
+        ".gitignore",
+        "tools/context/ctx.mjs",
+        "tools/context/ctx.test.mjs"
+      ],
+      "components": [],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "public-release",
+        "safety",
+        "history-scan"
+      ],
+      "positive_rules": [
+        "Public release is allowed to proceed to the launch gate when this audit remains current.",
+        "Treat generated SQLite as a local cache artifact, not a canonical public artifact."
+      ],
+      "negative_rules": [
+        "Do not make the repository public without rerunning history and working-tree scans after any new sensitive changes.",
+        "Do not claim package publishing readiness until a license decision is recorded."
+      ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
+      "load_when": {
+        "path_matches": [
+          "docs/specs/public-release-2026-07-01.md",
+          "docs/ticket-packs/active/public-release-2026-07-01.md",
+          "docs/tickets/**"
+        ],
+        "task_terms": [
+          "public release",
+          "safety audit",
+          "secret scan",
+          "history scan"
+        ]
+      },
+      "updated": "2026-07-05"
+    },
     {
       "id": "component.ContextEntryCard",
       "kind": "component",

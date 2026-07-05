@@ -1,8 +1,57 @@
-# Repo Context System
+# Repo Charter
 
-This proposal defines a repo-local context system for coding agents, optimized first for Codex, then Claude, then Cursor. The system keeps product feedback, page rules, component contracts, flow behavior, design-system guidance, and architecture decisions close to the code without relying on a hosted service.
+Repo Charter is a local-first workflow system for coding agents. It keeps context, specs, tickets, ticket packs, validation rules, and agent instructions in versioned markdown beside the code so implementation agents can work from durable repo truth instead of reconstructed chat history.
 
-No paid infrastructure is required for the baseline. Markdown files and a local SQLite index run entirely inside the repo. A hosted component catalog could be added later, but the first implementation should stay local.
+The current repository and CLI namespace are still `repo-context`. `Repo Charter` is the public display name chosen for this release; no command, package, or remote rename is part of the current milestone.
+
+No paid infrastructure is required. Markdown is canonical, generated agent packs are lightweight artifacts, and SQLite indexes are local rebuildable caches.
+
+## What It Does
+
+- Captures repo-local context for routes, files, directories, components, flows, design rules, architecture decisions, and feedback.
+- Turns specs into atomic markdown tickets with frozen decisions, scope, validation, and commit expectations.
+- Groups tickets into ticket packs with dependencies, parallel groups, run policy, and completion evidence.
+- Generates agent-facing context packs for Codex, Claude, and Cursor without depending on one vendor's memory format.
+- Provides local `ctx` checks for scanning, querying, linting, ticket validation, pack validation, future-work validation, adoption preflight, workflow validation, and tool-policy checks.
+
+## Quickstart
+
+Run the core checks from a fresh checkout with Node.js, Python 3, `make`, and Semble available on `PATH` or through `uvx`:
+
+```sh
+node tools/context/ctx.mjs scan --json
+node tools/context/ctx.mjs query --path README.md --task "understand Repo Charter public release" --agent codex --budget 1200 --json
+node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
+make validate
+```
+
+For the fuller local smoke path:
+
+```sh
+make smoke
+```
+
+## How The Workflow Fits Together
+
+1. Write or harden a markdown spec under `docs/specs/`.
+2. Split the spec into ready tickets under `docs/tickets/ready/`.
+3. Group related tickets in `docs/ticket-packs/`.
+4. Implement each ready ticket as one scoped commit with validation evidence.
+5. Move non-blocking ideas into `docs/future-work/captured/` instead of hiding them in chat.
+6. Regenerate or inspect generated context artifacts only as caches, never as canonical truth.
+
+## Proof Surfaces
+
+- `AGENTS.md`: the repo-local operating contract for agents.
+- `tools/context/ctx.mjs`: the implemented local CLI.
+- `docs/specs/public-release-2026-07-01.md`: the current public-release spec.
+- `docs/ticket-packs/active/public-release-2026-07-01.md`: the active public-release ticket pack.
+- `docs/context/architecture/public-name-decision-2026-07-05.md`: the public name decision.
+- `docs/context/architecture/public-release-safety-audit-2026-07-05.md`: the public-release safety audit.
+
+## Status
+
+Repo Charter is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The public-release pack is still active until README polish, demo proof, and the final GitHub launch gate are complete.
 
 ## Goals
 

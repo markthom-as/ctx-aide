@@ -34,11 +34,25 @@ updated: 2026-07-05
 
 # Public Name Decision
 
-## Decision
+## Purpose
+
+Record the public display name that downstream README, demo, and launch-gate work should use.
+
+## Current Decisions
 
 Use **Repo Charter** as the public display name for this release.
 
 `repo-context` remains the internal repository name, CLI namespace, local skill name, and file-path prefix until a separate rename ticket decides otherwise.
+
+## Positive Rules
+
+- Use Repo Charter as the public display name in public-facing release copy.
+- Keep command examples and local paths on the existing `repo-context` names until a dedicated rename ticket exists.
+
+## Negative Rules
+
+- Do not reuse Concordat for this project.
+- Do not rename commands, remotes, package names, generated artifact paths, or local skill names in this release pack.
 
 ## Rationale
 
@@ -68,6 +82,12 @@ If a future ticket turns Repo Charter into a package, command, domain, or commer
 - Command examples should continue to use `node tools/context/ctx.mjs` and `ctx` because no CLI rename is in scope.
 - Generated artifacts under `docs/context/generated/` remain cache/build artifacts and do not need a rename.
 - The GitHub repository may remain `repo-context` for the first public release, with `Repo Charter` as the display title and description.
+
+## Implementation Rules
+
+- README and launch metadata can introduce Repo Charter as the public name.
+- Technical documentation can use `repo-context` when it refers to the current repository, command namespace, paths, or generated artifacts.
+- Future package, domain, or trademark work must run a fresh collision review before publishing under the selected name.
 
 ## Validation
 
