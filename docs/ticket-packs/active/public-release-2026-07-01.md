@@ -1,6 +1,6 @@
 ---
 id: pack.repo-context-public-release-2026-07-01
-status: active
+status: blocked
 title: Public Release Preparation
 milestones:
   - milestone.repo-context-public-release
@@ -31,7 +31,9 @@ parallel_groups:
   launch:
     tickets:
       - ticket.context.044
-blocked_by: []
+blocked_by:
+  - GitHub owner/org decision required before creating or publishing a remote.
+  - Repository license decision required before claiming open-source reuse rights.
 created: 2026-07-01
 completion:
   completed_at: null
@@ -55,7 +57,7 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 - `ticket.context.041`: done
 - `ticket.context.042`: done
 - `ticket.context.043`: done
-- `ticket.context.044`: ready
+- `ticket.context.044`: blocked
 
 ## Execution Plan
 
@@ -81,5 +83,6 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 ## Completion
 
 - Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`.
-- Remaining tickets: `ticket.context.044`.
+- Remaining tickets: none ready.
+- Blocked tickets: `ticket.context.044` pending GitHub owner/org and license decisions.
 - Final validation: pending.

@@ -2,8 +2,57 @@
   "schema_version": 1,
   "generated_by": "tools/context/ctx.mjs scan",
   "source": "markdown",
-  "entry_count": 7,
+  "entry_count": 8,
   "entries": [
+    {
+      "id": "architecture.github-public-launch-gate-2026-07-05",
+      "kind": "architecture",
+      "status": "active",
+      "title": "GitHub Public Launch Gate",
+      "markdown_path": "docs/context/architecture/github-public-launch-gate-2026-07-05.md",
+      "summary": "Prepare the final public-release gate for Repo Charter without changing GitHub visibility or creating paid infrastructure before required decisions are explicit.",
+      "routes": [],
+      "files": [
+        "README.md",
+        "docs/ticket-packs/active/public-release-2026-07-01.md"
+      ],
+      "components": [],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "public-release",
+        "github",
+        "launch-gate"
+      ],
+      "positive_rules": [
+        "Use this gate before creating a remote, pushing, or changing GitHub visibility.",
+        "Keep launch cost at zero unless a future user-approved deployment ticket changes that."
+      ],
+      "negative_rules": [
+        "Do not create or publish a GitHub repository until owner and license decisions are explicit.",
+        "Do not update external profile links until the public URL exists and has been verified."
+      ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
+      "load_when": {
+        "path_matches": [
+          "docs/specs/public-release-2026-07-01.md",
+          "docs/ticket-packs/active/public-release-2026-07-01.md",
+          "README.md"
+        ],
+        "task_terms": [
+          "GitHub launch",
+          "public release",
+          "public URL",
+          "launch gate"
+        ]
+      },
+      "updated": "2026-07-05"
+    },
     {
       "id": "architecture.public-name-decision-2026-07-05",
       "kind": "architecture",

@@ -1,6 +1,6 @@
 ---
 id: ticket.context.044
-status: ready
+status: blocked
 title: Prepare GitHub public launch gate
 ticket_pack: pack.repo-context-public-release-2026-07-01
 milestones:
@@ -119,7 +119,7 @@ If the user wants the public launch performed in this ticket, confirm owner/org 
 
 ## Completion
 
-- Status: pending
+- Status: blocked
 - Commit: pending
-- Verification evidence: pending
+- Verification evidence: launch gate prepared in `docs/context/architecture/github-public-launch-gate-2026-07-05.md`; no remote is configured; owner/org and license decisions are required before public visibility changes.
 - Follow-up tickets: none
