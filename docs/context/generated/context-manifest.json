@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generated_by": "tools/context/ctx.mjs scan",
   "source": "markdown",
-  "entry_count": 8,
+  "entry_count": 9,
   "entries": [
     {
       "id": "architecture.github-public-launch-gate-2026-07-05",
@@ -10,7 +10,7 @@
       "status": "active",
       "title": "GitHub Public Launch Gate",
       "markdown_path": "docs/context/architecture/github-public-launch-gate-2026-07-05.md",
-      "summary": "Prepare the final public-release gate for Repo Charter without changing GitHub visibility or creating paid infrastructure before required decisions are explicit.",
+      "summary": "Prepare the final public-release gate for CTX Aide without changing GitHub visibility or creating paid infrastructure before required decisions are explicit.",
       "routes": [],
       "files": [
         "README.md",
@@ -75,13 +75,14 @@
         "positioning"
       ],
       "positive_rules": [
-        "Use Repo Charter as the public display name for the public-release pack.",
+        "Use CTX Aide as the public display name for the public-release pack.",
+        "Use ctx-aide as the package-facing name if a future publishing ticket proceeds.",
         "Preserve repo-context as the internal repository and command name until a dedicated rename ticket exists."
       ],
       "negative_rules": [
         "Do not reuse Concordat for this project.",
         "Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision.",
-        "Do not abbreviate Repo Charter to Charter in public copy."
+        "Do not use Repo Charter as the public display name."
       ],
       "severity": null,
       "source": null,
@@ -97,8 +98,59 @@
         "task_terms": [
           "public name",
           "public release",
-          "Repo Charter",
+          "CTX Aide",
+          "ctx-aide",
           "repo-context"
+        ]
+      },
+      "updated": "2026-07-05"
+    },
+    {
+      "id": "architecture.public-name-generation-2026-07-05",
+      "kind": "architecture",
+      "status": "active",
+      "title": "Public Name Generation Brief",
+      "markdown_path": "docs/context/architecture/public-name-generation-2026-07-05.md",
+      "summary": "Document the repo's actual feature and workflow surface, then use that inventory to generate and record public-name candidates.",
+      "routes": [],
+      "files": [
+        "README.md",
+        "tools/context/ctx.mjs",
+        "docs/specs/public-release-2026-07-01.md"
+      ],
+      "components": [],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "public-release",
+        "naming",
+        "positioning"
+      ],
+      "positive_rules": [
+        "Use this brief as the rationale trail for the CTX Aide name decision.",
+        "Prefer names that fit the actual repo-local workflow surface instead of generic AI branding."
+      ],
+      "negative_rules": [
+        "Do not reopen rejected names without a fresh collision and positioning review.",
+        "Do not rename commands, remotes, package names, or generated artifact paths from this brief alone."
+      ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
+      "load_when": {
+        "path_matches": [
+          "README.md",
+          "docs/specs/public-release-2026-07-01.md",
+          "docs/ticket-packs/**"
+        ],
+        "task_terms": [
+          "public name",
+          "naming",
+          "shortlist",
+          "brand"
         ]
       },
       "updated": "2026-07-05"

@@ -1,6 +1,6 @@
-# Repo Charter Public Demo
+# CTX Aide Public Demo
 
-This demo proves the core Repo Charter workflow with public-safe repository content:
+This demo proves the core CTX Aide workflow with public-safe repository content:
 
 - context entries live in `docs/context/`;
 - a release spec lives in `docs/specs/`;
@@ -16,7 +16,7 @@ From the repository root:
 
 ```sh
 node tools/context/ctx.mjs scan --json
-node tools/context/ctx.mjs query --path README.md --task "prepare Repo Charter public release" --agent codex --budget 1200 --json
+node tools/context/ctx.mjs query --path README.md --task "prepare CTX Aide public release" --agent codex --budget 1200 --json
 node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
 node tools/context/ctx.mjs ticket check --json
 node tools/context/ctx.mjs pack check --json
@@ -39,4 +39,4 @@ make smoke
 - `ctx ticket check` and `ctx pack check` report no structural errors.
 - `make smoke` runs the full local smoke path: validation, scan, query smoke, and doctor.
 
-If any command fails, inspect the referenced markdown or config file first. Repo Charter is designed so broken workflow truth is fixed in markdown before agents continue implementation.
+If any command fails, inspect the referenced markdown or config file first. CTX Aide is designed so broken workflow truth is fixed in markdown before agents continue implementation.

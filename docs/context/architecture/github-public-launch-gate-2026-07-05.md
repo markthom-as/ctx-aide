@@ -36,11 +36,12 @@ updated: 2026-07-05
 
 ## Purpose
 
-Prepare the final public-release gate for Repo Charter without changing GitHub visibility or creating paid infrastructure before required decisions are explicit.
+Prepare the final public-release gate for CTX Aide without changing GitHub visibility or creating paid infrastructure before required decisions are explicit.
 
 ## Current Decisions
 
-- Public display name: `Repo Charter`.
+- Public display name: `CTX Aide`.
+- Package-facing name if a future publishing ticket proceeds: `ctx-aide`.
 - Internal repository and command name: `repo-context`.
 - Recommended GitHub repository name: `repo-context`.
 - Cost delta for the prepared launch path: `$0`. The documented path uses local validation and a standard public GitHub repository only. No AWS, Vercel, Fly, hosted database, queue, paid observability, or deployment resource is created.
@@ -61,7 +62,7 @@ Prepare the final public-release gate for Repo Charter without changing GitHub v
 
 ## Upstream Evidence
 
-- `ticket.context.040`: done in commit `4b33476`, selected Repo Charter as the public display name.
+- `ticket.context.040`: done, selected CTX Aide as the public display name.
 - `ticket.context.041`: done in commit `8fefcd0`, completed the public-release safety audit.
 - `ticket.context.042`: done in commit `f076b06`, polished README positioning and quickstart.
 - `ticket.context.043`: done in commit `ee18ddc`, added the public demo walkthrough.
@@ -70,7 +71,7 @@ Prepare the final public-release gate for Repo Charter without changing GitHub v
 
 - Owner/org: blocked, user confirmation required.
 - Repository name: `repo-context`.
-- Display title: `Repo Charter`.
+- Display title: `CTX Aide`.
 - Description: `Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.`
 - Topics: `ai-agents`, `developer-tools`, `codex`, `claude`, `markdown`, `workflow`, `tickets`, `repo-context`, `local-first`, `validation`.
 - Homepage: none until a public docs or project page exists.

@@ -113,5 +113,5 @@ Assume the reader is an engineering leader or staff/platform engineer looking fo
 
 - Status: done
 - Commit: current-change
-- Verification evidence: README now introduces Repo Charter as the public display name, documents the local quickstart, identifies canonical markdown and generated-cache boundaries, and links current proof surfaces; `node tools/context/ctx.mjs scan --json`, README query smoke, pack status, spec check, ticket check, pack check, and `make validate` passed on 2026-07-05.
+- Verification evidence: README now introduces CTX Aide as the public display name, documents the local quickstart, identifies canonical markdown and generated-cache boundaries, and links current proof surfaces; `node tools/context/ctx.mjs scan --json`, README query smoke, pack status, spec check, ticket check, pack check, and `make validate` passed on 2026-07-05.
 - Follow-up tickets: none

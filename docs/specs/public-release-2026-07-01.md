@@ -38,8 +38,8 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 - Rationale: a half-prepared public repo weakens the portfolio signal and increases risk of leaking private workflow traces or confusing readers.
 - Regression risk: delaying visibility can slow application support; mitigate by keeping the release pack atomic and parallelizable.
 
-- Decision: `Repo Charter` is the public display name for this release, while `repo-context` remains the internal repository and command name until a dedicated rename ticket exists.
-- Rationale: `repo-context` describes a mechanism, while `Repo Charter` describes the repo-local agreement that gives agents context, tickets, decisions, validation, and handoff rules.
+- Decision: `CTX Aide` is the public display name for this release, while `repo-context` and `ctx` remain the internal repository and command names until a dedicated rename ticket exists.
+- Rationale: `repo-context` describes a mechanism, while `CTX Aide` describes the repo-local helper that gives coding agents context, tickets, decisions, validation, and handoff rules.
 - Regression risk: renaming can break command references and docs; mitigate with an explicit naming ticket before downstream copy changes.
 
 - Decision: the public story should emphasize practical engineering workflow leverage, not AI hype.
@@ -70,7 +70,7 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 
 ## Open Questions
 
-None at spec level. `ticket.context.040` resolved the public display name as `Repo Charter` on 2026-07-05.
+None at spec level. `ticket.context.040` resolved the public display name as `CTX Aide` on 2026-07-05.
 
 ## Hardening Review
 

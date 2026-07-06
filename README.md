@@ -1,8 +1,10 @@
-# Repo Charter
+# CTX Aide
 
-Repo Charter is a local-first workflow system for coding agents. It keeps context, specs, tickets, ticket packs, validation rules, and agent instructions in versioned markdown beside the code so implementation agents can work from durable repo truth instead of reconstructed chat history.
+CTX Aide is a local-first workflow system for coding agents. It keeps context, specs, tickets, ticket packs, validation rules, and agent instructions in versioned markdown beside the code so implementation agents can work from durable repo truth instead of reconstructed chat history.
 
-The current repository and CLI namespace are still `repo-context`. `Repo Charter` is the public display name chosen for this release; no command, package, or remote rename is part of the current milestone.
+At its core, this repo is a repo-native operating system for coding-agent work: markdown context, specs, tickets, validation, and handoff rules that let agents implement safely from durable repo truth instead of chat history.
+
+The current repository and CLI namespace are still `repo-context` and `ctx`. `CTX Aide` is the public display name chosen for this release; `ctx-aide` is the package-facing name to use if a future publishing ticket clears owner, license, and registry decisions. No command, package, or remote rename is part of the current milestone.
 
 No paid infrastructure is required. Markdown is canonical, generated agent packs are lightweight artifacts, and SQLite indexes are local rebuildable caches.
 
@@ -20,7 +22,7 @@ Run the core checks from a fresh checkout with Node.js, Python 3, `make`, and Se
 
 ```sh
 node tools/context/ctx.mjs scan --json
-node tools/context/ctx.mjs query --path README.md --task "understand Repo Charter public release" --agent codex --budget 1200 --json
+node tools/context/ctx.mjs query --path README.md --task "understand CTX Aide public release" --agent codex --budget 1200 --json
 node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
 make validate
 ```
@@ -52,7 +54,7 @@ make smoke
 
 ## Status
 
-Repo Charter is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The public-release pack is still active until README polish, demo proof, and the final GitHub launch gate are complete.
+CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The public-release pack is still blocked on the final GitHub launch gate.
 
 ## Goals
 

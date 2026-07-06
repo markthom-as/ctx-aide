@@ -45,7 +45,7 @@ Make repo-context adoption feel like a normal developer tool: install the `ctx` 
 
 - Decision: initial install support should be local/package-manager installable, not registry publishing.
 - Rationale: public repo owner, package scope, license, and registry publishing are still gated by the public-release pack.
-- Regression risk: users may expect `npm install -g repo-charter` immediately; docs should say local install/link is supported now and registry publish is a later launch task.
+- Regression risk: users may expect `npm install -g ctx-aide` immediately; docs should say local install/link is supported now and registry publish is a later launch task.
 
 - Decision: no paid infrastructure is in scope.
 - Rationale: setup writes local repo files only.
