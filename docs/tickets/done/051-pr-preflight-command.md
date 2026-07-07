@@ -30,7 +30,7 @@ scope:
   flows:
     - workflow.pull-request-review
 context_query:
-  task: "add ctx-aide pr preflight command"
+  task: "add ctxa pr preflight command"
   generated_at: 2026-07-05
   context_ids:
     - workflow.pull-request-review
@@ -56,7 +56,7 @@ completion:
 
 ## Outcome
 
-Add `ctx-aide pr preflight` so agents can machine-check git worktree state, `gh` availability/auth, optional PR metadata, and merge readiness blockers before comments, pushes, or merges.
+Add `ctxa pr preflight` so agents can machine-check git worktree state, `gh` availability/auth, optional PR metadata, and merge readiness blockers before comments, pushes, or merges.
 
 ## Context
 
@@ -84,7 +84,7 @@ The runbook gives a manual command path. A preflight command should return one J
 
 ## Frozen Decisions
 
-- Decision: `ctx-aide pr preflight` is read-only.
+- Decision: `ctxa pr preflight` is read-only.
 - Rationale: preflight should be safe to run before any PR action.
 - Decision: `--pr` is optional.
 - Rationale: agents often need local readiness before selecting a PR.
@@ -103,8 +103,8 @@ The runbook gives a manual command path. A preflight command should return one J
 
 ## Acceptance Criteria
 
-- `ctx-aide pr preflight --repo . --json` returns git and gh readiness without requiring a PR.
-- `ctx-aide pr preflight --repo . --pr <pr> --json` includes PR metadata when `gh pr view` succeeds.
+- `ctxa pr preflight --repo . --json` returns git and gh readiness without requiring a PR.
+- `ctxa pr preflight --repo . --pr <pr> --json` includes PR metadata when `gh pr view` succeeds.
 - Dirty worktree, missing `gh` auth, draft PRs, failing/pending checks, and blocking reviews produce blockers.
 - Tests cover clean local readiness and PR metadata blocker parsing with fake `gh`.
 

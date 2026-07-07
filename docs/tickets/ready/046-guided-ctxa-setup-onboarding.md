@@ -1,7 +1,7 @@
 ---
 id: ticket.context.046
 status: ready
-title: Add guided ctx-aide setup onboarding
+title: Add guided ctxa setup onboarding
 ticket_pack: pack.user-friendly-adoption-onboarding-2026-07-05
 milestones:
   - milestone.user-friendly-adoption-onboarding
@@ -28,7 +28,7 @@ scope:
   flows:
     - workflow.astrotechne-adoption
 context_query:
-  task: "add guided ctx-aide setup onboarding command"
+  task: "add guided ctxa setup onboarding command"
   generated_at: 2026-07-05
   context_ids:
     - workflow.astrotechne-adoption
@@ -49,11 +49,11 @@ completion:
   completed_at: null
 ---
 
-# Add Guided ctx-aide Setup Onboarding
+# Add Guided ctxa Setup Onboarding
 
 ## Outcome
 
-Add `ctx-aide setup` as the user-friendly adoption command that detects target state, previews or writes bootstrap changes, and returns next steps.
+Add `ctxa setup` as the user-friendly adoption command that detects target state, previews or writes bootstrap changes, and returns next steps.
 
 ## Context
 
@@ -79,8 +79,8 @@ Existing adoption primitives are usable but require several commands. Users shou
 
 ## Frozen Decisions
 
-- Decision: top-level command is `ctx-aide setup`.
-- Rationale: setup is easier for first-time users than `ctx-aide adoption bootstrap`.
+- Decision: top-level command is `ctxa setup`.
+- Rationale: setup is easier for first-time users than `ctxa adoption bootstrap`.
 - Decision: `--no-input --json` is the required agent mode.
 - Rationale: agents and automations need deterministic behavior.
 - Decision: setup should return the exact low-level commands it ran or recommends.
@@ -95,13 +95,13 @@ Existing adoption primitives are usable but require several commands. Users shou
 
 ## Scope
 
-- In: `ctx-aide setup --repo <target> --profile auto`, `--write`, `--yes`, `--no-input`, `--json`, readable human output, and structured next commands.
+- In: `ctxa setup --repo <target> --profile auto`, `--write`, `--yes`, `--no-input`, `--json`, readable human output, and structured next commands.
 - Out: full TUI, package registry publish, target code edits, and automatic test/build execution in target repos.
 
 ## Acceptance Criteria
 
-- `ctx-aide setup --repo <fixture> --profile auto --no-input --json` exits nonzero when setup would require confirmation and reports planned changes.
-- `ctx-aide setup --repo <fixture> --profile auto --write --no-input --json` bootstraps the fixture and is idempotent on rerun.
+- `ctxa setup --repo <fixture> --profile auto --no-input --json` exits nonzero when setup would require confirmation and reports planned changes.
+- `ctxa setup --repo <fixture> --profile auto --write --no-input --json` bootstraps the fixture and is idempotent on rerun.
 - TTY mode summarizes detected profile, dirty worktree warnings, planned writes, and next commands.
 - JSON mode includes `ok`, `profile`, `status_before`, `changes`, `warnings`, `next_commands`, and `errors`.
 - Detached stdin never hangs.

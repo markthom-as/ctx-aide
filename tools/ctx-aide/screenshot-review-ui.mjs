@@ -84,7 +84,7 @@ export function defaultCtxAideSettings(overrides = {}) {
   const screenshotFeature = overrides.screenshotFeedbackReviewUi ?? {};
   return {
     config_version: 1,
-    generated_by: "ctx-aide settings",
+    generated_by: "ctxa settings",
     features: {
       [SCREENSHOT_REVIEW_UI_FEATURE_ID]: {
         enabled: Boolean(screenshotFeature.enabled),
@@ -1128,12 +1128,12 @@ export function screenshotReviewUiCommand(args, options = {}) {
       ok: true,
       scope: "feedback review-ui",
       usage: [
-        "ctx-aide settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
-        "ctx-aide feedback review-ui --repo . [--screenshot-dir .ctx-aide/artifacts/screenshots] [--port 0]",
-        "ctx-aide feedback review-ui --repo . --run-dir output/playwright/prod-total-coverage/<run> --port 0",
-        "ctx-aide feedback review-ui --repo . --summary output/run/summary.json --port 0",
-        "ctx-aide feedback review-ui --repo . --plan-only --json",
-        "ctx-aide feedback review-ui --repo . --write-drafts --json",
+        "ctxa settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
+        "ctxa feedback review-ui --repo . [--screenshot-dir .ctx-aide/artifacts/screenshots] [--port 0]",
+        "ctxa feedback review-ui --repo . --run-dir output/playwright/prod-total-coverage/<run> --port 0",
+        "ctxa feedback review-ui --repo . --summary output/run/summary.json --port 0",
+        "ctxa feedback review-ui --repo . --plan-only --json",
+        "ctxa feedback review-ui --repo . --write-drafts --json",
       ],
       notes: [
         "Beta feature: disabled by default in docs/config/ctx-aide.settings.json.",
@@ -1176,12 +1176,12 @@ export function screenshotReviewUiCommand(args, options = {}) {
         settings_path: repoDisplayPath(repoPath, settingsResult.path),
       },
       blockers: [
-        "screenshot feedback review UI is an optional beta feature and is disabled in ctx-aide settings",
+        "screenshot feedback review UI is an optional beta feature and is disabled in ctxa settings",
       ],
       next_commands: [
-        "ctx-aide adoption bootstrap --repo . --enable-screenshot-feedback-ui --write --json",
-        "ctx-aide settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
-        "ctx-aide feedback review-ui --repo . --allow-beta --json",
+        "ctxa adoption bootstrap --repo . --enable-screenshot-feedback-ui --write --json",
+        "ctxa settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
+        "ctxa feedback review-ui --repo . --allow-beta --json",
       ],
       errors: [
         {

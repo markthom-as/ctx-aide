@@ -25,7 +25,7 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
 - Summary: Record the public display name that downstream README, demo, and launch-gate work should use.
 - Positive rules:
   - Use CTX Aide as the public display name for the public-release pack.
-  - Use ctx-aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace.
+  - Use CTX Aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace.
 - Negative rules:
   - Do not reuse Concordat for this project.
   - Do not publish, reserve a package, choose a license, or mutate an external remote as part of the name decision.
@@ -111,7 +111,7 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
 - Summary: Use this repository as the first fixture for the repo-local context, ticket, pack, validation, and agent skill workflow.
 - Positive rules:
   - Update markdown context in the same ticket when intentional behavior changes.
-  - Validate the ctx-aide context graph before committing ticket work.
+  - Validate the CTX Aide context graph before committing ticket work.
 - Negative rules:
   - Do not treat generated indexes as canonical truth.
   - Do not implement a ticket that still requires product or architecture decisions.

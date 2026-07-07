@@ -96,7 +96,7 @@ Policy is not production-ready unless malformed config fails checks and the comm
 
 ## Acceptance Criteria
 
-- `ctx-aide lint --json` reports invalid policy ids and allow/deny overlaps.
+- `ctxa lint --json` reports invalid policy ids and allow/deny overlaps.
 - README shows global and workflow-step policy examples.
 - `make validate` and `make smoke` pass.
 - Pack and ticket completion metadata are updated truthfully.
@@ -104,7 +104,7 @@ Policy is not production-ready unless malformed config fails checks and the comm
 ## Validation
 
 - Automated: frontmatter commands.
-- Smoke: `ctx-aide tools list` and `ctx-aide tools check`.
+- Smoke: `ctxa tools list` and `ctxa tools check`.
 - Screenshots: none.
 
 ## Implementation Notes

@@ -47,9 +47,10 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 ## Current Decisions
 
 - Public display name: `CTX Aide`.
-- CLI command: `ctx-aide`.
+- CLI command: `ctxa`.
 - Source repository namespace: `ctx-aide`.
 - Intended npm package name: `ctx-aide`.
+- Intended installed binary name: `ctxa`.
 - Package status: local package metadata is prepared, but `private: true` remains the safety gate.
 - Cargo status: no Rust crate exists in this repository. crates.io publication is blocked until a Cargo package shape is designed and implemented.
 - Cost delta: `$0/month`. This work changes docs and local package metadata only.
@@ -78,7 +79,10 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 Last checked on 2026-07-07:
 
 - `npm view ctx-aide name version description --json` returned npm 404, which indicates no public package was visible to this environment at check time.
+- `npm view ctxa name version description --json` returned npm 404, which indicates no public package was visible to this environment at check time.
 - `cargo search ctx-aide --limit 5` returned no matches.
+- `cargo search ctxa --limit 5` returned no matches.
+- `cargo publish --dry-run --allow-dirty` failed before packaging because this repository has no `Cargo.toml`.
 
 Registry state can change. Recheck immediately before any publishing ticket claims name availability.
 
@@ -88,7 +92,8 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 - `package.json` uses the intended npm package name `ctx-aide`.
 - The npm package payload is constrained with an explicit `files` allowlist instead of relying on `.gitignore` fallback.
 - `npm pack --dry-run --json` is the packaging proof surface for the current Node CLI.
-- Existing `ctx-aide` checks cover docs, tickets, packs, future-work, LOC policy, skill validation, and local smoke behavior.
+- `npm link --dry-run` proves the local package can install a single `ctxa` binary without publishing.
+- Existing `ctxa` checks cover docs, tickets, packs, future-work, LOC policy, skill validation, and local smoke behavior.
 
 ## What Is Not Ready
 
@@ -103,13 +108,17 @@ Before posting publicly or publishing packages, rerun and record these registry 
 
 ```sh
 npm view ctx-aide name version description --json
+npm view ctxa name version description --json
 cargo search ctx-aide --limit 5
+cargo search ctxa --limit 5
+cargo publish --dry-run --allow-dirty
 ```
 
 Then rerun the green validation gates:
 
 ```sh
 npm pack --dry-run --json
+npm link --dry-run
 node tools/ctx-aide/ctx-aide.mjs scan --json
 node tools/ctx-aide/ctx-aide.mjs spec check --json
 node tools/ctx-aide/ctx-aide.mjs ticket check --json
@@ -126,7 +135,7 @@ An npm publishing ticket must include:
 
 - License decision and file.
 - Package owner or npm organization.
-- Confirmed `ctx-aide` registry availability immediately before publish.
+- Confirmed `ctx-aide` package-name and `ctxa` binary/crate-name registry availability immediately before publish.
 - Package payload review from `npm pack --dry-run --json`.
 - Decision to remove `private: true`.
 - `npm publish --dry-run` evidence before any real publish.

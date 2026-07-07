@@ -35,7 +35,7 @@ Add a workflow dependency contract so ctx-aide can check and write repo-local pi
 ## Scope
 
 - Included:
-  - `ctx-aide workflow deps`.
+  - `ctxa workflow deps`.
   - Browser-validation workflow dependency declaration.
   - README and tests.
 - Excluded:

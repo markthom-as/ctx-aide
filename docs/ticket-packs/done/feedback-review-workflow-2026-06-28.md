@@ -35,9 +35,9 @@ Add a repo-local feedback review loop for ticket validation artifacts and operat
 ## Scope
 
 - Included:
-  - `ctx-aide feedback review` review packets.
-  - `ctx-aide feedback capture` markdown feedback entries.
-  - `ctx-aide feedback promote` acceptance-criteria and follow-up-ticket promotion.
+  - `ctxa feedback review` review packets.
+  - `ctxa feedback capture` markdown feedback entries.
+  - `ctxa feedback promote` acceptance-criteria and follow-up-ticket promotion.
   - Workflow docs and fixture tests.
 - Excluded:
   - Hosted review UI.

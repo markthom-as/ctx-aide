@@ -1,7 +1,7 @@
 ---
 id: ticket.context.002
 status: done
-title: Implement ctx-aide scan query lint CLI foundation
+title: Implement ctxa scan query lint CLI foundation
 ticket_pack: pack.ctx-aide-mvp
 milestones:
   - milestone.ctx-aide-mvp
@@ -30,7 +30,7 @@ scope:
   flows:
     - flow.ctx-aide-dogfood
 context_query:
-  task: "Implement ctx-aide scan query lint CLI foundation"
+  task: "Implement ctxa scan query lint CLI foundation"
   generated_at: 2026-06-25
   context_ids:
     - pack.ctx-aide-mvp
@@ -95,9 +95,9 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 ## Scope
 
 - In:
-  - Implement `ctx-aide scan --json`.
-  - Implement `ctx-aide query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
-  - Implement `ctx-aide lint --json`, `ctx-aide ticket check --json`, and `ctx-aide pack check --json`.
+  - Implement `ctxa scan --json`.
+  - Implement `ctxa query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
+  - Implement `ctxa lint --json`, `ctxa ticket check --json`, and `ctxa pack check --json`.
   - Generate `docs/context/generated/context-manifest.json`.
   - Preserve positive and negative rule polarity.
 - Out:
@@ -121,7 +121,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 
 - Parallel group: `cli-a`.
 - Dependencies: `ticket.context.001`.
-- Expected commit message: `Implement ctx-aide CLI foundation`.
+- Expected commit message: `Implement ctxa CLI foundation`.
 
 ## Completion
 

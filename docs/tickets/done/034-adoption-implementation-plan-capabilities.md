@@ -53,7 +53,7 @@ Generated adoption tickets can declare capability workflow/step metadata, and im
 
 ## Context
 
-Agents currently need to call `ctx-aide tools policy` separately and infer which workflow/step applies to a ticket.
+Agents currently need to call `ctxa tools policy` separately and infer which workflow/step applies to a ticket.
 
 ## Positive Rules
 
@@ -92,8 +92,8 @@ Agents currently need to call `ctx-aide tools policy` separately and infer which
 
 ## Acceptance Criteria
 
-- `ctx-aide adoption ticket --capability-workflow ... --capability-step ...` writes metadata into the ticket.
-- `ctx-aide adoption implementation-plan` returns capability workflow, step, policy, and check command.
+- `ctxa adoption ticket --capability-workflow ... --capability-step ...` writes metadata into the ticket.
+- `ctxa adoption implementation-plan` returns capability workflow, step, policy, and check command.
 - Legacy tickets without metadata still return a global/default policy envelope.
 - Command-line workflow/step overrides work without editing a ticket.
 
@@ -105,7 +105,7 @@ Agents currently need to call `ctx-aide tools policy` separately and infer which
 
 ## Implementation Notes
 
-Do not make denied capabilities fail implementation-plan; planning should show policy, while `ctx-aide tools check` remains the failing guard.
+Do not make denied capabilities fail implementation-plan; planning should show policy, while `ctxa tools check` remains the failing guard.
 
 ## Completion
 

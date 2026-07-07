@@ -33,7 +33,7 @@ Astrotechne should preserve these conventions:
 
 ## Adoption Strategy
 
-Use ctx-aide as an overlay first.
+Use CTX Aide as an overlay first.
 
 1. Install ctx-aide scaffolding into Astrotechne without moving existing tickets.
 2. Add `docs/context` entries for high-regression surfaces:
@@ -68,7 +68,7 @@ Before daily Astrotechne use, ctx-aide should add:
 3. Capture context entries for the current feature area.
 4. Run Semble discovery against Astrotechne to connect context to files and packet examples.
 5. Draft and harden the spec.
-6. Create a native Astrotechne packet with `ctx-aide adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title "<pack>" --slug <pack-slug> --write --json`.
+6. Create a native Astrotechne packet with `ctxa adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title "<pack>" --slug <pack-slug> --write --json`.
 7. Generate atomic implementation tickets with Astrotechne validation commands, using the packet slug when the tickets belong inside that packet.
 8. Implement in parallel lanes where write sets are disjoint.
 9. Validate with focused tests, screenshots for UI, `npm run tickets:status`, typecheck/build as relevant, and route smoke.
@@ -79,8 +79,8 @@ Before daily Astrotechne use, ctx-aide should add:
 
 Before using ctx-aide on production code:
 
-1. Run `ctx-aide adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json`.
+1. Run `ctxa adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json`.
 2. Resolve bootstrap blockers before generating production-code tickets.
-3. Keep dirty target worktree warnings visible; do not stage unrelated target changes into ctx-aide adoption commits.
-4. Create the packet with `ctx-aide adoption pack` before creating tickets.
+3. Keep dirty target worktree warnings visible; do not stage unrelated target changes into ctxa adoption commits.
+4. Create the packet with `ctxa adoption pack` before creating tickets.
 5. Create tickets with both `--pack <pack-id>` and `--pack-slug <pack-slug>` so the ticket file lands in the packet directory.

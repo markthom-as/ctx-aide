@@ -33,7 +33,7 @@ Add a smart terminal UI that guides operators through configuring workflow valid
 
 ## Questions Before Promotion
 
-- Should the TUI support only validation config or all ctx-aide workflow config?
+- Should the TUI support only validation config or all ctxa workflow config?
 - Should it detect available app routes and recommend route-specific validation matrices?
 - Should it generate Playwright project entries, ctx-aide config only, or both?
 

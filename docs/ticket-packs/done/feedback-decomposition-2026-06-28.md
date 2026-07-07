@@ -35,7 +35,7 @@ Add a planning step that decomposes natural operator feedback into candidate tic
 ## Scope
 
 - Included:
-  - `ctx-aide feedback plan`.
+  - `ctxa feedback plan`.
   - Capture response decomposition metadata.
   - Feedback review workflow guidance.
   - Fixture coverage.

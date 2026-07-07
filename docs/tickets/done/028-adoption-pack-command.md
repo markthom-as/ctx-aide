@@ -48,7 +48,7 @@ completion:
 
 ## Outcome
 
-Add `ctx-aide adoption pack` so target repos can get a reviewable pack artifact before generated tickets are created.
+Add `ctxa adoption pack` so target repos can get a reviewable pack artifact before generated tickets are created.
 
 ## Context
 
@@ -58,7 +58,7 @@ Astrotechne uses packet directories with `README.md`. Creating standalone ticket
 
 - Preserve target profile conventions.
 - Create Astrotechne packs as `docs/domain-redesign/tickets/<slug>/README.md`.
-- Keep default and Wetware packs as ctx-aide-style markdown under `docs/ticket-packs`.
+- Keep default and Wetware packs as CTX Aide-style markdown under `docs/ticket-packs`.
 
 ## Negative Rules
 
@@ -90,7 +90,7 @@ Astrotechne uses packet directories with `README.md`. Creating standalone ticket
 
 ## Acceptance Criteria
 
-- `ctx-aide adoption pack --repo <target> --profile astrotechne --slug <slug> --write --json` creates a packet README path.
+- `ctxa adoption pack --repo <target> --profile astrotechne --slug <slug> --write --json` creates a packet README path.
 - Dry-run reports planned path without writing.
 - Fixture tests verify no overwrite without `--force`.
 

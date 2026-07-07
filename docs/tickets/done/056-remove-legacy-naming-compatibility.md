@@ -73,7 +73,7 @@ Remove the old naming compatibility path and align tracked repo text, command ex
 ## Positive Rules
 
 - Use `CTX Aide` for the display name.
-- Use `ctx-aide` for command names, package/bin names, config names, capability ids, skill names, filenames, and markdown metadata ids.
+- Use `ctx-aide` for package names, config names, skill names, filenames, and markdown metadata ids. `ticket.context.057` later changes the installed command to `ctxa`.
 - Treat `<!-- ctx-aide: ignore -->` as the only first-line scan-ignore sentinel.
 
 ## Negative Rules
@@ -91,7 +91,7 @@ Remove the old naming compatibility path and align tracked repo text, command ex
 
 ## Frozen Decisions
 
-- Only the `ctx-aide` command/bin is supported.
+- Only the `ctxa` command/bin is supported.
 - Only `<!-- ctx-aide: ignore -->` is recognized as the first-line scan-ignore sentinel.
 - Historical markdown ids and evidence text are normalized to `ctx-aide` for public consistency.
 - Cost delta: `$0/month`.

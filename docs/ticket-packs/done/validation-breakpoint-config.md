@@ -35,7 +35,7 @@ Add configurable browser validation breakpoints with defaults and a generated va
 ## Scope
 
 - Included:
-  - `ctx-aide workflow validation-plan`.
+  - `ctxa workflow validation-plan`.
   - Default breakpoint catalog.
   - `docs/config/ctx-aide.validation.json`.
   - Browser workflow breakpoint metadata.

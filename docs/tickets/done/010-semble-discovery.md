@@ -94,7 +94,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 ## Scope
 
 - In:
-  - Add `ctx-aide discover --backend semble --task <text> --repo <path> --json`.
+  - Add `ctxa discover --backend semble --task <text> --repo <path> --json`.
   - Fall back to `uvx --from "semble[mcp]" semble` when `semble` is not on PATH.
   - Persist bounded code discovery metadata in ticket hydration.
   - Document when agents should use Semble versus exact path context queries.

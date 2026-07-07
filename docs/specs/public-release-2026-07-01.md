@@ -38,7 +38,7 @@ Prepare CTX Aide, with the `ctx-aide` repo and tooling namespace, for a credible
 - Rationale: a half-prepared public repo weakens the portfolio signal and increases risk of leaking private workflow traces or confusing readers.
 - Regression risk: delaying visibility can slow application support; mitigate by keeping the release pack atomic and parallelizable.
 
-- Decision: `CTX Aide` is the public display name and `ctx-aide` is the repository directory, CLI command, local skill, config-prefix, generated-rule, and package-facing namespace.
+- Decision: `CTX Aide` is the public display name, `ctx-aide` is the repository directory, local skill, config-prefix, generated-rule, and package-facing namespace, and `ctxa` is the installed CLI command.
 - Rationale: one namespace removes stale split-brain naming before outside review, while CTX Aide still describes the repo-local helper that gives coding agents context, tickets, decisions, validation, and handoff rules.
 - Regression risk: renaming can break command references and docs; mitigate with a dedicated rename ticket, compatibility handling for old ignore sentinels, and full validation before publication.
 

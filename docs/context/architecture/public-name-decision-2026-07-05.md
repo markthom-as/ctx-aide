@@ -15,7 +15,7 @@ tags:
   - positioning
 positive_rules:
   - Use CTX Aide as the public display name for the public-release pack.
-  - Use ctx-aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace.
+  - Use CTX Aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace.
 negative_rules:
   - Do not reuse Concordat for this project.
   - Do not publish, reserve a package, choose a license, or mutate an external remote as part of the name decision.
@@ -43,14 +43,15 @@ Record the public display name that downstream README, demo, and launch-gate wor
 
 Use **CTX Aide** as the public display name for this release.
 
-Use `ctx-aide` as the repository directory, CLI command, package-facing name, config-prefix, generated-rule, and local skill namespace.
+Use `ctx-aide` as the repository directory, package-facing name, config-prefix, generated-rule, and local skill namespace. Use `ctxa` as the installed CLI command.
 
 `ticket.context.055` supersedes the earlier deferral that preserved the old repository/tool namespace until a later rename ticket. Registry publishing and external remote changes are still separate launch decisions.
 
 ## Positive Rules
 
 - Use CTX Aide as the public display name in public-facing release copy.
-- Use `ctx-aide` for package-facing, command, path, config, skill, and generated-rule references.
+- Use `ctx-aide` for package-facing, path, config, skill, and generated-rule references.
+- Use `ctxa` for executable command references.
 - Keep publication claims gated until owner, license, registry, and GitHub decisions are explicit.
 
 ## Negative Rules
@@ -63,7 +64,7 @@ Use `ctx-aide` as the repository directory, CLI command, package-facing name, co
 
 CTX Aide describes the system as a practical context aide for coding agents: it keeps markdown context, specs, tickets, validation, and handoff rules beside the code so agents can implement from durable repo truth.
 
-The name is simple, agent-adjacent, and pragmatic. It keeps the `ctx-aide` machine-facing identity aligned with the public display name, avoids governance language, and is broad enough to cover markdown context, generated agent packs, validation gates, adoption workflows, and future workflow hardening without implying a hosted service or paid control plane.
+The name is simple, agent-adjacent, and pragmatic. It keeps the `ctx-aide` package-facing identity and the `ctxa` command aligned with the public display name, avoids governance language, and is broad enough to cover markdown context, generated agent packs, validation gates, adoption workflows, and future workflow hardening without implying a hosted service or paid control plane.
 
 ## Candidate Review
 
@@ -96,7 +97,7 @@ If a future ticket turns CTX Aide into a published package, domain, or commercia
 ## Rename Implications
 
 - README and public docs should lead with `CTX Aide`.
-- Command examples should use `node tools/ctx-aide/ctx-aide.mjs` and `ctx-aide`.
+- Command examples should use `node tools/ctx-aide/ctx-aide.mjs` for repo-local development and `ctxa` for installed CLI usage.
 - Generated artifacts under `docs/context/generated/` remain cache/build artifacts and do not need a rename.
 - The GitHub repository should use `ctx-aide` if the launch gate proceeds, with `CTX Aide` as the display title and description.
 - A later publishing/onboarding ticket may use `ctx-aide` for package-manager install instructions only after owner, license, registry, and publish decisions are explicit.
@@ -104,7 +105,7 @@ If a future ticket turns CTX Aide into a published package, domain, or commercia
 ## Implementation Rules
 
 - README and launch metadata can introduce CTX Aide as the public name.
-- Technical documentation should use `ctx-aide` when it refers to the current repository, command namespace, paths, config files, skill, or generated artifacts.
+- Technical documentation should use `ctx-aide` when it refers to the current repository, package namespace, paths, config files, skill, or generated artifacts, and `ctxa` when it refers to the executable command.
 - Future package, domain, or trademark work must run a fresh collision review before publishing under the selected name.
 
 ## Validation

@@ -84,7 +84,7 @@ The public release should quickly explain what the project does, why it exists, 
 ## Implementation Rules
 
 - Required approach: revise README structure for public consumption while preserving existing operational truth.
-- Existing components/helpers to use: existing README sections, workflow docs, `ctx-aide` command list, and generated context model.
+- Existing components/helpers to use: existing README sections, workflow docs, `ctxa` command list, and generated context model.
 - Anti-patterns to avoid: marketing-only README with no quickstart or proof.
 - Stop and escalate if: public docs require a package/command rename not resolved by `ticket.context.040`.
 
@@ -101,7 +101,7 @@ The public release should quickly explain what the project does, why it exists, 
 
 ## Validation
 
-- Automated: frontmatter `ctx-aide` checks.
+- Automated: frontmatter `ctxa` checks.
 - Smoke: follow the README quickstart commands against the local repo.
 - Screenshots: none.
 

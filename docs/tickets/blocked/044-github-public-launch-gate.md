@@ -91,7 +91,7 @@ This is the final ticket in the public-release pack. It must not run until the n
 ## Implementation Rules
 
 - Required approach: verify upstream tickets, run full validation, prepare GitHub metadata, create or update remote if approved, verify public URL, then update public links.
-- Existing components/helpers to use: `ctx-aide` checks, `make validate`, `make smoke`, GitHub CLI if authenticated.
+- Existing components/helpers to use: `ctxa` checks, `make validate`, `make smoke`, GitHub CLI if authenticated.
 - Anti-patterns to avoid: public visibility before safety proof, stale profile links, or unpublished local-only launch notes.
 - Stop and escalate if: GitHub repo creation/visibility requires a decision about owner/org, naming, license, unresolved safety risk, or paid infrastructure.
 

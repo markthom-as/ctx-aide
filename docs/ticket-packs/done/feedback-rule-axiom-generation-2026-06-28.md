@@ -35,8 +35,8 @@ Generate candidate rules and axioms from durable operator feedback wording.
 ## Scope
 
 - Included:
-  - Rule and axiom candidates in `ctx-aide feedback plan`.
-  - Rule and axiom candidates in `ctx-aide feedback capture`.
+  - Rule and axiom candidates in `ctxa feedback plan`.
+  - Rule and axiom candidates in `ctxa feedback capture`.
   - Rule and axiom carry-through into generated follow-up tickets.
   - Workflow docs and fixture tests.
 - Excluded:

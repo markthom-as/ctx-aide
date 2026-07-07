@@ -84,7 +84,7 @@ The public-release pack must not rely on a shallow working-tree scan. This proje
 ## Implementation Rules
 
 - Required approach: run available secret/history scans, inspect generated artifacts, review license/dependency surfaces, and write a concise audit note with commands and findings.
-- Existing components/helpers to use: `ctx-aide` checks, `rg`, `git log`, and any installed secret scanners.
+- Existing components/helpers to use: `ctxa` checks, `rg`, `git log`, and any installed secret scanners.
 - Anti-patterns to avoid: relying only on a current working-tree grep.
 - Stop and escalate if: real credentials, client/private data, or sensitive personal workflow traces are discovered in current files or history.
 

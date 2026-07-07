@@ -71,7 +71,7 @@ Make ctx-aide safer and more complete for target-repo dogfooding before it is us
 
 ## Pack Validation
 
-- Smoke tests: target fixture adoption flow, target Astrotechne dry-run, and `ctx-aide adoption status`.
+- Smoke tests: target fixture adoption flow, target Astrotechne dry-run, and `ctxa adoption status`.
 - Screenshots: not applicable.
 - Full regression checks: `make validate` and `make smoke`.
 

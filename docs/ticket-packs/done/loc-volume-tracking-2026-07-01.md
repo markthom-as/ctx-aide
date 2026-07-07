@@ -30,7 +30,7 @@ completion:
 
 ## Outcome
 
-CTX Aide can measure and enforce path-scoped LOC volume targets through the local `ctx-aide` command surface.
+CTX Aide can measure and enforce path-scoped LOC volume targets through the local `ctxa` command surface.
 
 ## Scope
 
@@ -58,7 +58,7 @@ CTX Aide can measure and enforce path-scoped LOC volume targets through the loca
 
 ## Pack Validation
 
-- Smoke tests: `ctx-aide loc --json` and `ctx-aide loc check --json`.
+- Smoke tests: `ctxa loc --json` and `ctxa loc check --json`.
 - Screenshots: not applicable.
 - Full regression checks: `make validate`.
 

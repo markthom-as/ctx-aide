@@ -68,7 +68,7 @@ The screenshot feedback review UI was added as local tooling. It should not beco
 
 - Seed screenshot review UI settings during onboarding with the feature disabled by default.
 - Provide a settings command that can inspect and update the beta opt-in.
-- Require explicit opt-in before `ctx-aide feedback review-ui` starts in a target repo.
+- Require explicit opt-in before `ctxa feedback review-ui` starts in a target repo.
 
 ## Negative Rules
 
@@ -99,14 +99,14 @@ The screenshot feedback review UI was added as local tooling. It should not beco
 ## Scope
 
 - In: settings config, onboarding bootstrap flag, status reporting, review UI gate, docs, tests, and closeout metadata.
-- Out: a full interactive `ctx-aide setup` TUI and hosted settings UI.
+- Out: a full interactive `ctxa setup` TUI and hosted settings UI.
 
 ## Acceptance Criteria
 
 - Adoption bootstrap writes beta settings with screenshot review UI disabled by default.
-- `ctx-aide settings get` reports the feature as beta and disabled by default.
-- `ctx-aide settings set --feature screenshot-feedback-review-ui --enabled true --write` enables the feature.
-- `ctx-aide feedback review-ui` reports a blocker when the beta feature is disabled.
+- `ctxa settings get` reports the feature as beta and disabled by default.
+- `ctxa settings set --feature screenshot-feedback-review-ui --enabled true --write` enables the feature.
+- `ctxa feedback review-ui` reports a blocker when the beta feature is disabled.
 - The feature can still be one-shot tested with an explicit beta override.
 
 ## Validation

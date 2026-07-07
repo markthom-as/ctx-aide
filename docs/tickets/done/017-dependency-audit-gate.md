@@ -40,7 +40,7 @@ validation:
     - Run `make validate`.
     - Run `node tools/ctx-aide/ctx-aide.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`.
   smoke:
-    - Confirm `ctx-aide ticket check` fails a done dependency-upgrade ticket without cleared audit metadata.
+    - Confirm `ctxa ticket check` fails a done dependency-upgrade ticket without cleared audit metadata.
   screenshots: []
 completion:
   commit: dependency-audit-gate-change
@@ -77,7 +77,7 @@ The Wetware Gallery dependency work showed that "sweep findings implemented" and
 ## Frozen Decisions
 
 - Dependency tickets opt into the gate with `work_type: dependency-upgrade` or `work_type: dependency-sweep`.
-- `ctx-aide dependency audit` runs a caller-provided audit command and records bounded evidence.
+- `ctxa dependency audit` runs a caller-provided audit command and records bounded evidence.
 - A done dependency-upgrade ticket must record cleared audit metadata in frontmatter.
 
 ## Implementation Rules
@@ -90,7 +90,7 @@ The Wetware Gallery dependency work showed that "sweep findings implemented" and
 ## Scope
 
 - In:
-  - `ctx-aide dependency audit`.
+  - `ctxa dependency audit`.
   - Dependency-upgrade ticket completion validation.
   - README and tests.
 - Out:
@@ -101,7 +101,7 @@ The Wetware Gallery dependency work showed that "sweep findings implemented" and
 
 - A passing audit command returns `audit_cleared: true`.
 - A failing audit command returns vulnerability counts when parseable and exits non-zero.
-- `ctx-aide ticket check` rejects a done dependency-upgrade ticket without cleared audit metadata.
+- `ctxa ticket check` rejects a done dependency-upgrade ticket without cleared audit metadata.
 
 ## Validation
 

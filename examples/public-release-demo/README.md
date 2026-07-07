@@ -29,14 +29,14 @@ make smoke
 2. `docs/specs/public-release-2026-07-01.md` records the release goal, affected surfaces, decisions, safeguards, and ticket plan.
 3. `docs/ticket-packs/active/public-release-2026-07-01.md` records the execution policy, dependency order, parallel groups, and current ticket status.
 4. `docs/tickets/done/040-public-name-decision.md` shows a completed ticket with scope, rules, acceptance criteria, commit metadata, and validation evidence.
-5. `docs/context/generated/context-manifest.json` is a generated artifact from `ctx-aide scan`; it is useful for agents, but markdown remains canonical.
+5. `docs/context/generated/context-manifest.json` is a generated artifact from `ctxa scan`; it is useful for agents, but markdown remains canonical.
 
 ## Expected Result
 
-- `ctx-aide scan` reports `ok: true` and writes the generated manifest and SQLite cache.
-- `ctx-aide query` returns the public-release context entries most relevant to the README.
-- `ctx-aide pack status` reports the public-release pack and its ticket counts.
-- `ctx-aide ticket check` and `ctx-aide pack check` report no structural errors.
+- `ctxa scan` reports `ok: true` and writes the generated manifest and SQLite cache.
+- `ctxa query` returns the public-release context entries most relevant to the README.
+- `ctxa pack status` reports the public-release pack and its ticket counts.
+- `ctxa ticket check` and `ctxa pack check` report no structural errors.
 - `make smoke` runs the full local smoke path: validation, scan, query smoke, and doctor.
 
 If any command fails, inspect the referenced markdown or config file first. CTX Aide is designed so broken workflow truth is fixed in markdown before agents continue implementation.

@@ -29,7 +29,7 @@ Make ctx-aide aware of agent runtime tools and skills, with repo-local policy fo
 
 ## Existing Context
 
-- `ctx-aide workflow deps/views/validation-plan` already exposes workflow readiness as structured JSON.
+- `ctxa workflow deps/views/validation-plan` already exposes workflow readiness as structured JSON.
 - Workflow dependencies describe repo-pinned runtime prerequisites, while agent capabilities are supplied by the invoking agent environment and should be policy-gated rather than installed.
 - Staff-review hardening requires parseable output, non-interactive commands, and lint-enforced config.
 
@@ -47,7 +47,7 @@ Make ctx-aide aware of agent runtime tools and skills, with repo-local policy fo
 
 ## Design Decisions
 
-- Decision: expose `ctx-aide tools list`, `ctx-aide tools policy`, and `ctx-aide tools check` JSON commands.
+- Decision: expose `ctxa tools list`, `ctxa tools policy`, and `ctxa tools check` JSON commands.
 - Components/tokens to use: existing CLI output helpers and command naming.
 - Anti-patterns to avoid: human-only prose policy, prompts, shell execution, and unbounded capability dumps.
 

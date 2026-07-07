@@ -43,9 +43,9 @@ validation:
     - node tools/ctx-aide/ctx-aide.mjs pack check --json
     - make validate
   smoke:
-    - ctx-aide --help
-    - ctx-aide setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
-    - ctx-aide setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
+    - ctxa --help
+    - ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
+    - ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
   screenshots: []
 completion:
   commit: pending
@@ -81,7 +81,7 @@ The implementation tickets add packaging, setup, and profile behavior. This tick
 
 ## Frozen Decisions
 
-- Decision: README should present `ctx-aide setup` as the first adoption command.
+- Decision: README should present `ctxa setup` as the first adoption command.
 - Rationale: this matches the desired user-friendly process.
 - Decision: Astrotechne workflow docs should keep advanced low-level commands after the happy path.
 - Rationale: the low-level commands remain useful for agents and troubleshooting.
@@ -102,7 +102,7 @@ The implementation tickets add packaging, setup, and profile behavior. This tick
 
 - README has a concise install-and-setup section.
 - Astrotechne adoption workflow starts with the new setup path.
-- Smoke commands prove the installed or linked `ctx-aide` command can run setup for web and engine targets in no-input JSON mode.
+- Smoke commands prove the installed or linked `ctxa` command can run setup for web and engine targets in no-input JSON mode.
 - Pack completion metadata lists final validation evidence.
 
 ## Validation

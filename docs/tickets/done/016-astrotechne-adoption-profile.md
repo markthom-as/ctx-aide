@@ -99,7 +99,7 @@ Astrotechne already has a mature markdown ticket tree, packet README convention,
 
 ## Acceptance Criteria
 
-- `ctx-aide customize --profile astrotechne --dry-run --json` returns a valid profile.
+- `ctxa customize --profile astrotechne --dry-run --json` returns a valid profile.
 - README documents the Astrotechne overlay adoption path.
 - Workflow note captures Astrotechne ticket root, statuses, packet convention, and rollout steps.
 

@@ -79,7 +79,7 @@ Operators often give several separate feedback points in one chat response. The 
 
 ## Frozen Decisions
 
-- Command: `ctx-aide feedback plan`.
+- Command: `ctxa feedback plan`.
 - Mutation boundary: planning is read-only; capture and promote still require `--write`.
 - Agent behavior: ask clarifying questions with suggested interpretations before implementation when the plan is ambiguous.
 
@@ -93,8 +93,8 @@ Operators often give several separate feedback points in one chat response. The 
 ## Scope
 
 - In:
-  - No-write `ctx-aide feedback plan`.
-  - Split metadata in `ctx-aide feedback capture`.
+  - No-write `ctxa feedback plan`.
+  - Split metadata in `ctxa feedback capture`.
   - Feedback workflow documentation.
   - Tests for multi-point feedback and further-split suggestions.
 - Out:
@@ -103,11 +103,11 @@ Operators often give several separate feedback points in one chat response. The 
 
 ## Acceptance Criteria
 
-- `ctx-aide feedback plan` splits bullet-list feedback into separate points.
+- `ctxa feedback plan` splits bullet-list feedback into separate points.
 - The plan suggests promotion modes and ticket titles.
 - The plan flags mixed points for further splitting.
 - The plan includes suggested user prompts for clarification.
-- `ctx-aide feedback capture` returns decomposition metadata.
+- `ctxa feedback capture` returns decomposition metadata.
 
 ## Validation
 

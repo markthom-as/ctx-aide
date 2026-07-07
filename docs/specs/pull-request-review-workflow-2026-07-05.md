@@ -29,7 +29,7 @@ Add a first-class workflow for agents to review GitHub pull requests with `git` 
 
 ## Existing Context
 
-- Workflow markdown files are validated by `ctx-aide lint`.
+- Workflow markdown files are validated by `ctxa lint`.
 - Tool policy can resolve workflow and step-level capability decisions.
 - Feedback review already defines how agent review feedback becomes ticket acceptance criteria or follow-up tickets.
 - Tickets remain the source of truth for scoped fixes and completion metadata.
@@ -43,7 +43,7 @@ Add a first-class workflow for agents to review GitHub pull requests with `git` 
 ## Architecture Decisions
 
 - Decision: model `git` and `github-cli` as workflow dependencies.
-- Rationale: `ctx-aide workflow deps` should prove whether the local command surface exists before an agent attempts PR work.
+- Rationale: `ctxa workflow deps` should prove whether the local command surface exists before an agent attempts PR work.
 - Rejected alternatives: using the GitHub connector as the default PR mutation path, or leaving `gh` availability as prose-only guidance.
 
 ## Design Decisions

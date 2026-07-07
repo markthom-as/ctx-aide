@@ -89,7 +89,7 @@ Choose a public name for ctx-aide and document the decision so downstream public
 ## Implementation Rules
 
 - Required approach: create or update a repo-local markdown decision note under `docs/context` or the public-release spec with the chosen name, candidate shortlist, rejected names, and rename implications.
-- Existing components/helpers to use: spec/pack/ticket metadata and `ctx-aide` checks.
+- Existing components/helpers to use: spec/pack/ticket metadata and `ctxa` checks.
 - Anti-patterns to avoid: choosing a name only because it sounds good without checking collision risk.
 - Stop and escalate if: the name decision requires legal/trademark review or the user wants a personal brand direction.
 
@@ -106,7 +106,7 @@ Choose a public name for ctx-aide and document the decision so downstream public
 
 ## Validation
 
-- Automated: frontmatter `ctx-aide` checks listed above.
+- Automated: frontmatter `ctxa` checks listed above.
 - Smoke: no runtime smoke required.
 - Screenshots: none.
 

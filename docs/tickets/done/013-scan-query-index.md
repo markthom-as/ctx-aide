@@ -98,10 +98,10 @@ This ticket is part of `pack.ctx-aide-mvp` and narrows the CLI work into an inde
 ## Scope
 
 - In:
-  - Implement `ctx-aide scan --json`.
+  - Implement `ctxa scan --json`.
   - Generate `docs/context/generated/context-manifest.json`.
   - Generate or refresh local SQLite index.
-  - Implement `ctx-aide query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
+  - Implement `ctxa query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
 - Out:
   - Implement agent-pack export.
   - Implement run orchestration.

@@ -35,9 +35,9 @@ Add logged-out/logged-in browser view-state management and redacted credential/s
 ## Scope
 
 - Included:
-  - `ctx-aide workflow views`.
-  - `ctx-aide credentials check`.
-  - `ctx-aide credentials import-browser-state`.
+  - `ctxa workflow views`.
+  - `ctxa credentials check`.
+  - `ctxa credentials import-browser-state`.
   - Browser workflow view and credential metadata.
   - `.ctx-aide/` ignore rule.
 - Excluded:
@@ -68,8 +68,8 @@ Add logged-out/logged-in browser view-state management and redacted credential/s
 
 - Smoke tests:
   - `make validate`
-  - Env-backed `ctx-aide workflow views` ready state.
-  - Redacted `ctx-aide credentials import-browser-state` command.
+  - Env-backed `ctxa workflow views` ready state.
+  - Redacted `ctxa credentials import-browser-state` command.
 - Screenshots:
   - Not required.
 - Full regression checks:

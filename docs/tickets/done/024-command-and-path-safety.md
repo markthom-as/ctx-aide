@@ -99,7 +99,7 @@ The CLI currently exposes local-agent conveniences that a reviewer can reasonabl
 ## Validation
 
 - Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
-- Smoke: hydrate this ticket with `ctx-aide ticket hydrate`.
+- Smoke: hydrate this ticket with `ctxa ticket hydrate`.
 - Screenshots: none.
 
 ## Implementation Notes

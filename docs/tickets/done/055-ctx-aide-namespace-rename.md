@@ -66,7 +66,7 @@ validation:
     - make validate
     - make smoke
   smoke:
-    - ctx-aide --help after local npm link dry-run surface is valid
+    - ctxa --help after local npm link dry-run surface is valid
   screenshots: []
 completion:
   commit: current-change
@@ -86,7 +86,7 @@ Rename the current public and local tooling namespace to `ctx-aide` before publi
 ## Positive Rules
 
 - Use `CTX Aide` for the public display name.
-- Use `ctx-aide` for the repository directory, executable command, package-facing name, local skill name, config filenames, generated rule filename, and current validation commands.
+- Use `ctx-aide` for the repository directory, package-facing name, local skill name, config filenames, and generated rule filename. `ticket.context.057` later changes the installed command to `ctxa`.
 - Keep generated SQLite and agent packs rebuildable from markdown.
 - Require the `<!-- ctx-aide: ignore -->` scan sentinel for first-line markdown exclusion.
 
@@ -108,7 +108,7 @@ Rename the current public and local tooling namespace to `ctx-aide` before publi
 
 - Public display name: `CTX Aide`.
 - Repo/tool namespace: `ctx-aide`.
-- CLI command: `ctx-aide`; no legacy command alias is kept in this package.
+- CLI command: `ctxa`; no legacy command alias is kept in this package.
 - Only `<!-- ctx-aide: ignore -->` is accepted as the scan-ignore sentinel.
 - Cost delta: `$0/month`; this ticket changes local files and the local checkout directory only.
 
@@ -125,8 +125,8 @@ Rename the current public and local tooling namespace to `ctx-aide` before publi
 
 ## Acceptance Criteria
 
-- `package.json` exposes a `ctx-aide` bin backed by `tools/ctx-aide/ctx-aide.mjs`.
-- First-party current docs and validation commands use `ctx-aide`.
+- `package.json` exposes a single bin backed by `tools/ctx-aide/ctx-aide.mjs`.
+- First-party current docs and validation commands use the canonical installed command.
 - Active public-release ticket/pack/spec metadata is coherent after the rename.
 - The scanner accepts `<!-- ctx-aide: ignore -->` as the only first-line scan-ignore sentinel.
 - Generated agent artifacts are refreshed from the renamed sources.

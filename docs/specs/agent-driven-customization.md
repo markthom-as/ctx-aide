@@ -20,7 +20,7 @@ created: 2026-06-25
 
 ## Goal
 
-Define post-v0.1 customization that lets users choose ctx-aide workflow profiles and toggles through an agent-guided process without weakening required validation gates.
+Define post-v0.1 customization that lets users choose ctxa workflow profiles and toggles through an agent-guided process without weakening required validation gates.
 
 ## Affected Surfaces
 

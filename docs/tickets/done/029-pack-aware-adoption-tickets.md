@@ -101,7 +101,7 @@ Native pack creation is only useful if tickets can be generated into the pack pa
 ## Validation
 
 - Automated: `make validate`; `make smoke`; Astrotechne adoption dry-runs.
-- Smoke: `ctx-aide pack status pack.ctx-aide-pre-production-adoption-hardening-2026-06-27 --json`.
+- Smoke: `ctxa pack status pack.ctx-aide-pre-production-adoption-hardening-2026-06-27 --json`.
 - Screenshots: none.
 
 ## Implementation Notes

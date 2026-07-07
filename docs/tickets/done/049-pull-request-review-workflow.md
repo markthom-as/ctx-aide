@@ -96,7 +96,7 @@ CTX Aide already validates workflow docs, workflow dependencies, and workflow-st
 ## Implementation Rules
 
 - Required approach: add workflow documentation, checkable command dependencies, workflow tool policy, and README examples in one scoped slice.
-- Existing components/helpers to use: workflow dependency catalog, `ctx-aide tools policy`, `ctx-aide tools check`, ticket and pack validation.
+- Existing components/helpers to use: workflow dependency catalog, `ctxa tools policy`, `ctxa tools check`, ticket and pack validation.
 - Anti-patterns to avoid: connector-only PR mutation, informal merge instructions, or broad GitHub launch changes.
 - Stop and escalate if: the workflow requires a live GitHub connector, repository admin policy changes, or paid infrastructure.
 
@@ -108,8 +108,8 @@ CTX Aide already validates workflow docs, workflow dependencies, and workflow-st
 ## Acceptance Criteria
 
 - `docs/workflows/pull-request-review.md` documents PR identification, checkout, review, comments, fixes, push, re-review, and merge.
-- `ctx-aide workflow deps --workflow workflow.pull-request-review --repo . --json` can evaluate local `git` and `gh` command availability.
-- `ctx-aide tools check` allows `tool.shell` for PR review/fix/merge steps while inherited denied connectors remain denied.
+- `ctxa workflow deps --workflow workflow.pull-request-review --repo . --json` can evaluate local `git` and `gh` command availability.
+- `ctxa tools check` allows `tool.shell` for PR review/fix/merge steps while inherited denied connectors remain denied.
 - Ticket and pack validation accept the new workflow and closeout metadata.
 
 ## Validation

@@ -42,7 +42,7 @@ Add a guided ticket feedback loop that summarizes review context, captures opera
 
 ## Architecture Decisions
 
-- Decision: implement JSON-first commands under `ctx-aide feedback`.
+- Decision: implement JSON-first commands under `ctxa feedback`.
 - Rationale: agents and future UIs can consume the same non-interactive packet and markdown mutation commands.
 - Rejected alternatives: a separate hosted review app or a screenshot-only folder convention.
 

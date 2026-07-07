@@ -101,9 +101,9 @@ Feedback can be a one-off implementation request or a reusable operating rule. T
 
 ## Acceptance Criteria
 
-- `ctx-aide feedback plan` returns candidate rules and `axiom.feedback.*` ids for durable wording.
-- `ctx-aide feedback capture` writes a Suggested Rules and Axioms section.
-- `ctx-aide feedback promote --mode follow-up-ticket` carries candidates into ticket Positive Rules, Negative Rules, and Axioms.
+- `ctxa feedback plan` returns candidate rules and `axiom.feedback.*` ids for durable wording.
+- `ctxa feedback capture` writes a Suggested Rules and Axioms section.
+- `ctxa feedback promote --mode follow-up-ticket` carries candidates into ticket Positive Rules, Negative Rules, and Axioms.
 - Existing feedback commands remain JSON-first and write only with `--write`.
 
 ## Validation

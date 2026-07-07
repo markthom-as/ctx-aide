@@ -29,7 +29,7 @@ completion:
 
 ## Outcome
 
-Add an agent-guided customization process that lets users tune optional ctx-aide workflow behavior through profiles and toggles.
+Add an agent-guided customization process that lets users tune optional ctxa workflow behavior through profiles and toggles.
 
 ## Scope
 

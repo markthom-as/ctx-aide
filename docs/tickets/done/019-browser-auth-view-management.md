@@ -44,8 +44,8 @@ validation:
     - Run `make validate`.
     - Run the fixture-backed credential and browser storage-state tests in `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
-    - Run env-backed `ctx-aide workflow views` and confirm logged-in readiness without printing secret values.
-    - Run `ctx-aide credentials import-browser-state` against a temp storage-state file and confirm redacted output.
+    - Run env-backed `ctxa workflow views` and confirm logged-in readiness without printing secret values.
+    - Run `ctxa credentials import-browser-state` against a temp storage-state file and confirm redacted output.
   screenshots: []
 completion:
   commit: browser-auth-view-management-change
@@ -100,9 +100,9 @@ Browser validation needs more than pinned Playwright dependencies. A target app 
 ## Scope
 
 - In:
-  - `ctx-aide workflow views`.
-  - `ctx-aide credentials check`.
-  - `ctx-aide credentials import-browser-state`.
+  - `ctxa workflow views`.
+  - `ctxa credentials check`.
+  - `ctxa credentials import-browser-state`.
   - Browser workflow view and credential metadata.
   - README, `.gitignore`, and tests.
 - Out:
@@ -112,9 +112,9 @@ Browser validation needs more than pinned Playwright dependencies. A target app 
 
 ## Acceptance Criteria
 
-- `ctx-aide workflow views` reports logged-out and logged-in readiness separately.
-- `ctx-aide credentials check` reports source readiness without printing secret values.
-- `ctx-aide credentials import-browser-state` validates and copies storage-state JSON with redacted output.
+- `ctxa workflow views` reports logged-out and logged-in readiness separately.
+- `ctxa credentials check` reports source readiness without printing secret values.
+- `ctxa credentials import-browser-state` validates and copies storage-state JSON with redacted output.
 - `.ctx-aide/` is ignored.
 
 ## Validation

@@ -81,7 +81,7 @@ The ctx-aide dogfood flow requires context-aware tickets, validation evidence, a
 ## Implementation Rules
 
 - Required approach: update docs and pack metadata after earlier tickets are committed.
-- Existing components/helpers to use: `ctx-aide pack status`, `make validate`, and `make smoke`.
+- Existing components/helpers to use: `ctxa pack status`, `make validate`, and `make smoke`.
 - Anti-patterns to avoid: a prose-only closeout without command evidence.
 - Stop and escalate if: any hardening ticket remains open.
 
@@ -98,7 +98,7 @@ The ctx-aide dogfood flow requires context-aware tickets, validation evidence, a
 
 ## Validation
 
-- Automated: `make validate`; `make smoke`; `ctx-aide pack status`.
+- Automated: `make validate`; `make smoke`; `ctxa pack status`.
 - Smoke: inspect final git status and pack status output.
 - Screenshots: none.
 

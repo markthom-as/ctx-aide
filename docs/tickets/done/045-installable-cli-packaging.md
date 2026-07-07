@@ -53,7 +53,7 @@ completion:
 
 ## Outcome
 
-Make the existing `ctx-aide` CLI installable through normal Node package tooling without publishing to a registry.
+Make the existing `ctxa` CLI installable through normal Node package tooling without publishing to a registry.
 
 ## Context
 
@@ -61,7 +61,7 @@ The CLI already has a Node shebang in `tools/ctx-aide/ctx-aide.mjs`, but the rep
 
 ## Positive Rules
 
-- Preserve the `ctx-aide` command name.
+- Preserve the `ctxa` command name.
 - Prefer local/package-manager installation paths such as `npm link` or `npm install -g <repo-path>`.
 - Keep install support local-only until public owner, license, and package scope decisions are resolved.
 
@@ -79,7 +79,7 @@ The CLI already has a Node shebang in `tools/ctx-aide/ctx-aide.mjs`, but the rep
 
 ## Frozen Decisions
 
-- Decision: package metadata should expose `ctx-aide` as a bin that points at `tools/ctx-aide/ctx-aide.mjs`.
+- Decision: package metadata should expose one bin that points at `tools/ctx-aide/ctx-aide.mjs`; `ticket.context.057` later names that bin `ctxa`.
 - Rationale: the command is already executable and should remain the single CLI entrypoint.
 - Decision: registry publishing is out of scope.
 - Rationale: public-release owner, license, and package-scope decisions are separate blockers.

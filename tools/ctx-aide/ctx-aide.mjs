@@ -744,7 +744,7 @@ const workflowDependencyCatalog = {
   node: {
     kind: "command",
     command: "node",
-    purpose: "Run ctx-aide and JavaScript workflow tooling.",
+    purpose: "Run ctxa and JavaScript workflow tooling.",
   },
   git: {
     kind: "command",
@@ -773,11 +773,11 @@ const workflowDependencyCatalog = {
 };
 
 const agentCapabilityCatalog = {
-  "tool.ctx-aide": {
+  "tool.ctxa": {
     kind: "tool",
     source: "ctx-aide",
     risk: "low",
-    purpose: "Run ctx-aide planning, status, lint, and workflow commands.",
+    purpose: "Run ctxa planning, status, lint, and workflow commands.",
   },
   "tool.semble": {
     kind: "tool",
@@ -861,7 +861,7 @@ const agentCapabilityCatalog = {
     kind: "skill",
     source: "repo-skill",
     risk: "low",
-    purpose: "Use ctx-aide markdown, tickets, packs, and workflow commands correctly.",
+    purpose: "Use CTX Aide markdown, tickets, packs, and workflow commands correctly.",
   },
   "skill.agent-native-cli-design": {
     kind: "skill",
@@ -893,7 +893,7 @@ const defaultAgentToolsConfig = {
   config_version: 1,
   global: {
     allow: [
-      "tool.ctx-aide",
+      "tool.ctxa",
       "tool.semble",
       "tool.shell",
       "tool.playwright",
@@ -1647,7 +1647,7 @@ function readAgentToolsConfig(repoPath, configArg = "") {
 
 function targetAgentToolsConfig(profile) {
   return mergeObjects(defaultAgentToolsConfig, {
-    generated_by: "ctx-aide adoption bootstrap",
+    generated_by: "ctxa adoption bootstrap",
     profile: profile.profile,
     updated: todayDate(),
   });
@@ -2150,8 +2150,8 @@ function feedbackPlan() {
     points,
     suggested_next_steps: [
       "Confirm or answer any clarifying questions before writing tickets.",
-      "Capture each distinct feedback point with ctx-aide feedback capture --write.",
-      "Promote clear points with ctx-aide feedback promote --mode acceptance-criteria or --mode follow-up-ticket.",
+      "Capture each distinct feedback point with ctxa feedback capture --write.",
+      "Promote clear points with ctxa feedback promote --mode acceptance-criteria or --mode follow-up-ticket.",
       "Split points marked should_split_further into separate ticket candidates before implementation.",
     ],
     errors: points.length > 0 ? [] : [{ file: "feedback plan", message: "missing --body <feedback text>" }],
@@ -2213,8 +2213,8 @@ function feedbackReview() {
       "Should the feedback block this ticket, revise acceptance criteria, or become a follow-up ticket?",
     ],
     next_commands: [
-      `ctx-aide feedback capture --repo ${displayPath(repoPath)} --ticket ${ticketPath} --title "<feedback title>" --body "<feedback>" --write --json`,
-      `ctx-aide feedback promote --repo ${displayPath(repoPath)} --feedback <feedback-id-or-path> --ticket ${ticketPath} --mode follow-up-ticket --write --json`,
+      `ctxa feedback capture --repo ${displayPath(repoPath)} --ticket ${ticketPath} --title "<feedback title>" --body "<feedback>" --write --json`,
+      `ctxa feedback promote --repo ${displayPath(repoPath)} --feedback <feedback-id-or-path> --ticket ${ticketPath} --mode follow-up-ticket --write --json`,
     ],
     errors: [],
   };
@@ -2339,8 +2339,8 @@ function feedbackCapture() {
     },
     changes: [change],
     next_commands: [
-      `ctx-aide feedback promote --repo ${displayPath(repoPath)} --feedback ${id} --ticket ${ticketPath || "<ticket>"} --mode follow-up-ticket --write --json`,
-      `ctx-aide feedback promote --repo ${displayPath(repoPath)} --feedback ${id} --ticket ${ticketPath || "<ticket>"} --mode acceptance-criteria --write --json`,
+      `ctxa feedback promote --repo ${displayPath(repoPath)} --feedback ${id} --ticket ${ticketPath || "<ticket>"} --mode follow-up-ticket --write --json`,
+      `ctxa feedback promote --repo ${displayPath(repoPath)} --feedback ${id} --ticket ${ticketPath || "<ticket>"} --mode acceptance-criteria --write --json`,
     ],
     errors: change.action === "skipped" && write ? [{ file: relativePath, message: "feedback file exists; pass --force to overwrite" }] : [],
   };
@@ -3755,7 +3755,7 @@ function adoptionStatus() {
   const warnings = [];
   if (!git.available) warnings.push(`git status unavailable: ${git.warning}`);
   if (git.dirty) warnings.push(`target worktree has ${git.changed_count} changed path(s)`);
-  if (!generated.manifest) warnings.push("generated context manifest is missing; run ctx-aide scan in the target repo after seeding context");
+  if (!generated.manifest) warnings.push("generated context manifest is missing; run ctxa scan in the target repo after seeding context");
   const uniqueBlockers = unique(blockers);
   return {
     ok: uniqueBlockers.length === 0,
@@ -3892,7 +3892,7 @@ function adoptionBootstrap() {
   }
   const config = {
     config_version: 1,
-    generated_by: "ctx-aide adoption bootstrap",
+    generated_by: "ctxa adoption bootstrap",
     profile: profile.profile,
     ticket_root: profile.ticket_root,
     ticket_status_command: profile.ticket_status_command,
@@ -3901,7 +3901,7 @@ function adoptionBootstrap() {
     preserved_ticket_system: profile.preserved_ticket_system,
     context_loading: {
       default: "explicit",
-      command: "ctx-aide adoption implementation-plan --repo <repo> --ticket <ticket> --json",
+      command: "ctxa adoption implementation-plan --repo <repo> --ticket <ticket> --json",
     },
     updated: todayDate(),
   };
@@ -3916,7 +3916,7 @@ function adoptionBootstrap() {
   changes.push(writeFileIfAllowed(
     repoPath,
     "docs/context/README.md",
-    "# CTX Aide\n\nRepo-local context is loaded explicitly with `ctx-aide adoption implementation-plan` or targeted queries. Do not bulk-load this directory by default.\n",
+    "# CTX Aide\n\nRepo-local context is loaded explicitly with `ctxa adoption implementation-plan` or targeted queries. Do not bulk-load this directory by default.\n",
     { write, force },
   ));
   return {
@@ -3929,11 +3929,11 @@ function adoptionBootstrap() {
     changes,
     next_commands: [
       enableScreenshotFeedbackUi
-        ? `ctx-aide feedback review-ui --repo ${repoPath} --json`
-        : `ctx-aide settings set --repo ${repoPath} --feature screenshot-feedback-review-ui --enabled true --write --json`,
-      `ctx-aide adoption context --repo ${repoPath} --kind flow --title "<flow>" --path "<path>" --task "<task>" --write --json`,
-      `ctx-aide adoption pack --repo ${repoPath} --title "<pack>" --slug <pack-slug> --write --json`,
-      `ctx-aide adoption ticket --repo ${repoPath} --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --context "<context-id>" --write --json`,
+        ? `ctxa feedback review-ui --repo ${repoPath} --json`
+        : `ctxa settings set --repo ${repoPath} --feature screenshot-feedback-review-ui --enabled true --write --json`,
+      `ctxa adoption context --repo ${repoPath} --kind flow --title "<flow>" --path "<path>" --task "<task>" --write --json`,
+      `ctxa adoption pack --repo ${repoPath} --title "<pack>" --slug <pack-slug> --write --json`,
+      `ctxa adoption ticket --repo ${repoPath} --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --context "<context-id>" --write --json`,
     ],
     errors: [],
   };
@@ -3963,7 +3963,7 @@ function adoptionContext() {
   const relativePath = `docs/context/${folderByKind[kind]}/${slug}.md`;
   const positive = positiveRules.length > 0 ? positiveRules : ["Load this context only when the task or scoped files match."];
   const negative = negativeRules.length > 0 ? negativeRules : ["Do not bulk-load unrelated context entries."];
-  const text = `---\nid: ${id}\nkind: ${kind}\ncontext_scan: true\nstatus: active\ntitle: ${title}\n${yamlKeyList("routes", routes)}\n${yamlKeyList("files", paths)}\n${yamlKeyList("components", components)}\n${yamlKeyList("flows", kind === "flow" ? [id] : [])}\ntags:\n  - ctx-aide-adoption\n${yamlKeyList("positive_rules", positive)}\n${yamlKeyList("negative_rules", negative)}\nload_when:\n${yamlKeyList("path_matches", paths, "  ")}\n${yamlKeyList("task_terms", taskTerms, "  ")}\nupdated: ${todayDate()}\n---\n\n# ${title}\n\n## Purpose\n\nCapture repo-local context for ${argValue("--task", title)}.\n\n## Current Decisions\n\n- Context is loaded explicitly for matching tickets or implementation plans.\n\n## Positive Rules\n\n${positive.map((rule) => `- ${rule}`).join("\n")}\n\n## Negative Rules\n\n${negative.map((rule) => `- ${rule}`).join("\n")}\n\n## Implementation Rules\n\n- Use this entry as bounded guidance for tickets that cite \`${id}\`.\n- Run \`ctx-aide adoption implementation-plan\` before implementation to hydrate only relevant context.\n`;
+  const text = `---\nid: ${id}\nkind: ${kind}\ncontext_scan: true\nstatus: active\ntitle: ${title}\n${yamlKeyList("routes", routes)}\n${yamlKeyList("files", paths)}\n${yamlKeyList("components", components)}\n${yamlKeyList("flows", kind === "flow" ? [id] : [])}\ntags:\n  - ctx-aide-adoption\n${yamlKeyList("positive_rules", positive)}\n${yamlKeyList("negative_rules", negative)}\nload_when:\n${yamlKeyList("path_matches", paths, "  ")}\n${yamlKeyList("task_terms", taskTerms, "  ")}\nupdated: ${todayDate()}\n---\n\n# ${title}\n\n## Purpose\n\nCapture repo-local context for ${argValue("--task", title)}.\n\n## Current Decisions\n\n- Context is loaded explicitly for matching tickets or implementation plans.\n\n## Positive Rules\n\n${positive.map((rule) => `- ${rule}`).join("\n")}\n\n## Negative Rules\n\n${negative.map((rule) => `- ${rule}`).join("\n")}\n\n## Implementation Rules\n\n- Use this entry as bounded guidance for tickets that cite \`${id}\`.\n- Run \`ctxa adoption implementation-plan\` before implementation to hydrate only relevant context.\n`;
   const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
   return {
     ok: change.action !== "skipped" || !write,
@@ -3987,9 +3987,9 @@ function adoptionPackMarkdown(profile, options) {
   const packId = options.id;
   const validation = options.validation.length > 0 ? options.validation : profile.recommended_validation;
   if (profile.profile === "astrotechne") {
-    return `---\nstatus: active\npack_id: ${packId}\ntitle: ${options.title}\ncreated: ${todayDate()}\nupdated: ${todayDate()}\nctx_aide_profile: ${profile.profile}\nvalidation:\n${yamlKeyList("automated", validation, "  ")}\ntickets: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctx-aide adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctx-aide adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Status: active\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
+    return `---\nstatus: active\npack_id: ${packId}\ntitle: ${options.title}\ncreated: ${todayDate()}\nupdated: ${todayDate()}\nctx_aide_profile: ${profile.profile}\nvalidation:\n${yamlKeyList("automated", validation, "  ")}\ntickets: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctxa adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctxa adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Status: active\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
   }
-  return `---\nid: ${packId}\nstatus: draft\ntitle: ${options.title}\nmilestones:\n  - ${options.milestone}\nsource_specs: []\ntickets: []\nrun_policy:\n  max_parallel_agents: 2\n  stale_after_minutes: 20\n  merge_strategy: sequential-ticket-commits\n  worktree_required: false\nparallel_groups:\n  default:\n    tickets: []\nblocked_by: []\ncreated: ${todayDate()}\ncompletion:\n  completed_at: null\n  final_validation: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctx-aide adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctx-aide adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Run Policy\n\n- Max parallel agents: 2.\n- Stale lease threshold: 20 minutes.\n- Dead-agent cleanup: inspect target git status before staging.\n- Requeue rules: stop if missing product, design, architecture, or security decisions.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
+  return `---\nid: ${packId}\nstatus: draft\ntitle: ${options.title}\nmilestones:\n  - ${options.milestone}\nsource_specs: []\ntickets: []\nrun_policy:\n  max_parallel_agents: 2\n  stale_after_minutes: 20\n  merge_strategy: sequential-ticket-commits\n  worktree_required: false\nparallel_groups:\n  default:\n    tickets: []\nblocked_by: []\ncreated: ${todayDate()}\ncompletion:\n  completed_at: null\n  final_validation: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctxa adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctxa adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Run Policy\n\n- Max parallel agents: 2.\n- Stale lease threshold: 20 minutes.\n- Dead-agent cleanup: inspect target git status before staging.\n- Requeue rules: stop if missing product, design, architecture, or security decisions.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
 }
 
 function adoptionPack() {
@@ -4031,7 +4031,7 @@ function adoptionPack() {
     },
     changes: [change],
     next_commands: [
-      `ctx-aide adoption ticket --repo ${repoPath} --pack ${id} --pack-slug ${slug} --title "<ticket>" --task "<task>" --write --json`,
+      `ctxa adoption ticket --repo ${repoPath} --pack ${id} --pack-slug ${slug} --title "<ticket>" --task "<task>" --write --json`,
     ],
     errors: (write && change.action === "skipped") || change.action === "blocked"
       ? [{ file: relativePath, message: change.reason === "exists" ? "pack file exists; pass --force to overwrite" : change.reason }]
@@ -4076,12 +4076,12 @@ function adoptionTicket() {
         repo: displayPath(repoPath),
         write,
         profile,
-        errors: [{ file: packReadme, message: "pack does not exist; create it with ctx-aide adoption pack first" }],
+        errors: [{ file: packReadme, message: "pack does not exist; create it with ctxa adoption pack first" }],
       };
     }
   }
   const relativePath = adoptionTicketPath(profile, slug, packSlug);
-  const text = `---\nid: ${argValue("--id", `ticket.${slug}`)}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\ncapability_policy:\n  workflow: ${capabilityWorkflow || "null"}\n  step: ${capabilityStep || "null"}\n${yamlKeyList("required", capabilityRequired, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\n  - axiom.capability-policy-deny-wins\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctx-aide adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Check the returned capability policy before using optional tools, connectors, or skills.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not use a denied capability without updating target policy and ticket metadata first.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n- \`axiom.capability-policy-deny-wins\`: Deny entries override allow entries at every policy layer.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n- Capability workflow: ${capabilityWorkflow || "global policy only"}\n- Capability step: ${capabilityStep || "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Capability policy: follow the implementation-plan \`capability_policy\` response and use \`ctx-aide tools check\` before optional high-risk tools.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
+  const text = `---\nid: ${argValue("--id", `ticket.${slug}`)}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\ncapability_policy:\n  workflow: ${capabilityWorkflow || "null"}\n  step: ${capabilityStep || "null"}\n${yamlKeyList("required", capabilityRequired, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\n  - axiom.capability-policy-deny-wins\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctxa adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Check the returned capability policy before using optional tools, connectors, or skills.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not use a denied capability without updating target policy and ticket metadata first.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n- \`axiom.capability-policy-deny-wins\`: Deny entries override allow entries at every policy layer.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n- Capability workflow: ${capabilityWorkflow || "global policy only"}\n- Capability step: ${capabilityStep || "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Capability policy: follow the implementation-plan \`capability_policy\` response and use \`ctxa tools check\` before optional high-risk tools.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
   const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
   return {
     ok: change.action !== "skipped" || !write,
@@ -4091,7 +4091,7 @@ function adoptionTicket() {
     profile,
     ticket: { id: argValue("--id", `ticket.${slug}`), title, file: relativePath, status: "ready" },
     changes: [change],
-    next_commands: [`ctx-aide adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json`],
+    next_commands: [`ctxa adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json`],
     errors: change.action === "skipped" && write ? [{ file: relativePath, message: "ticket file exists; pass --force to overwrite" }] : [],
   };
 }
@@ -4476,7 +4476,7 @@ Use markdown specs, tickets, ticket packs, and context entries as source-of-trut
     "CLAUDE.md",
     `# Claude Instructions
 
-Use ctx-aide markdown for product-flow, design, copy, and UI hardening passes. Prefer targeted context from \`ctx-aide query\` over broad document loading.
+Use CTX Aide markdown for product-flow, design, copy, and UI hardening passes. Prefer targeted context from \`ctxa query\` over broad document loading.
 `,
     result,
     force,
@@ -5115,49 +5115,49 @@ if (command === "lint") {
   const result = {
     ok: wantsHelp,
     usage: [
-      "ctx-aide lint --json",
-      "ctx-aide doctor --json",
-      "ctx-aide init --json",
-      "ctx-aide scan --json",
-      "ctx-aide query --path <path> --task <task> --agent codex --budget 6000 --json",
-      "ctx-aide export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json",
-      "ctx-aide components list --json",
-      "ctx-aide components get component.Button --json",
-      "ctx-aide impact --path components/Button.tsx --json",
-      "ctx-aide run status docs/runs/RUN.md --json",
-      "ctx-aide idvisor workflow --json",
-      "ctx-aide customize --profile strict --dry-run --json",
-      "ctx-aide discover --backend semble --task <task> --repo . --json",
-      "ctx-aide dependency audit --repo . --command 'pnpm audit --prod' --json",
-      "ctx-aide loc --repo . --json",
-      "ctx-aide loc check --repo . --target-id source --json",
-      "ctx-aide tools list --json",
-      "ctx-aide tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
-      "ctx-aide tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
-      "ctx-aide workflow deps --workflow workflow.browser-validation --repo . --json",
-      "ctx-aide workflow views --workflow workflow.browser-validation --repo . --json",
-      "ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo . --json",
-      "ctx-aide settings get --repo . --json",
-      "ctx-aide settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
-      "ctx-aide feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json",
-      "ctx-aide feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .ctx-aide/artifacts/screenshots/example.png --url http://localhost:3000 --json",
-      "ctx-aide feedback review-ui --repo . --screenshot-dir .ctx-aide/artifacts/screenshots --port 0",
-      "ctx-aide feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json",
-      "ctx-aide feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json",
-      "ctx-aide credentials check --profile browser-test-user --repo . --json",
-      "ctx-aide credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
-      "ctx-aide adoption status --repo <target-repo> --profile auto --json",
-      "ctx-aide adoption bootstrap --repo <target-repo> --profile wetware --write --json",
-      "ctx-aide adoption pack --repo <target-repo> --title '<pack>' --slug <slug> --write --json",
-      "ctx-aide adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json",
-      "ctx-aide adoption ticket --repo <target-repo> --pack <pack-id> --pack-slug <pack-slug> --title '<ticket>' --task '<task>' --context <context-id> --capability-workflow <workflow-id> --capability-step <step-id> --capability <capability-id> --write --json",
-      "ctx-aide adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --capability-workflow <workflow-id> --capability-step <step-id> --json",
-      "ctx-aide ticket check --json",
-      "ctx-aide ticket hydrate docs/tickets/draft/TICKET.md --json",
-      "ctx-aide pack check --json",
-      "ctx-aide pack status <pack-id> --json",
-      "ctx-aide spec check --json",
-      "ctx-aide future check --json",
+      "ctxa lint --json",
+      "ctxa doctor --json",
+      "ctxa init --json",
+      "ctxa scan --json",
+      "ctxa query --path <path> --task <task> --agent codex --budget 6000 --json",
+      "ctxa export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json",
+      "ctxa components list --json",
+      "ctxa components get component.Button --json",
+      "ctxa impact --path components/Button.tsx --json",
+      "ctxa run status docs/runs/RUN.md --json",
+      "ctxa idvisor workflow --json",
+      "ctxa customize --profile strict --dry-run --json",
+      "ctxa discover --backend semble --task <task> --repo . --json",
+      "ctxa dependency audit --repo . --command 'pnpm audit --prod' --json",
+      "ctxa loc --repo . --json",
+      "ctxa loc check --repo . --target-id source --json",
+      "ctxa tools list --json",
+      "ctxa tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
+      "ctxa tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
+      "ctxa workflow deps --workflow workflow.browser-validation --repo . --json",
+      "ctxa workflow views --workflow workflow.browser-validation --repo . --json",
+      "ctxa workflow validation-plan --workflow workflow.browser-validation --repo . --json",
+      "ctxa settings get --repo . --json",
+      "ctxa settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
+      "ctxa feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json",
+      "ctxa feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .ctx-aide/artifacts/screenshots/example.png --url http://localhost:3000 --json",
+      "ctxa feedback review-ui --repo . --screenshot-dir .ctx-aide/artifacts/screenshots --port 0",
+      "ctxa feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json",
+      "ctxa feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json",
+      "ctxa credentials check --profile browser-test-user --repo . --json",
+      "ctxa credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
+      "ctxa adoption status --repo <target-repo> --profile auto --json",
+      "ctxa adoption bootstrap --repo <target-repo> --profile wetware --write --json",
+      "ctxa adoption pack --repo <target-repo> --title '<pack>' --slug <slug> --write --json",
+      "ctxa adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json",
+      "ctxa adoption ticket --repo <target-repo> --pack <pack-id> --pack-slug <pack-slug> --title '<ticket>' --task '<task>' --context <context-id> --capability-workflow <workflow-id> --capability-step <step-id> --capability <capability-id> --write --json",
+      "ctxa adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --capability-workflow <workflow-id> --capability-step <step-id> --json",
+      "ctxa ticket check --json",
+      "ctxa ticket hydrate docs/tickets/draft/TICKET.md --json",
+      "ctxa pack check --json",
+      "ctxa pack status <pack-id> --json",
+      "ctxa spec check --json",
+      "ctxa future check --json",
     ],
   };
   if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

@@ -98,10 +98,10 @@ Make this repository its own first usable fixture for repo-local context, canoni
 ## Tickets
 
 - `ticket.context.013`: done - Implement scan and query index
-- `ticket.context.012`: done - Implement ctx-aide init bootstrap
+- `ticket.context.012`: done - Implement ctxa init bootstrap
 - `ticket.context.000`: done - Define high-effort spec to ticket workflow
 - `ticket.context.001`: done - Add repo-local context markdown substrate
-- `ticket.context.002`: done - Implement ctx-aide scan query lint CLI foundation
+- `ticket.context.002`: done - Implement ctxa scan query lint CLI foundation
 - `ticket.context.003`: done - Generate Codex Claude and Cursor context packs
 - `ticket.context.004`: done - Add lightweight component and design catalog
 - `ticket.context.005`: done - Hydrate markdown tickets with scoped context

@@ -95,7 +95,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 ## Scope
 
 - In:
-  - Add `ctx-aide impact --path <file> --json`.
+  - Add `ctxa impact --path <file> --json`.
   - Add `ctx-aide changed-context --base main --json`.
   - Generate PR or ticket summaries listing affected context ids.
   - Add CI checks for malformed or stale context.

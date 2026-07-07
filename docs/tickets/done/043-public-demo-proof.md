@@ -83,7 +83,7 @@ A public repo needs proof beyond README copy. The demo should be safe, lightweig
 ## Implementation Rules
 
 - Required approach: create or update a demo/walkthrough using public-safe fixtures and run the relevant `ctx-aide` validation commands.
-- Existing components/helpers to use: existing templates, `ctx-aide scan`, `ctx-aide pack status`, and `make smoke`.
+- Existing components/helpers to use: existing templates, `ctxa scan`, `ctxa pack status`, and `make smoke`.
 - Anti-patterns to avoid: a demo that depends on private repositories or missing credentials.
 - Stop and escalate if: meaningful proof requires exposing private repo content.
 

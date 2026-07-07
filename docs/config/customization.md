@@ -36,7 +36,7 @@ node tools/ctx-aide/ctx-aide.mjs customize --profile web-app --write --out docs/
 
 ## LOC Volume Targets
 
-Use `docs/config/ctx-aide.loc.json` to track source volume for a repo or selected paths. `ctx-aide loc` reports totals and target status without failing; `ctx-aide loc check` enforces configured or inline targets.
+Use `docs/config/ctx-aide.loc.json` to track source volume for a repo or selected paths. `ctxa loc` reports totals and target status without failing; `ctxa loc check` enforces configured or inline targets.
 
 ```bash
 node tools/ctx-aide/ctx-aide.mjs loc --repo . --json

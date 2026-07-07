@@ -55,7 +55,7 @@ Document the target adoption capability policy flow and close the pack with full
 
 ## Context
 
-The feature is not adoption-ready unless README and command usage tell agents how bootstrap, generated tickets, implementation-plan, and `ctx-aide tools check` fit together.
+The feature is not adoption-ready unless README and command usage tell agents how bootstrap, generated tickets, implementation-plan, and `ctxa tools check` fit together.
 
 ## Positive Rules
 

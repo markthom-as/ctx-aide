@@ -83,7 +83,7 @@ The existing lifecycle already has specs, tickets, ticket packs, browser validat
 
 ## Frozen Decisions
 
-- Command namespace: `ctx-aide feedback`.
+- Command namespace: `ctxa feedback`.
 - Feedback source of truth: `docs/context/feedback/`.
 - Promotion modes: `acceptance-criteria` and `follow-up-ticket`.
 - Follow-up tickets start in a non-done status and must be hardened before implementation when clarifying questions remain.
@@ -98,9 +98,9 @@ The existing lifecycle already has specs, tickets, ticket packs, browser validat
 ## Scope
 
 - In:
-  - `ctx-aide feedback review`
-  - `ctx-aide feedback capture`
-  - `ctx-aide feedback promote`
+  - `ctxa feedback review`
+  - `ctxa feedback capture`
+  - `ctxa feedback promote`
   - Workflow docs and command usage.
   - Fixture tests for capture and promotion.
 - Out:

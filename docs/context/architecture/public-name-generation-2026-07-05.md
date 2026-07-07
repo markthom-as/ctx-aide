@@ -39,7 +39,7 @@ updated: 2026-07-07
 
 Document the repo's actual feature and workflow surface, then use that inventory to generate and record public-name candidates.
 
-The resulting public-name decision selected **CTX Aide** as the public display name and `ctx-aide` as the machine-facing namespace. It exists because the first selected name, `Repo Charter`, felt too formal and needed to be replaced after a more grounded naming pass.
+The resulting public-name decision selected **CTX Aide** as the public display name, `ctx-aide` as the package/repo namespace, and `ctxa` as the installed command. It exists because the first selected name, `Repo Charter`, felt too formal and needed to be replaced after a more grounded naming pass.
 
 ## Product Shape
 
@@ -50,13 +50,15 @@ The public name should make sense for a developer tool, not a hosted platform, P
 ## Current Decisions
 
 - CTX Aide is the selected public display name.
-- `ctx-aide` is the selected repository, command, package-facing, config-prefix, generated-rule, and local skill namespace.
+- `ctx-aide` is the selected repository, package-facing, config-prefix, generated-rule, and local skill namespace.
+- `ctxa` is the selected installed CLI command.
 - Publication remains blocked until owner, license, registry, GitHub, and Cargo crate-shape decisions are explicit.
 
 ## Positive Rules
 
 - Use CTX Aide when public copy needs the product name.
-- Use `ctx-aide` for machine-facing references: command, path, package metadata, config filenames, generated rules, and local skill names.
+- Use `ctx-aide` for machine-facing package, path, config filename, generated-rule, and local skill references.
+- Use `ctxa` for executable command references.
 - Keep the repo-local context, ticket, validation, and handoff workflow as the naming anchor.
 
 ## Negative Rules
@@ -69,7 +71,7 @@ The public name should make sense for a developer tool, not a hosted platform, P
 
 - Treat this brief as rationale for the canonical public-name decision.
 - Update `docs/context/architecture/public-name-decision-2026-07-05.md` before changing README, launch metadata, or public examples.
-- Run `ctx-aide scan`, `ctx-aide spec check`, `ctx-aide ticket check`, and `ctx-aide pack check` after changing public-name context.
+- Run `ctxa scan`, `ctxa spec check`, `ctxa ticket check`, and `ctxa pack check` after changing public-name context.
 
 ## Feature Inventory
 
@@ -116,7 +118,7 @@ The public name should make sense for a developer tool, not a hosted platform, P
 - Short enough to remember and say in conversation.
 - More developer-tool than governance concept.
 - Local-first, repo-native, and workflow-oriented.
-- Compatible with a CLI that can stay named `ctx-aide`.
+- Compatible with an installed CLI named `ctxa`.
 - Broad enough to cover context, specs, tickets, validation, adoption, and handoff.
 - Not over-AI-branded; avoid names that sound like a chatbot, agent runtime, hosted SaaS, compliance framework, or PM product.
 - Avoid names that lean on `charter`, `pact`, `accord`, `protocol`, `agent`, or `AI`.

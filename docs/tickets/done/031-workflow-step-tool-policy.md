@@ -82,7 +82,7 @@ The user needs both global policy and workflow-step policy. Agents should be abl
 
 ## Implementation Rules
 
-- Required approach: add `ctx-aide tools policy` and `ctx-aide tools check` commands with optional `--workflow`, `--step`, and required-or-optional `--capability`.
+- Required approach: add `ctxa tools policy` and `ctxa tools check` commands with optional `--workflow`, `--step`, and required-or-optional `--capability`.
 - Existing components/helpers to use: workflow selection helpers and JSON config parsing.
 - Anti-patterns to avoid: ambiguous boolean-only answers and non-deterministic ordering.
 - Stop and escalate if: workflow steps need a new markdown workflow schema before policy can be useful.
@@ -97,7 +97,7 @@ The user needs both global policy and workflow-step policy. Agents should be abl
 - Global deny blocks a capability even if workflow or step allow includes it.
 - Step deny blocks a capability even if global allow includes it.
 - Workflow/step allow can approve a capability not globally listed when there is no deny.
-- `ctx-aide tools check` exits non-zero when a requested capability is denied.
+- `ctxa tools check` exits non-zero when a requested capability is denied.
 
 ## Validation
 

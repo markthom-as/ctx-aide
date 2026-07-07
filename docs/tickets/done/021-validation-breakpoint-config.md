@@ -47,8 +47,8 @@ validation:
     - Run `make validate`.
     - Run `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
-    - Run `ctx-aide workflow validation-plan` with built-in/default config.
-    - Run `ctx-aide workflow validation-plan` with config-file breakpoint overrides.
+    - Run `ctxa workflow validation-plan` with built-in/default config.
+    - Run `ctxa workflow validation-plan` with config-file breakpoint overrides.
   screenshots: []
 completion:
   commit: validation-breakpoint-config-change
@@ -88,7 +88,7 @@ Browser validation should not be a single viewport smoke. It needs a standard se
 ## Frozen Decisions
 
 - Default breakpoints are `mobile`, `tablet`, `desktop`, and `wide`.
-- `ctx-aide workflow validation-plan` returns a matrix of workflow views crossed with breakpoints.
+- `ctxa workflow validation-plan` returns a matrix of workflow views crossed with breakpoints.
 - Config file path is `docs/config/ctx-aide.validation.json` by default and can be overridden with `--config`.
 - Config breakpoints can be preset ids or custom `{ "id", "width", "height" }` objects.
 - The smart TUI is future work and must write the same config file.
@@ -103,7 +103,7 @@ Browser validation should not be a single viewport smoke. It needs a standard se
 ## Scope
 
 - In:
-  - `ctx-aide workflow validation-plan`.
+  - `ctxa workflow validation-plan`.
   - Default breakpoint catalog.
   - Config-file override support.
   - Browser workflow breakpoint metadata.

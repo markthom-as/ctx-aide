@@ -42,7 +42,7 @@ Make `workflow.pull-request-review` immediately usable through copy-paste docs, 
 
 ## Scope
 
-- Included: PR review runbook, review templates, `ctx-aide pr preflight`, tests, README usage, and workflow docs.
+- Included: PR review runbook, review templates, `ctxa pr preflight`, tests, README usage, and workflow docs.
 - Excluded: live GitHub PR mutation, connector-based PR review, hosted services, and paid infrastructure.
 
 ## Tickets

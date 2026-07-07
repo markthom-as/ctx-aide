@@ -59,7 +59,7 @@ completion:
 
 ## Outcome
 
-Add a local browser UI that lets operators review screenshot artifacts, record per-screenshot feedback, preview proposed ticket splits, and write canonical ctx-aide ticket markdown only after confirmation.
+Add a local browser UI that lets operators review screenshot artifacts, record per-screenshot feedback, preview proposed ticket splits, and write canonical ctxa ticket markdown only after confirmation.
 
 ## Context
 
@@ -68,7 +68,7 @@ Astrotechne added a local screenshot review UI for screenshot feedback and ticke
 ## Positive Rules
 
 - Keep screenshot review local-only and bind the server to `127.0.0.1`.
-- Reuse ctx-aide ticket readiness discipline when writing ticket markdown.
+- Reuse ctxa ticket readiness discipline when writing ticket markdown.
 - Preview draft ticket candidates before writing files.
 - Support both screenshot run `summary.json` files and plain screenshot directories.
 
@@ -87,7 +87,7 @@ Astrotechne added a local screenshot review UI for screenshot feedback and ticke
 
 ## Frozen Decisions
 
-- Command: `ctx-aide feedback review-ui`.
+- Command: `ctxa feedback review-ui`.
 - Server bind address: `127.0.0.1`.
 - Generated ticket status: `needs-questions`.
 - Cost delta: `$0/month`; this is local-only tooling.
@@ -106,7 +106,7 @@ Astrotechne added a local screenshot review UI for screenshot feedback and ticke
 
 ## Acceptance Criteria
 
-- `ctx-aide feedback review-ui` starts a local-only screenshot review UI.
+- `ctxa feedback review-ui` starts a local-only screenshot review UI.
 - The UI records per-screenshot status, severity, title, tags, and feedback notes.
 - Draft planning splits structured multi-issue feedback before writing files.
 - No ticket markdown is written until the draft review stop is confirmed.

@@ -33,10 +33,10 @@ Build out ctx-aide's target-repo adoption workflow enough to dogfood safely befo
 
 ## Architecture Decisions
 
-- Decision: add `ctx-aide adoption status` as the read-only preflight surface.
+- Decision: add `ctxa adoption status` as the read-only preflight surface.
 - Rationale: users need one JSON report that says whether bootstrap/config/context/pack/ticket prerequisites are present.
 - Rejected alternatives: infer readiness from chat history or require a target repo commit before inspection.
-- Decision: add `ctx-aide adoption pack` and make `ctx-aide adoption ticket --pack-slug` write into that pack for directory-based profiles.
+- Decision: add `ctxa adoption pack` and make `ctxa adoption ticket --pack-slug` write into that pack for directory-based profiles.
 - Rationale: Astrotechne's packet README is part of the truth surface for completed work.
 
 ## Design Decisions

@@ -93,9 +93,9 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 ## Scope
 
 - In:
-  - Add `ctx-aide export-agent --agent codex`.
-  - Add `ctx-aide export-agent --agent claude`.
-  - Add `ctx-aide export-agent --agent cursor`.
+  - Add `ctxa export-agent --agent codex`.
+  - Add `ctxa export-agent --agent claude`.
+  - Add `ctxa export-agent --agent cursor`.
   - Add generated `.cursor/rules/generated/*.mdc` summaries.
 - Out:
   - Implement Idvisor plugin orchestration.

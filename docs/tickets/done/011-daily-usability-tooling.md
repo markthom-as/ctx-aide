@@ -100,7 +100,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
   - Add fixture smoke command.
   - Ensure skill validation is part of daily validation.
 - Out:
-  - Implement full `ctx-aide query` ranking.
+  - Implement full `ctxa query` ranking.
 
 ## Acceptance Criteria
 

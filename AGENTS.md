@@ -34,13 +34,13 @@ If a ticket still requires product, design, architecture, or security decisions,
 When tooling exists, prefer:
 
 ```sh
-ctx-aide scan --json
-ctx-aide discover --backend semble --task "<task>" --repo . --json
-ctx-aide lint --json
-ctx-aide ticket check --json
-ctx-aide pack check --json
-ctx-aide spec check --json
-ctx-aide future check --json
+ctxa scan --json
+ctxa discover --backend semble --task "<task>" --repo . --json
+ctxa lint --json
+ctxa ticket check --json
+ctxa pack check --json
+ctxa spec check --json
+ctxa future check --json
 ```
 
 Until the CLI exists, validate markdown structure manually against the templates in `docs/tickets/templates/` and `docs/ticket-packs/templates/`.

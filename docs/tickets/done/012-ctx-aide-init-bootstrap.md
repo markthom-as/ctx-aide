@@ -1,7 +1,7 @@
 ---
 id: ticket.context.012
 status: done
-title: Implement ctx-aide init bootstrap
+title: Implement ctxa init bootstrap
 ticket_pack: pack.ctx-aide-mvp
 milestones:
   - milestone.ctx-aide-mvp
@@ -30,7 +30,7 @@ scope:
   flows:
     - flow.ctx-aide-dogfood
 context_query:
-  task: "Implement ctx-aide init bootstrap"
+  task: "Implement ctxa init bootstrap"
   generated_at: 2026-06-25
   context_ids:
     - pack.ctx-aide-mvp
@@ -96,7 +96,7 @@ This ticket is part of `pack.ctx-aide-mvp` and narrows the CLI work into an inde
 ## Scope
 
 - In:
-  - Add `ctx-aide init --json`.
+  - Add `ctxa init --json`.
   - Create missing context/spec/ticket/pack/run directories.
   - Copy canonical templates.
   - Emit AGENTS, CLAUDE, and Cursor snippet instructions without overwriting by default.
@@ -120,7 +120,7 @@ This ticket is part of `pack.ctx-aide-mvp` and narrows the CLI work into an inde
 ## Implementation Notes
 
 - Parallel group: `cli-bootstrap-a`.
-- Expected commit message: `Implement ctx-aide init bootstrap`.
+- Expected commit message: `Implement ctxa init bootstrap`.
 
 ## Completion
 

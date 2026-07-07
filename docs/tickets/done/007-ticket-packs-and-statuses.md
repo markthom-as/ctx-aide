@@ -38,11 +38,11 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run `ctx-aide ticket check --json` and `ctx-aide pack check --json`.
+  - Run `ctxa ticket check --json` and `ctxa pack check --json`.
   smoke:
   - Create one sample pack with at least three tickets.
   - Include parallel and dependent tickets.
-  - Run `ctx-aide ticket check --json` and `ctx-aide pack check --json`.
+  - Run `ctxa ticket check --json` and `ctxa pack check --json`.
   screenshots: []
 completion:
   commit: e3d72ee
@@ -97,7 +97,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
   - Maintain `docs/ticket-packs/` structure and template.
   - Add fixed ticket and pack status vocabularies.
   - Add pack membership fields to generated tickets.
-  - Add `ctx-aide pack check --json`.
+  - Add `ctxa pack check --json`.
 - Out:
   - Implement Idvisor plugin dispatch.
 
@@ -111,7 +111,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 
 - Create one sample pack with at least three tickets.
 - Include parallel and dependent tickets.
-- Run `ctx-aide ticket check --json` and `ctx-aide pack check --json`.
+- Run `ctxa ticket check --json` and `ctxa pack check --json`.
 
 ## Implementation Notes
 

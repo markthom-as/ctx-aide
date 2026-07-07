@@ -51,7 +51,7 @@ completion:
 
 ## Outcome
 
-Make `ctx-aide adoption implementation-plan` produce useful output for target repos that already have non-canonical markdown tickets.
+Make `ctxa adoption implementation-plan` produce useful output for target repos that already have non-canonical markdown tickets.
 
 ## Context
 

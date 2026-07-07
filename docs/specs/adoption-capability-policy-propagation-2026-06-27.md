@@ -29,9 +29,9 @@ Make capability allow/deny policy travel through target-repo adoption, generated
 
 ## Existing Context
 
-- `ctx-aide tools list/policy/check` can resolve global and workflow-step capability policy.
-- `ctx-aide adoption bootstrap` currently writes target profile config and context directories, but not target capability policy.
-- `ctx-aide adoption implementation-plan` currently returns context entries, target paths, validation commands, and stop conditions, but not policy guidance.
+- `ctxa tools list/policy/check` can resolve global and workflow-step capability policy.
+- `ctxa adoption bootstrap` currently writes target profile config and context directories, but not target capability policy.
+- `ctxa adoption implementation-plan` currently returns context entries, target paths, validation commands, and stop conditions, but not policy guidance.
 
 ## Product Decisions
 

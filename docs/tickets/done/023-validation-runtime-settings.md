@@ -45,7 +45,7 @@ validation:
     - Run `make validate`.
     - Run `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
-    - Run `ctx-aide workflow validation-plan` and verify testing, screenshot, CI, and deploy settings in JSON output.
+    - Run `ctxa workflow validation-plan` and verify testing, screenshot, CI, and deploy settings in JSON output.
   screenshots: []
 completion:
   commit: validation-runtime-settings-change
@@ -92,7 +92,7 @@ The validation workflow must be more than viewport coverage. Agents need to know
 
 ## Implementation Rules
 
-- Required approach: extend `ctx-aide workflow validation-plan`.
+- Required approach: extend `ctxa workflow validation-plan`.
 - Existing components/helpers to use: validation config parser, workflow view rows, and fixture tests.
 - Anti-patterns to avoid: side effects, deploy execution, hidden screenshot paths.
 - Stop and escalate if: runtime config needs secrets or paid infrastructure setup.

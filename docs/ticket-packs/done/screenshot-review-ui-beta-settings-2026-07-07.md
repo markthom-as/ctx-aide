@@ -43,7 +43,7 @@ Keep screenshot review UI optional during setup and configurable through repo-lo
 
 - Add repo-local settings defaults and commands.
 - Seed the settings file during adoption bootstrap.
-- Gate `ctx-aide feedback review-ui` unless the beta feature is enabled.
+- Gate `ctxa feedback review-ui` unless the beta feature is enabled.
 
 ## Run Policy
 

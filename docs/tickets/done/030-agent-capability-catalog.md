@@ -81,7 +81,7 @@ Agent tools and skills are supplied by the host runtime, not by target repos. CT
 
 ## Implementation Rules
 
-- Required approach: add built-in catalog/default policy helpers and a `ctx-aide tools list --json` command.
+- Required approach: add built-in catalog/default policy helpers and a `ctxa tools list --json` command.
 - Existing components/helpers to use: JSON parsing helpers, `argValue`, existing `printResult` command dispatch.
 - Anti-patterns to avoid: broad runtime probing, shell execution, and connector calls.
 - Stop and escalate if: implementation requires live Codex host APIs.
@@ -93,7 +93,7 @@ Agent tools and skills are supplied by the host runtime, not by target repos. CT
 
 ## Acceptance Criteria
 
-- `ctx-aide tools list --json` returns catalog entries and effective global policy metadata.
+- `ctxa tools list --json` returns catalog entries and effective global policy metadata.
 - Missing config falls back to built-in defaults.
 - A valid policy file can extend defaults with `custom.*` capability ids.
 

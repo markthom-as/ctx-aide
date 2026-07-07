@@ -24,7 +24,7 @@ Define the thin Idvisor integration for ctx-aide without moving source truth out
 4. Harden the spec through architecture, design, security, best-practices, testing, and parallelization gates.
 5. Create a ticket pack.
 6. Create atomic tickets.
-7. Hydrate tickets with `ctx-aide ticket hydrate`.
+7. Hydrate tickets with `ctxa ticket hydrate`.
 8. Dispatch only tickets whose status is `ready`.
 9. Require commit hash and verification evidence before marking tickets done.
 10. Run pack validation before marking the pack complete.

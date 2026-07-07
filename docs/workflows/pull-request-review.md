@@ -17,8 +17,8 @@ Give agents a complete local CLI path for reviewing a GitHub pull request, leavi
 
 ## Stages
 
-1. Check workflow dependencies with `ctx-aide workflow deps --workflow workflow.pull-request-review --repo <repo> --json`.
-2. Run `ctx-aide pr preflight --repo <repo> --pr <pr> --json` before PR mutation steps.
+1. Check workflow dependencies with `ctxa workflow deps --workflow workflow.pull-request-review --repo <repo> --json`.
+2. Run `ctxa pr preflight --repo <repo> --pr <pr> --json` before PR mutation steps.
 3. Confirm `git status --short --branch` is understood before touching files; stop if unrelated local changes would be staged or overwritten.
 4. Identify the target pull request with `gh pr status`, `gh pr list`, or an operator-provided PR URL or number.
 5. Inspect PR metadata with `gh pr view <pr> --json number,title,author,headRefName,baseRefName,mergeStateStatus,reviewDecision,statusCheckRollup,url`.
@@ -36,8 +36,8 @@ Give agents a complete local CLI path for reviewing a GitHub pull request, leavi
 ## Readiness Gates
 
 - PR review work must name the PR number or URL, base branch, and head branch before checkout.
-- Agents must run `ctx-aide tools check --workflow workflow.pull-request-review --step <step> --capability tool.shell --json` before PR mutation steps in policy-managed repos.
-- Agents should run `ctx-aide pr preflight --repo <repo> --pr <pr> --json` before comments, pushes, and merges.
+- Agents must run `ctxa tools check --workflow workflow.pull-request-review --step <step> --capability tool.shell --json` before PR mutation steps in policy-managed repos.
+- Agents should run `ctxa pr preflight --repo <repo> --pr <pr> --json` before comments, pushes, and merges.
 - `gh auth status` must pass before any comment, push, or merge step that talks to GitHub.
 - The workflow may inspect with `git` alone, but comment, push, status-check, and merge stages require an authenticated `gh` session or an explicit operator handoff.
 - Review feedback must distinguish blocking defects from non-blocking suggestions.
@@ -75,16 +75,16 @@ Give agents a complete local CLI path for reviewing a GitHub pull request, leavi
 
 - `tool.shell` is required because `git` and `gh` are command-line tools.
 - `tool.semble` remains available for semantic code discovery during review.
-- `tool.ctx-aide` remains available for workflow dependency checks, ticket checks, pack checks, feedback capture, and policy checks.
+- `tool.ctxa` remains available for workflow dependency checks, ticket checks, pack checks, feedback capture, and policy checks.
 - GitHub connector access is not required for this workflow; prefer `gh`/`git` commands when the operator asks for CLI-driven PR work.
 - Denied connector apps remain denied unless a repository updates `docs/config/ctx-aide.tools.json` and records the decision in a ticket.
 
 ## Validation
 
-- `ctx-aide workflow deps --workflow workflow.pull-request-review --repo <repo> --json`
-- `ctx-aide pr preflight --repo <repo> --pr <pr> --json`
-- `ctx-aide tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
-- `ctx-aide tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json`
+- `ctxa workflow deps --workflow workflow.pull-request-review --repo <repo> --json`
+- `ctxa pr preflight --repo <repo> --pr <pr> --json`
+- `ctxa tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
+- `ctxa tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json`
 - `git status --short --branch`
 - `gh auth status`
 - `gh pr view <pr> --json number,title,headRefName,baseRefName,reviewDecision,statusCheckRollup,mergeStateStatus,url`

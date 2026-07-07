@@ -2,7 +2,7 @@
   "config_version": 1,
   "global": {
     "allow": [
-      "tool.ctx-aide",
+      "tool.ctxa",
       "tool.semble",
       "tool.shell",
       "tool.playwright",
@@ -43,7 +43,7 @@
         },
         "credential-import": {
           "allow": [
-            "tool.ctx-aide"
+            "tool.ctxa"
           ],
           "deny": [
             "app.gmail",
@@ -55,7 +55,7 @@
     },
     "workflow.pull-request-review": {
       "allow": [
-        "tool.ctx-aide",
+        "tool.ctxa",
         "tool.semble",
         "tool.shell"
       ],
@@ -69,13 +69,13 @@
       "steps": {
         "pr-orient": {
           "allow": [
-            "tool.ctx-aide",
+            "tool.ctxa",
             "tool.shell"
           ]
         },
         "pr-review": {
           "allow": [
-            "tool.ctx-aide",
+            "tool.ctxa",
             "tool.semble",
             "tool.shell"
           ]
@@ -87,14 +87,14 @@
         },
         "pr-fix": {
           "allow": [
-            "tool.ctx-aide",
+            "tool.ctxa",
             "tool.semble",
             "tool.shell"
           ]
         },
         "pr-merge": {
           "allow": [
-            "tool.ctx-aide",
+            "tool.ctxa",
             "tool.shell"
           ]
         }

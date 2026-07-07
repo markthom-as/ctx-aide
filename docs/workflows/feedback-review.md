@@ -18,19 +18,19 @@ Turn screenshot and artifact review into a guided repo-local loop instead of a m
 ## Stages
 
 1. Generate or collect screenshot artifacts during ticket validation.
-2. Build a review packet with `ctx-aide feedback review --repo <repo> --ticket <ticket> --screenshot <path> --url <url> --json`.
+2. Build a review packet with `ctxa feedback review --repo <repo> --ticket <ticket> --screenshot <path> --url <url> --json`.
 3. Inspect the packet fields for ticket status, URL, scoped files, changed files, screenshot path, byte size, and image dimensions.
-4. For visual review across many screenshots, opt into the beta UI through onboarding with `ctx-aide adoption bootstrap --repo <repo> --enable-screenshot-feedback-ui --write --json` or later settings with `ctx-aide settings set --repo <repo> --feature screenshot-feedback-review-ui --enabled true --write --json`.
-5. Start the local UI with `ctx-aide feedback review-ui --repo <repo> --screenshot-dir .ctx-aide/artifacts/screenshots --port 0`.
+4. For visual review across many screenshots, opt into the beta UI through onboarding with `ctxa adoption bootstrap --repo <repo> --enable-screenshot-feedback-ui --write --json` or later settings with `ctxa settings set --repo <repo> --feature screenshot-feedback-review-ui --enabled true --write --json`.
+5. Start the local UI with `ctxa feedback review-ui --repo <repo> --screenshot-dir .ctx-aide/artifacts/screenshots --port 0`.
 6. In the UI, record per-screenshot status, severity, title, tags, and feedback notes; use bullets or `--- ticket ---` separators for independently actionable issues.
 7. Review the proposed ticket split stop before writing files; the UI must not write ticket markdown until the operator confirms the draft plan.
-8. Plan a natural-language feedback response with `ctx-aide feedback plan --repo <repo> --ticket <ticket> --body "<feedback>" --json` when working in the JSON-only path.
+8. Plan a natural-language feedback response with `ctxa feedback plan --repo <repo> --ticket <ticket> --body "<feedback>" --json` when working in the JSON-only path.
 9. Split the response into distinct feedback points, then split any mixed point again when it covers multiple behaviors, surfaces, or acceptance checks.
 10. Extract candidate positive rules, negative rules, and axioms from durable operator wording when appropriate.
 11. Offer the operator suggested interpretations, rule/axiom candidates, and clarification questions before writing tickets when the correct outcome or promotion target is ambiguous.
-12. Capture operator feedback with `ctx-aide feedback capture --repo <repo> --ticket <ticket> --title "<title>" --body "<feedback>" --screenshot <path> --url <url> --write --json`.
-13. Promote clear feedback with `ctx-aide feedback promote --mode acceptance-criteria` when it should tighten the current ticket.
-14. Promote separate work with `ctx-aide feedback promote --mode follow-up-ticket` when it should become a new atomic ticket.
+12. Capture operator feedback with `ctxa feedback capture --repo <repo> --ticket <ticket> --title "<title>" --body "<feedback>" --screenshot <path> --url <url> --write --json`.
+13. Promote clear feedback with `ctxa feedback promote --mode acceptance-criteria` when it should tighten the current ticket.
+14. Promote separate work with `ctxa feedback promote --mode follow-up-ticket` when it should become a new atomic ticket.
 
 ## Readiness Gates
 
@@ -56,7 +56,7 @@ Turn screenshot and artifact review into a guided repo-local loop instead of a m
 - Review packets should include URL, existence, byte size, image width, image height, and image format when the file is present.
 - Missing artifacts are allowed in the packet, but they should block visual-ticket completion until evidence is available.
 - `.ctx-aide/artifacts/` remains a local artifact area unless a target repo explicitly chooses to commit selected evidence.
-- `ctx-aide feedback review-ui` is local-only, binds to `127.0.0.1`, remains optional beta setup, and has an expected cost delta of `$0/month`.
+- `ctxa feedback review-ui` is local-only, binds to `127.0.0.1`, remains optional beta setup, and has an expected cost delta of `$0/month`.
 
 ## Feedback Policy
 
@@ -72,12 +72,12 @@ Turn screenshot and artifact review into a guided repo-local loop instead of a m
 
 ## Validation
 
-- `ctx-aide feedback review --repo <repo> --ticket <ticket> --screenshot <path> --url <url> --json`
-- `ctx-aide settings get --repo <repo> --json`
-- `ctx-aide settings set --repo <repo> --feature screenshot-feedback-review-ui --enabled true --write --json`
-- `ctx-aide feedback review-ui --repo <repo> --screenshot-dir .ctx-aide/artifacts/screenshots --port 0`
-- `ctx-aide feedback review-ui --repo <repo> --plan-only --json`
-- `ctx-aide feedback plan --repo <repo> --ticket <ticket> --body "<natural feedback>" --json`
-- `ctx-aide feedback capture --repo <repo> --ticket <ticket> --title "<title>" --body "<feedback>" --write --json`
-- `ctx-aide feedback promote --repo <repo> --feedback <feedback-id-or-path> --ticket <ticket> --mode acceptance-criteria --write --json`
-- `ctx-aide feedback promote --repo <repo> --feedback <feedback-id-or-path> --ticket <ticket> --mode follow-up-ticket --write --json`
+- `ctxa feedback review --repo <repo> --ticket <ticket> --screenshot <path> --url <url> --json`
+- `ctxa settings get --repo <repo> --json`
+- `ctxa settings set --repo <repo> --feature screenshot-feedback-review-ui --enabled true --write --json`
+- `ctxa feedback review-ui --repo <repo> --screenshot-dir .ctx-aide/artifacts/screenshots --port 0`
+- `ctxa feedback review-ui --repo <repo> --plan-only --json`
+- `ctxa feedback plan --repo <repo> --ticket <ticket> --body "<natural feedback>" --json`
+- `ctxa feedback capture --repo <repo> --ticket <ticket> --title "<title>" --body "<feedback>" --write --json`
+- `ctxa feedback promote --repo <repo> --feedback <feedback-id-or-path> --ticket <ticket> --mode acceptance-criteria --write --json`
+- `ctxa feedback promote --repo <repo> --feedback <feedback-id-or-path> --ticket <ticket> --mode follow-up-ticket --write --json`

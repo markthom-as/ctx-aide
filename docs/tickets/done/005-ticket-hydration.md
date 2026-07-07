@@ -95,16 +95,16 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 ## Scope
 
 - In:
-  - Add `ctx-aide ticket create --from-feedback <id> --json`.
-  - Add `ctx-aide ticket hydrate <ticket-path> --agent codex --json`.
-  - Add `ctx-aide ticket check --json`.
+  - Add `ctxa ticket create --from-feedback <id> --json`.
+  - Add `ctxa ticket hydrate <ticket-path> --agent codex --json`.
+  - Add `ctxa ticket check --json`.
   - Populate canonical ticket fields from query results.
 - Out:
   - Implement code changes from hydrated tickets.
 
 ## Acceptance Criteria
 
-- Tickets include context snapshots generated from `ctx-aide query`.
+- Tickets include context snapshots generated from `ctxa query`.
 - Tickets preserve source ids rather than untraceable prose only.
 - Ticket check fails on missing or stale context ids.
 - Completion records final commit hash.
@@ -119,7 +119,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 
 - Parallel group: `ticketing-a`.
 - Dependencies: `ticket.context.002`, `ticket.context.007`.
-- Expected commit message: `Hydrate tickets with ctx-aide context`.
+- Expected commit message: `Hydrate tickets with ctxa context`.
 
 ## Completion
 

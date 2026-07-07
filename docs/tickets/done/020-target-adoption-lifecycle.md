@@ -30,7 +30,7 @@ scope:
   flows:
     - flow.ctx-aide-dogfood
 context_query:
-  task: "Use ctx-aide to manage target repo workflow, context, ticket creation, and implementation planning"
+  task: "Use CTX Aide to manage target repo workflow, context, ticket creation, and implementation planning"
   generated_at: 2026-06-26
   context_ids:
     - flow.ctx-aide-dogfood
@@ -60,7 +60,7 @@ Make ctx-aide usable as the workflow manager for another repo by adding commands
 
 ## Context
 
-The dependency upgrade proved that `ctx-aide dependency audit` can provide evidence, but the tool did not yet manage the full workflow and context lifecycle around ticket creation and implementation. Daily use for Wetware and Astrotechne needs a target-repo adoption layer that preserves each repo's existing ticket conventions.
+The dependency upgrade proved that `ctxa dependency audit` can provide evidence, but the tool did not yet manage the full workflow and context lifecycle around ticket creation and implementation. Daily use for Wetware and Astrotechne needs a target-repo adoption layer that preserves each repo's existing ticket conventions.
 
 ## Positive Rules
 
@@ -84,7 +84,7 @@ The dependency upgrade proved that `ctx-aide dependency audit` can provide evide
 
 ## Frozen Decisions
 
-- Target lifecycle commands live under `ctx-aide adoption`.
+- Target lifecycle commands live under `ctxa adoption`.
 - `adoption bootstrap` creates scaffolding and profile config.
 - `adoption context` creates scoped context entries with load rules.
 - `adoption ticket` creates full-fat implementation tickets in the target repo's configured ticket root.
@@ -101,11 +101,11 @@ The dependency upgrade proved that `ctx-aide dependency audit` can provide evide
 ## Scope
 
 - In:
-  - `ctx-aide adoption bootstrap`
-  - `ctx-aide adoption context`
-  - `ctx-aide adoption ticket`
-  - `ctx-aide adoption implementation-plan`
-  - `ctx-aide workflow validation-plan`
+  - `ctxa adoption bootstrap`
+  - `ctxa adoption context`
+  - `ctxa adoption ticket`
+  - `ctxa adoption implementation-plan`
+  - `ctxa workflow validation-plan`
   - README and fixture tests
 - Out:
   - Full migration of Astrotechne historical tickets.

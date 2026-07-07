@@ -29,15 +29,15 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 
 ## Stages
 
-1. Check workflow dependencies with `ctx-aide workflow deps --workflow workflow.browser-validation --repo <repo> --json`.
+1. Check workflow dependencies with `ctxa workflow deps --workflow workflow.browser-validation --repo <repo> --json`.
 2. If required package pins are missing, run the same command with `--write` to update `package.json`.
 3. Install dependencies with the target repo's package manager so the lockfile records the exact resolved tree.
 4. Run the workflow's browser smoke or screenshot validation command from the repo, not from an agent plugin.
-5. Check the view-state matrix with `ctx-aide workflow views --workflow workflow.browser-validation --repo <repo> --json`.
-6. Generate the breakpoint validation matrix with `ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`; this command fails when any required view is not ready, while still returning the matrix and blockers.
+5. Check the view-state matrix with `ctxa workflow views --workflow workflow.browser-validation --repo <repo> --json`.
+6. Generate the breakpoint validation matrix with `ctxa workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`; this command fails when any required view is not ready, while still returning the matrix and blockers.
 7. For logged-in validation, satisfy the `browser-test-user` profile through environment variables, an untracked env file, or an imported browser storage-state file.
 8. Record the dependency check, view-state check, breakpoint matrix, test runner, screenshot output path, CI gates, deploy policy, install command, and browser validation evidence on the ticket.
-9. For visual review, pass the screenshot paths into `ctx-aide feedback review` so the operator sees URL, scoped files, changed files, artifact size, and image dimensions before capturing feedback.
+9. For visual review, pass the screenshot paths into `ctxa feedback review` so the operator sees URL, scoped files, changed files, artifact size, and image dimensions before capturing feedback.
 
 ## Readiness Gates
 
@@ -55,10 +55,10 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 
 ## Dependency Policy
 
-- `node` must be available because ctx-aide and most browser validation tooling run through Node.
+- `node` must be available because CTX Aide and most browser validation tooling run through Node.
 - `package-manager-lockfile` must be present so the package graph is reproducible.
 - `playwright` maps to `@playwright/test@1.61.1` in `devDependencies`.
-- `codex-native-browser-plugin` is optional because ctx-aide cannot pin external desktop-app plugin bundles inside the target repository.
+- `codex-native-browser-plugin` is optional because CTX Aide cannot pin external desktop-app plugin bundles inside the target repository.
 
 ## View and Credential Policy
 
@@ -85,11 +85,11 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 
 ## Validation
 
-- `ctx-aide workflow deps --workflow workflow.browser-validation --repo <repo> --json`
-- `ctx-aide workflow views --workflow workflow.browser-validation --repo <repo> --json`
-- `ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`
-- `ctx-aide credentials check --profile browser-test-user --repo <repo> --json`
-- `ctx-aide credentials import-browser-state --profile browser-test-user --repo <repo> --from <storage-state.json> --write --json`
-- `ctx-aide workflow deps --workflow workflow.browser-validation --repo <repo> --write --json`
+- `ctxa workflow deps --workflow workflow.browser-validation --repo <repo> --json`
+- `ctxa workflow views --workflow workflow.browser-validation --repo <repo> --json`
+- `ctxa workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`
+- `ctxa credentials check --profile browser-test-user --repo <repo> --json`
+- `ctxa credentials import-browser-state --profile browser-test-user --repo <repo> --from <storage-state.json> --write --json`
+- `ctxa workflow deps --workflow workflow.browser-validation --repo <repo> --write --json`
 - The target repo's package-manager install command.
 - The target repo's browser smoke or screenshot command.

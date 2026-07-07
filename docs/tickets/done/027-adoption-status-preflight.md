@@ -48,7 +48,7 @@ completion:
 
 ## Outcome
 
-Add a read-only `ctx-aide adoption status` command that reports target-repo adoption readiness before any production-code work begins.
+Add a read-only `ctxa adoption status` command that reports target-repo adoption readiness before any production-code work begins.
 
 ## Context
 
@@ -91,7 +91,7 @@ Bootstrap dry-runs show planned writes, but there is no single command that repo
 
 ## Acceptance Criteria
 
-- `ctx-aide adoption status --repo <target> --json` reports profile, config, context counts, ticket root, pack roots, generated artifacts, and git dirty summary.
+- `ctxa adoption status --repo <target> --json` reports profile, config, context counts, ticket root, pack roots, generated artifacts, and git dirty summary.
 - Missing config/context entries produce blockers.
 - Fixture tests cover unbootstrapped and bootstrapped target repos.
 

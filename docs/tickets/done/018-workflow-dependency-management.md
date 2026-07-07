@@ -42,7 +42,7 @@ validation:
     - Run `make validate`.
     - Run the fixture-backed workflow dependency tests in `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
-    - Confirm `ctx-aide workflow deps --write` pins `@playwright/test` exactly in a fixture package.json.
+    - Confirm `ctxa workflow deps --write` pins `@playwright/test` exactly in a fixture package.json.
   screenshots: []
 completion:
   commit: workflow-dependency-management-change
@@ -82,7 +82,7 @@ Browser validation can fail locally when Playwright versions, local installs, or
 - Workflow files may declare `workflow_dependencies` and `optional_workflow_dependencies`.
 - `workflow.browser-validation` requires Node, a package-manager lockfile, and exact `@playwright/test@1.61.1`.
 - `codex-native-browser-plugin` is optional because it is supplied by the agent runtime, not the target repo.
-- `ctx-aide workflow deps --write` may update `package.json`, but it does not run installs or write lockfiles.
+- `ctxa workflow deps --write` may update `package.json`, but it does not run installs or write lockfiles.
 
 ## Implementation Rules
 
@@ -94,7 +94,7 @@ Browser validation can fail locally when Playwright versions, local installs, or
 ## Scope
 
 - In:
-  - `ctx-aide workflow deps`.
+  - `ctxa workflow deps`.
   - Browser-validation workflow dependency declaration.
   - Workflow validation for declared dependency ids.
   - README and tests.
@@ -105,8 +105,8 @@ Browser validation can fail locally when Playwright versions, local installs, or
 
 ## Acceptance Criteria
 
-- `ctx-aide workflow deps` reports missing workflow dependencies as structured JSON.
-- `ctx-aide workflow deps --write` pins `@playwright/test` exactly in `package.json` when requested.
+- `ctxa workflow deps` reports missing workflow dependencies as structured JSON.
+- `ctxa workflow deps --write` pins `@playwright/test` exactly in `package.json` when requested.
 - Browser validation docs distinguish repo-owned Playwright from optional Codex native plugin fallback.
 - Workflow dependency ids declared in markdown are validated.
 

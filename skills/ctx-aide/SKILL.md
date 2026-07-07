@@ -1,6 +1,6 @@
 ---
 name: ctx-aide
-description: Plan, harden, and execute repo-local product context workflows for coding agents. Use when creating or updating markdown specs, ticket packs, atomic implementation tickets, Codex/Claude/Cursor agent context, component/design context, feedback records, or a repo-local ctx-aide CLI/tooling flow.
+description: Plan, harden, and execute repo-local product context workflows for coding agents. Use when creating or updating markdown specs, ticket packs, atomic implementation tickets, Codex/Claude/Cursor agent context, component/design context, feedback records, or a repo-local ctxa CLI/tooling flow.
 ---
 
 # CTX Aide
@@ -122,17 +122,17 @@ If this skill is installed outside this repo, copy the bundled assets from `asse
 
 ## CLI Behavior
 
-If a `ctx-aide` CLI exists in the target repo, prefer it:
+If a `ctxa` CLI exists in the target repo, prefer it:
 
 ```sh
 node tools/ctx-aide/ctx-aide.mjs lint --json
 node tools/ctx-aide/ctx-aide.mjs future check --json
 node tools/ctx-aide/ctx-aide.mjs discover --backend semble --task "<task>" --repo . --json
-ctx-aide scan --json
-ctx-aide query --path <path> --task "<task>" --agent codex --budget 6000 --json
-ctx-aide spec harden docs/specs/SPEC.md --json
-ctx-aide ticket harden docs/tickets/draft/TICKET.md --json
-ctx-aide pack check --json
+ctxa scan --json
+ctxa query --path <path> --task "<task>" --agent codex --budget 6000 --json
+ctxa spec harden docs/specs/SPEC.md --json
+ctxa ticket harden docs/tickets/draft/TICKET.md --json
+ctxa pack check --json
 ```
 
 If the CLI does not exist yet, do the same checks manually from markdown and note that automated context checks were not available.

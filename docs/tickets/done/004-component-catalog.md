@@ -96,7 +96,7 @@ This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dog
 - In:
   - Add component context entries under `docs/context/components/`.
   - Add design-system entries under `docs/context/design/`.
-  - Add `ctx-aide components list --json` and `ctx-aide components get <id> --json`.
+  - Add `ctxa components list --json` and `ctxa components get <id> --json`.
   - Optionally add local context-lab examples.
 - Out:
   - Adopt full Storybook as a dependency.

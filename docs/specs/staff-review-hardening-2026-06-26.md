@@ -17,7 +17,7 @@ created: 2026-06-26
 
 ## Goal
 
-Harden the ctx-aide CLI and workflow artifacts before using the project as a serious daily planning system for larger repositories.
+Harden the ctxa CLI and workflow artifacts before using the project as a serious daily planning system for larger repositories.
 
 ## Affected Surfaces
 
@@ -61,7 +61,7 @@ None.
 - Pass 2, hostile public feedback: validation commands must not report success while declaring required validation views unready.
 - Pass 3, adoption dogfood: docs and workflow artifacts must make the milestone, pack, ticket, and validation path reproducible.
 - Security: do not add paid infrastructure or secret-handling expansion.
-- Testing: extend fixture tests for every behavior change and run `make validate`, `make smoke`, and focused `ctx-aide` commands.
+- Testing: extend fixture tests for every behavior change and run `make validate`, `make smoke`, and focused `ctxa` commands.
 - Parallelization: tickets touch overlapping CLI/test files, so implementation should run sequentially while preserving atomic commits.
 
 ## Ticket Plan

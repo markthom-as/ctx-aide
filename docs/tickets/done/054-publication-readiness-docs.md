@@ -102,7 +102,7 @@ The project already had public-release README, demo, and safety-audit tickets. T
 ## Implementation Rules
 
 - Required approach: update README top-level public explanation, add a context-scanned publication readiness note, constrain npm package payload with `files`, update package lock metadata, and keep the public-release pack truthful.
-- Existing components/helpers to use: `ctx-aide` checks, `npm pack --dry-run`, npm registry checks, Cargo search, and the public-release pack.
+- Existing components/helpers to use: `ctxa` checks, `npm pack --dry-run`, npm registry checks, Cargo search, and the public-release pack.
 - Anti-patterns to avoid: overclaiming publish readiness, packaging the entire ticket history by accident, or hiding unresolved license/Cargo blockers.
 - Stop and escalate if: publication requires legal, registry-owner, or crate-architecture decisions.
 

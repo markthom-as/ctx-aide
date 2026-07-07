@@ -53,7 +53,7 @@ completion:
 
 ## Outcome
 
-Let users customize ctx-aide workflow behavior through an agent-guided setup flow, with persisted profiles and toggles that the skill and CLI can honor.
+Let users customize ctxa workflow behavior through an agent-guided setup flow, with persisted profiles and toggles that the skill and CLI can honor.
 
 ## Context
 
@@ -94,7 +94,7 @@ This is future, post-v0.1 work. The MVP should first prove canonical tickets, pa
 
 - In:
   - Define `docs/context/config.md` or `ctx-aide.config.*` conventions.
-  - Add `ctx-aide customize --profile <name> --dry-run --json` concept.
+  - Add `ctxa customize --profile <name> --dry-run --json` concept.
   - Add skill instructions for agent-guided setup questions.
   - Define toggles for optional features such as Semble discovery, Cursor export, Claude UI audit, Idvisor orchestration, screenshots, and strict pack gates.
 - Out:

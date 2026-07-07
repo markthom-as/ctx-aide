@@ -73,7 +73,7 @@ CTX Aide can describe agent tools/skills and resolve repo-local allow/deny polic
 
 ## Pack Validation
 
-- Smoke tests: `ctx-aide tools list`, `ctx-aide tools policy`, and `ctx-aide tools check`.
+- Smoke tests: `ctxa tools list`, `ctxa tools policy`, and `ctxa tools check`.
 - Screenshots: none.
 - Full regression checks: `make validate` and `make smoke`.
 

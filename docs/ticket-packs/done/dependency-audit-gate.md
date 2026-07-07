@@ -34,7 +34,7 @@ Add a machine-checkable dependency audit gate so dependency-upgrade tickets cann
 ## Scope
 
 - Included:
-  - `ctx-aide dependency audit` command.
+  - `ctxa dependency audit` command.
   - `work_type: dependency-upgrade` done-ticket validation.
   - Tests and README documentation.
 - Excluded:
@@ -68,7 +68,7 @@ Add a machine-checkable dependency audit gate so dependency-upgrade tickets cann
 - Screenshots:
   - Not required.
 - Full regression checks:
-  - `ctx-aide ticket check` fails a done dependency-upgrade ticket that lacks cleared audit metadata.
+  - `ctxa ticket check` fails a done dependency-upgrade ticket that lacks cleared audit metadata.
 
 ## Completion
 

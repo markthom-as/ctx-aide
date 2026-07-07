@@ -73,8 +73,8 @@ Deliver a normal developer onboarding path for ctx-aide: install `ctx-aide`, run
 
 - Smoke tests:
   - `node tools/ctx-aide/ctx-aide.mjs setup --repo <fixture> --profile auto --no-input --json`
-  - `ctx-aide setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json`
-  - `ctx-aide setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json`
+  - `ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json`
+  - `ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json`
 - Screenshots: not required.
 - Full regression checks:
   - `node --check tools/ctx-aide/ctx-aide.mjs`

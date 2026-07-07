@@ -50,7 +50,7 @@ completion:
 
 ## Outcome
 
-`ctx-aide adoption bootstrap` writes a target tools policy file, and `ctx-aide adoption status` reports whether target policy exists and validates.
+`ctxa adoption bootstrap` writes a target tools policy file, and `ctxa adoption status` reports whether target policy exists and validates.
 
 ## Context
 

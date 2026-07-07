@@ -5,7 +5,7 @@
   "description": "Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.",
   "type": "module",
   "bin": {
-    "ctx-aide": "./tools/ctx-aide/ctx-aide.mjs"
+    "ctxa": "./tools/ctx-aide/ctx-aide.mjs"
   },
   "files": [
     "AGENTS.md",

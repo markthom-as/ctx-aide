@@ -76,7 +76,7 @@
       ],
       "positive_rules": [
         "Use CTX Aide as the public display name for the public-release pack.",
-        "Use ctx-aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace."
+        "Use CTX Aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace."
       ],
       "negative_rules": [
         "Do not reuse Concordat for this project.",
@@ -415,7 +415,7 @@
       ],
       "positive_rules": [
         "Update markdown context in the same ticket when intentional behavior changes.",
-        "Validate the ctx-aide context graph before committing ticket work."
+        "Validate the CTX Aide context graph before committing ticket work."
       ],
       "negative_rules": [
         "Do not treat generated indexes as canonical truth.",
@@ -433,7 +433,7 @@
           "tools/ctx-aide/**"
         ],
         "task_terms": [
-          "ctx-aide context",
+          "ctxa context",
           "ticket pack",
           "dogfood"
         ]

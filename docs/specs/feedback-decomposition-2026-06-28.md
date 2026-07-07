@@ -30,8 +30,8 @@ Make natural operator feedback decomposable into multiple candidate tickets or a
 ## Existing Context
 
 - `workflow.feedback-review` already defines review, capture, and promote stages.
-- `ctx-aide feedback capture` writes markdown feedback entries.
-- `ctx-aide feedback promote` creates follow-up tickets or updates acceptance criteria.
+- `ctxa feedback capture` writes markdown feedback entries.
+- `ctxa feedback promote` creates follow-up tickets or updates acceptance criteria.
 
 ## Product Decisions
 
@@ -41,7 +41,7 @@ Make natural operator feedback decomposable into multiple candidate tickets or a
 
 ## Architecture Decisions
 
-- Decision: add a side-effect-free `ctx-aide feedback plan` command and include decomposition metadata in `ctx-aide feedback capture`.
+- Decision: add a side-effect-free `ctxa feedback plan` command and include decomposition metadata in `ctxa feedback capture`.
 - Rationale: agents can inspect the split plan before writing markdown, while capture remains useful when called directly.
 - Rejected alternatives: require the operator to pre-split feedback manually.
 
@@ -67,7 +67,7 @@ None.
 - Design: suggested prompts let the agent ask targeted questions.
 - Security: no external data transfer.
 - Best practices: tests cover multi-point and subpoint decomposition.
-- Testing: fixture tests exercise `ctx-aide feedback plan` and capture decomposition.
+- Testing: fixture tests exercise `ctxa feedback plan` and capture decomposition.
 - Parallelization: single CLI/doc slice because the files are shared.
 
 ## Ticket Plan

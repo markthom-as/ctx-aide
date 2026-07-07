@@ -50,7 +50,7 @@ completion:
 
 ## Outcome
 
-Add a local `ctx-aide loc` surface that can measure LOC volume and enforce configured or inline path-scoped targets.
+Add a local `ctxa loc` surface that can measure LOC volume and enforce configured or inline path-scoped targets.
 
 ## Context
 
@@ -76,8 +76,8 @@ CTX Aide uses markdown and local JSON config as canonical workflow truth. LOC vo
 
 ## Frozen Decisions
 
-- Decision: `ctx-aide loc` measures and reports without failing.
-- Decision: `ctx-aide loc check` enforces targets and fails only when a target is under or over its configured range.
+- Decision: `ctxa loc` measures and reports without failing.
+- Decision: `ctxa loc check` enforces targets and fails only when a target is under or over its configured range.
 - Rationale: inspection and enforcement should be separate so agents can audit volume without triggering false negatives.
 
 ## Implementation Rules
@@ -94,8 +94,8 @@ CTX Aide uses markdown and local JSON config as canonical workflow truth. LOC vo
 
 ## Acceptance Criteria
 
-- `ctx-aide loc --json` returns totals, breakdowns, largest files, and target status.
-- `ctx-aide loc check --json` fails when an enforced LOC target is violated.
+- `ctxa loc --json` returns totals, breakdowns, largest files, and target status.
+- `ctxa loc check --json` fails when an enforced LOC target is violated.
 - Configured targets can be scoped to path prefixes and line kinds.
 - Generated context output, dependency folders, VCS data, and common build output are ignored by default.
 

@@ -43,10 +43,10 @@ Turn rough implementation intent into hardened, atomic tickets that can be execu
 
 ## Feedback Review
 
-- Use `ctx-aide feedback review` to produce a review packet with ticket status, URL, scoped files, changed files, screenshot path, screenshot byte size, and image dimensions.
-- Use `ctx-aide feedback capture --write` to save operator notes under `docs/context/feedback/`.
-- Use `ctx-aide feedback promote --mode acceptance-criteria --write` when the feedback should tighten the current ticket.
-- Use `ctx-aide feedback promote --mode follow-up-ticket --write` when the feedback is separate work.
+- Use `ctxa feedback review` to produce a review packet with ticket status, URL, scoped files, changed files, screenshot path, screenshot byte size, and image dimensions.
+- Use `ctxa feedback capture --write` to save operator notes under `docs/context/feedback/`.
+- Use `ctxa feedback promote --mode acceptance-criteria --write` when the feedback should tighten the current ticket.
+- Use `ctxa feedback promote --mode follow-up-ticket --write` when the feedback is separate work.
 - Answer clarifying questions before treating promoted feedback as implementation-ready.
 
 ## Validation

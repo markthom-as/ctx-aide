@@ -32,7 +32,7 @@ Add a local screenshot feedback review UI that turns reviewed screenshot notes i
 
 ## Scope
 
-- Included: `ctx-aide feedback review-ui`, feedback autosave, draft preview, confirmed ticket writing, tests, and workflow docs.
+- Included: `ctxa feedback review-ui`, feedback autosave, draft preview, confirmed ticket writing, tests, and workflow docs.
 - Excluded: hosted review infrastructure, screenshot capture execution, and implementation of generated tickets.
 
 ## Tickets
@@ -42,7 +42,7 @@ Add a local screenshot feedback review UI that turns reviewed screenshot notes i
 ## Execution Plan
 
 - Add the local UI server and command entrypoint.
-- Reuse ctx-aide ticket structure for confirmed generated tickets.
+- Reuse ctxa ticket structure for confirmed generated tickets.
 - Validate with focused tests and repo ticket/pack checks.
 
 ## Run Policy

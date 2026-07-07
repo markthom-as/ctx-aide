@@ -14,6 +14,10 @@ import {
 const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const ctxAide = path.join(repoRoot, "tools/ctx-aide/ctx-aide.mjs");
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "ctx-aide-"));
+const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
+assert.deepEqual(Object.keys(packageJson.bin), ["ctxa"]);
+assert.equal(packageJson.bin.ctxa, "./tools/ctx-aide/ctx-aide.mjs");
+assert.equal(packageJson.bin["ctx-aide"], undefined);
 
 function commandExists(binary) {
   try {
@@ -49,10 +53,11 @@ const helpOutput = execFileSync(process.execPath, [ctxAide, "--help"], {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "pipe"],
 });
-assert.equal(helpOutput.includes("ctx-aide lint --json"), true);
+assert.equal(helpOutput.includes("ctxa lint --json"), true);
+assert.equal(helpOutput.includes("ctx-aide lint --json"), false);
 const jsonHelp = run(["--help"]);
 assert.equal(jsonHelp.ok, true);
-assert.equal(jsonHelp.usage.includes("ctx-aide adoption status --repo <target-repo> --profile auto --json"), true);
+assert.equal(jsonHelp.usage.includes("ctxa adoption status --repo <target-repo> --profile auto --json"), true);
 
 write("docs/context/routes/context-lab.md", `---
 id: route.context-lab
@@ -210,7 +215,7 @@ assert.equal(defaultToolsList.policy.global.deny.includes("app.gmail"), true);
 write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx-aide", "custom.internal-linter"],
+    allow: ["tool.ctxa", "custom.internal-linter"],
     deny: ["app.gmail"],
   },
   capabilities: {
@@ -227,7 +232,7 @@ assert.equal(configuredToolsList.ok, true);
 assert.equal(configuredToolsList.config.exists, true);
 assert.equal(configuredToolsList.catalog.count, 1);
 assert.equal(configuredToolsList.catalog.capabilities[0].purpose, "Run a repo-local lint wrapper.");
-assert.deepEqual(configuredToolsList.policy.global.allow, ["custom.internal-linter", "tool.ctx-aide"]);
+assert.deepEqual(configuredToolsList.policy.global.allow, ["custom.internal-linter", "tool.ctxa"]);
 const customCapabilityCheck = run(["tools", "check", "--capability", "custom.internal-linter"]);
 assert.equal(customCapabilityCheck.ok, true);
 assert.equal(customCapabilityCheck.decision.allowed, true);
@@ -290,7 +295,7 @@ updated: 2026-06-26
 write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx-aide", "tool.playwright"],
+    allow: ["tool.ctxa", "tool.playwright"],
     deny: ["app.gmail"],
   },
   workflows: {
@@ -347,8 +352,8 @@ assert.equal(denyWinsTool.decision.deny_layers.includes("global"), true);
 write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx-aide", "tool.unknown"],
-    deny: ["tool.ctx-aide"],
+    allow: ["tool.ctxa", "tool.unknown"],
+    deny: ["tool.ctxa"],
   },
   workflows: {
     "workflow.missing": {
@@ -359,12 +364,12 @@ write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
 const invalidToolsPolicyLint = run(["lint"], { allowFailure: true });
 assert.equal(invalidToolsPolicyLint.ok, false);
 assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("unknown capability")), true);
-assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("cannot both allow and deny tool.ctx-aide")), true);
+assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("cannot both allow and deny tool.ctxa")), true);
 assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("unknown workflow policy: workflow.missing")), true);
 write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx-aide", "tool.playwright"],
+    allow: ["tool.ctxa", "tool.playwright"],
     deny: ["app.gmail"],
   },
   workflows: {
@@ -541,7 +546,7 @@ write("docs/config/ctx-aide.validation.json", `${JSON.stringify({
         enabled: true,
         provider: "vercel",
         settings_file: "vercel.json",
-        postdeploy_smoke_commands: ["ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo . --json"],
+        postdeploy_smoke_commands: ["ctxa workflow validation-plan --workflow workflow.browser-validation --repo . --json"],
       },
     },
   },
@@ -666,8 +671,8 @@ assert.equal(bootstrappedAdoptionStatus.warnings.some((warning) => warning.inclu
 fs.writeFileSync(path.join(adoptedRepo, "docs/config/ctx-aide.tools.json"), `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx-aide"],
-    deny: ["tool.ctx-aide"],
+    allow: ["tool.ctxa"],
+    deny: ["tool.ctxa"],
   },
 }, null, 2)}\n`);
 const invalidTargetToolsPolicyStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"], { allowFailure: true });
@@ -687,7 +692,7 @@ updated: 2026-06-27
 fs.writeFileSync(path.join(adoptedRepo, "docs/config/ctx-aide.tools.json"), `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx-aide", "tool.semble"],
+    allow: ["tool.ctxa", "tool.semble"],
     deny: ["app.gmail"],
   },
   workflows: {
@@ -771,7 +776,7 @@ const adoptedTicket = run([
   "--file",
   "package.json,pnpm-lock.yaml",
   "--validation",
-  "ctx-aide dependency audit --repo . --command 'pnpm audit --prod' --json",
+  "ctxa dependency audit --repo . --command 'pnpm audit --prod' --json",
   "--capability-workflow",
   "workflow.target-implementation",
   "--capability-step",
@@ -1110,7 +1115,7 @@ source_docs:
 
 ## Verification
 
-- \`ctx-aide dependency audit --repo . --command "pnpm audit --prod" --json\`
+- \`ctxa dependency audit --repo . --command "pnpm audit --prod" --json\`
 `);
 const legacyPlan = run([
   "adoption",
