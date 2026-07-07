@@ -1,12 +1,40 @@
 {
-  "name": "repo-context",
-  "version": "0.0.0",
+  "name": "ctx-aide",
+  "version": "0.1.0",
   "private": true,
-  "description": "Local-first markdown context, ticket, and validation workflow system for coding agents.",
+  "description": "Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.",
   "type": "module",
   "bin": {
     "ctx": "./tools/context/ctx.mjs"
   },
+  "files": [
+    "AGENTS.md",
+    "README.md",
+    "docs/config/*.json",
+    "docs/config/*.md",
+    "docs/context/architecture/github-public-launch-gate-2026-07-05.md",
+    "docs/context/architecture/public-*.md",
+    "docs/context/architecture/publication-*.md",
+    "docs/context/schema/*.json",
+    "docs/future-work/templates/*.md",
+    "docs/specs/templates/*.md",
+    "docs/ticket-packs/templates/*.md",
+    "docs/tickets/templates/*.md",
+    "docs/workflows/*.md",
+    "examples/public-release-demo/README.md",
+    "skills/repo-context/**",
+    "tools/context/*.mjs"
+  ],
+  "keywords": [
+    "ai-agents",
+    "coding-agents",
+    "developer-tools",
+    "markdown",
+    "tickets",
+    "workflow",
+    "local-first",
+    "validation"
+  ],
   "scripts": {
     "test": "node tools/context/ctx.test.mjs",
     "validate": "make validate",

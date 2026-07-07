@@ -4,6 +4,73 @@ Generated from markdown source. Do not edit generated packs by hand.
 
 Prioritize product-flow, UI, design, copy, and critique context. Load full files only when needed.
 
+## architecture.github-public-launch-gate-2026-07-05
+
+- Kind: architecture
+- Status: active
+- Source: docs/context/architecture/github-public-launch-gate-2026-07-05.md
+- Summary: Prepare the final public-release gate for CTX Aide without changing GitHub visibility or creating paid infrastructure before required decisions are explicit.
+- Positive rules:
+  - Use this gate before creating a remote, pushing, or changing GitHub visibility.
+  - Keep launch cost at zero unless a future user-approved deployment ticket changes that.
+- Negative rules:
+  - Do not create or publish a GitHub repository until owner and license decisions are explicit.
+  - Do not update external profile links until the public URL exists and has been verified.
+
+## architecture.public-name-decision-2026-07-05
+
+- Kind: architecture
+- Status: active
+- Source: docs/context/architecture/public-name-decision-2026-07-05.md
+- Summary: Record the public display name that downstream README, demo, and launch-gate work should use.
+- Positive rules:
+  - Use CTX Aide as the public display name for the public-release pack.
+  - Use ctx-aide as the package-facing name if a future publishing ticket proceeds.
+  - Preserve repo-context as the internal repository and command name until a dedicated rename ticket exists.
+- Negative rules:
+  - Do not reuse Concordat for this project.
+  - Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision.
+  - Do not use Repo Charter as the public display name.
+
+## architecture.public-name-generation-2026-07-05
+
+- Kind: architecture
+- Status: active
+- Source: docs/context/architecture/public-name-generation-2026-07-05.md
+- Summary: Document the repo's actual feature and workflow surface, then use that inventory to generate and record public-name candidates.
+- Positive rules:
+  - Use this brief as the rationale trail for the CTX Aide name decision.
+  - Prefer names that fit the actual repo-local workflow surface instead of generic AI branding.
+- Negative rules:
+  - Do not reopen rejected names without a fresh collision and positioning review.
+  - Do not rename commands, remotes, package names, or generated artifact paths from this brief alone.
+
+## architecture.public-release-safety-audit-2026-07-05
+
+- Kind: architecture
+- Status: active
+- Source: docs/context/architecture/public-release-safety-audit-2026-07-05.md
+- Summary: Record public-release safety evidence for credentials, private traces, generated artifacts, git history, and dependency/license surfaces.
+- Positive rules:
+  - Public release is allowed to proceed to the launch gate when this audit remains current.
+  - Treat generated SQLite as a local cache artifact, not a canonical public artifact.
+- Negative rules:
+  - Do not make the repository public without rerunning history and working-tree scans after any new sensitive changes.
+  - Do not claim package publishing readiness until a license decision is recorded.
+
+## architecture.publication-readiness-2026-07-07
+
+- Kind: architecture
+- Status: active
+- Source: docs/context/architecture/publication-readiness-2026-07-07.md
+- Summary: Record the current public-readiness state for CTX Aide so outside-facing docs, package metadata, and launch gates do not overclaim.
+- Positive rules:
+  - Keep package publication claims tied to dry-run evidence and explicit registry checks.
+  - Keep accidental registry publishing blocked until owner, license, and Cargo crate decisions are explicit.
+- Negative rules:
+  - Do not claim npm or crates.io publish readiness while package.json is private, no license file exists, or no Cargo.toml exists.
+  - Do not publish to npm, crates.io, or GitHub from this repo without a fresh launch ticket and validation evidence.
+
 ## component.ContextEntryCard
 
 - Kind: component

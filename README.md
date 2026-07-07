@@ -4,9 +4,25 @@ CTX Aide is a local-first workflow system for coding agents. It keeps context, s
 
 At its core, this repo is a repo-native operating system for coding-agent work: markdown context, specs, tickets, validation, and handoff rules that let agents implement safely from durable repo truth instead of chat history.
 
-The current repository and CLI namespace are still `repo-context` and `ctx`. `CTX Aide` is the public display name chosen for this release; `ctx-aide` is the package-facing name to use if a future publishing ticket clears owner, license, and registry decisions. No command, package, or remote rename is part of the current milestone.
+The current repository and CLI namespace are still `repo-context` and `ctx`. `CTX Aide` is the public display name chosen for this release. The npm package metadata now uses `ctx-aide` as the package-facing name, but the package remains intentionally private until owner, license, and publish decisions are explicit.
 
 No paid infrastructure is required. Markdown is canonical, generated agent packs are lightweight artifacts, and SQLite indexes are local rebuildable caches.
+
+## Purpose
+
+CTX Aide exists to make agent-assisted software work reviewable. It turns the usually invisible state behind coding-agent sessions into repo-local files: what the agent should know, what decisions are already frozen, what ticket is safe to implement, what validation proves it, and what should be deferred.
+
+The project is most useful when a repo has repeated agent work, non-trivial local conventions, or high cost for context loss. It is intentionally boring infrastructure: markdown files, JSON checks, a local CLI, and one-commit-per-ticket discipline.
+
+## Why
+
+Coding agents are strongest when they can work from stable project truth instead of conversational residue. CTX Aide gives them a durable operating surface:
+
+- Context entries explain routes, files, components, workflows, architecture decisions, and constraints.
+- Specs freeze product, design, architecture, security, and validation decisions before implementation.
+- Tickets make the implementation slice small enough to review, validate, and commit cleanly.
+- Ticket packs describe dependencies, parallel groups, and run policy for multi-ticket work.
+- The `ctx` CLI checks that the markdown contract stays coherent.
 
 ## What It Does
 
@@ -16,9 +32,17 @@ No paid infrastructure is required. Markdown is canonical, generated agent packs
 - Generates agent-facing context packs for Codex, Claude, and Cursor without depending on one vendor's memory format.
 - Provides local `ctx` checks for scanning, querying, linting, ticket validation, pack validation, future-work validation, adoption preflight, workflow validation, and tool-policy checks.
 
+## What It Is Not
+
+- It is not a hosted product, SaaS backend, or cloud control plane.
+- It is not a replacement for tests, code review, visual QA, security review, or human product judgment.
+- It is not a general project-management system.
+- It is not a prompt pack that asks agents to infer missing decisions.
+- It is not ready to publish to npm or crates.io until the remaining publication gates in [Publication Readiness](docs/context/architecture/publication-readiness-2026-07-07.md) are closed.
+
 ## Quickstart
 
-Run the core checks from a fresh checkout with Node.js, Python 3, `make`, and Semble available on `PATH` or through `uvx`:
+Run the core checks from a fresh checkout with Node.js 20+, Python 3, `make`, and Semble available on `PATH` or through `uvx`:
 
 ```sh
 node tools/context/ctx.mjs scan --json
@@ -26,6 +50,8 @@ node tools/context/ctx.mjs query --path README.md --task "understand CTX Aide pu
 node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
 make validate
 ```
+
+## Setup
 
 To install the local CLI without publishing a package:
 
@@ -49,6 +75,17 @@ For the fuller local smoke path:
 make smoke
 ```
 
+## Configuration
+
+Repo-local configuration lives under `docs/config/`:
+
+- `repo-context.tools.json`: allowed and denied agent tools, skills, and connectors by workflow and step.
+- `repo-context.validation.json`: browser/test/CI/deploy validation policy. Deploy is disabled by default and keeps `cost_estimate_required: true`.
+- `repo-context.loc.json`: source-volume targets for broad repo health and focused complexity checks.
+- `customization.md`: the profile model for future workflow customization.
+
+Target repos bootstrapped by CTX Aide get their own config files. The source repo remains a template and validation provider; target repo markdown remains the target's source of truth.
+
 ## How The Workflow Fits Together
 
 1. Write or harden a markdown spec under `docs/specs/`.
@@ -67,10 +104,11 @@ make smoke
 - `docs/ticket-packs/active/public-release-2026-07-01.md`: the active public-release ticket pack.
 - `docs/context/architecture/public-name-decision-2026-07-05.md`: the public name decision.
 - `docs/context/architecture/public-release-safety-audit-2026-07-05.md`: the public-release safety audit.
+- `docs/context/architecture/publication-readiness-2026-07-07.md`: npm, Cargo, package-payload, and public-criticism readiness notes.
 
 ## Status
 
-CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The public-release pack is still blocked on the final GitHub launch gate.
+CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The public-release pack is still blocked on the final GitHub launch gate and on explicit publication decisions for license, owner/org, and Cargo crate shape.
 
 ## Goals
 

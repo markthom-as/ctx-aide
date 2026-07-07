@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generated_by": "tools/context/ctx.mjs scan",
   "source": "markdown",
-  "entry_count": 9,
+  "entry_count": 10,
   "entries": [
     {
       "id": "architecture.github-public-launch-gate-2026-07-05",
@@ -205,6 +205,61 @@
         ]
       },
       "updated": "2026-07-05"
+    },
+    {
+      "id": "architecture.publication-readiness-2026-07-07",
+      "kind": "architecture",
+      "status": "active",
+      "title": "Publication Readiness",
+      "markdown_path": "docs/context/architecture/publication-readiness-2026-07-07.md",
+      "summary": "Record the current public-readiness state for CTX Aide so outside-facing docs, package metadata, and launch gates do not overclaim.",
+      "routes": [],
+      "files": [
+        "README.md",
+        "package.json",
+        "package-lock.json",
+        "docs/ticket-packs/active/public-release-2026-07-01.md"
+      ],
+      "components": [],
+      "flows": [
+        "flow.repo-context-dogfood"
+      ],
+      "tags": [
+        "public-release",
+        "npm",
+        "cargo",
+        "package-readiness"
+      ],
+      "positive_rules": [
+        "Keep package publication claims tied to dry-run evidence and explicit registry checks.",
+        "Keep accidental registry publishing blocked until owner, license, and Cargo crate decisions are explicit."
+      ],
+      "negative_rules": [
+        "Do not claim npm or crates.io publish readiness while package.json is private, no license file exists, or no Cargo.toml exists.",
+        "Do not publish to npm, crates.io, or GitHub from this repo without a fresh launch ticket and validation evidence."
+      ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
+      "load_when": {
+        "path_matches": [
+          "README.md",
+          "package.json",
+          "package-lock.json",
+          "docs/ticket-packs/active/public-release-2026-07-01.md"
+        ],
+        "task_terms": [
+          "publish",
+          "npm",
+          "cargo",
+          "crates.io",
+          "hacker news",
+          "public criticism"
+        ]
+      },
+      "updated": "2026-07-07"
     },
     {
       "id": "component.ContextEntryCard",

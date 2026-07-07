@@ -12,6 +12,7 @@ tickets:
   - ticket.context.042
   - ticket.context.043
   - ticket.context.044
+  - ticket.context.054
 run_policy:
   max_parallel_agents: 3
   stale_after_minutes: 20
@@ -28,12 +29,14 @@ parallel_groups:
     tickets:
       - ticket.context.042
       - ticket.context.043
+      - ticket.context.054
   launch:
     tickets:
       - ticket.context.044
 blocked_by:
   - GitHub owner/org decision required before creating or publishing a remote.
   - Repository license decision required before claiming open-source reuse rights.
+  - Cargo publishing decision required before claiming crates.io readiness.
 created: 2026-07-01
 completion:
   completed_at: null
@@ -58,11 +61,12 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 - `ticket.context.042`: done
 - `ticket.context.043`: done
 - `ticket.context.044`: blocked
+- `ticket.context.054`: done
 
 ## Execution Plan
 
 - Parallel groups: `naming` and `safety` can start immediately in parallel.
-- Sequential dependencies: `ticket.context.042` and `ticket.context.043` depend on `ticket.context.040`; `ticket.context.044` depends on all prior tickets.
+- Sequential dependencies: `ticket.context.042` and `ticket.context.043` depend on `ticket.context.040`; `ticket.context.044` depends on all prior tickets; `ticket.context.054` is a follow-on documentation hardening slice that does not unblock publication by itself.
 - Shared-file coordination: `README.md`, release docs, and repo metadata must be coordinated by a single agent after the name decision lands.
 - Worktree strategy: use separate worktrees for independent naming and safety work if parallel agents run concurrently.
 - Merge queue strategy: one clean commit per completed ticket; merge naming before docs/demo copy changes.
@@ -82,7 +86,7 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 
 ## Completion
 
-- Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`.
+- Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.054`.
 - Remaining tickets: none ready.
-- Blocked tickets: `ticket.context.044` pending GitHub owner/org and license decisions.
+- Blocked tickets: `ticket.context.044` pending GitHub owner/org, license, and Cargo/package publication decisions.
 - Final validation: pending.
