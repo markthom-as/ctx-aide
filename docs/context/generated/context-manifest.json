@@ -216,6 +216,8 @@
         "README.md",
         "package.json",
         "package-lock.json",
+        "scripts/build.mjs",
+        "scripts/install-local.mjs",
         "docs/ticket-packs/active/public-release-2026-07-01.md"
       ],
       "components": [],

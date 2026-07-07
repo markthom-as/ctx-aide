@@ -1,10 +1,16 @@
-.PHONY: validate smoke ctx-aide-doctor ctx-aide-lint ctx-aide-test ctx-aide-loc-check ctx-aide-scan ctx-aide-query-smoke future-check skill-validate install-skill
+.PHONY: validate smoke package-build package-install-smoke ctx-aide-doctor ctx-aide-lint ctx-aide-test ctx-aide-loc-check ctx-aide-scan ctx-aide-query-smoke future-check skill-validate install-skill
 
 CODEX_SKILLS_DIR ?= $(HOME)/.codex/skills
 
 validate: ctx-aide-lint ctx-aide-test ctx-aide-loc-check future-check skill-validate
 
 smoke: validate ctx-aide-scan ctx-aide-query-smoke ctx-aide-doctor
+
+package-build:
+	npm run --silent build -- --json
+
+package-install-smoke:
+	npm run --silent install:local -- --json
 
 ctx-aide-doctor:
 	node tools/ctx-aide/ctx-aide.mjs doctor --json

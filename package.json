@@ -22,6 +22,7 @@
     "docs/tickets/templates/*.md",
     "docs/workflows/*.md",
     "examples/public-release-demo/README.md",
+    "scripts/*.mjs",
     "skills/ctx-aide/**",
     "tools/ctx-aide/*.mjs"
   ],
@@ -36,6 +37,9 @@
     "validation"
   ],
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "install:local": "node scripts/install-local.mjs",
+    "install:global": "node scripts/install-local.mjs --global",
     "test": "node tools/ctx-aide/ctx-aide.test.mjs",
     "validate": "make validate",
     "smoke": "make smoke"

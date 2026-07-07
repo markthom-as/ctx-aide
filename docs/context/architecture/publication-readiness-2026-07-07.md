@@ -8,6 +8,8 @@ files:
   - README.md
   - package.json
   - package-lock.json
+  - scripts/build.mjs
+  - scripts/install-local.mjs
   - docs/ticket-packs/active/public-release-2026-07-01.md
 flows:
   - flow.ctx-aide-dogfood
@@ -52,6 +54,7 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 - Intended npm package name: `ctx-aide`.
 - Intended installed binary name: `ctxa`.
 - Package status: local package metadata is prepared, but `private: true` remains the safety gate.
+- Build/install status: `npm run build` verifies the package payload and writes a local tarball; `npm run install:local` installs `ctxa` into an ignored local prefix for smoke testing.
 - Cargo status: no Rust crate exists in this repository. crates.io publication is blocked until a Cargo package shape is designed and implemented.
 - Cost delta: `$0/month`. This work changes docs and local package metadata only.
 
@@ -91,6 +94,8 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 - The README now explains purpose, why the project exists, what it does, what it is not, setup, configuration, proof surfaces, and status.
 - `package.json` uses the intended npm package name `ctx-aide`.
 - The npm package payload is constrained with an explicit `files` allowlist instead of relying on `.gitignore` fallback.
+- `npm run build -- --json` runs syntax checks, unit tests, context checks, ticket/pack checks, and `npm pack` for the Node CLI package.
+- `npm run install:local -- --json` installs the package into `.ctx-aide/install` and verifies the installed `ctxa --help` surface without publishing.
 - `npm pack --dry-run --json` is the packaging proof surface for the current Node CLI.
 - `npm link --dry-run` proves the local package can install a single `ctxa` binary without publishing.
 - Existing `ctxa` checks cover docs, tickets, packs, future-work, LOC policy, skill validation, and local smoke behavior.
@@ -117,6 +122,8 @@ cargo publish --dry-run --allow-dirty
 Then rerun the green validation gates:
 
 ```sh
+npm run build -- --dry-run --json
+npm run install:local -- --json
 npm pack --dry-run --json
 npm link --dry-run
 node tools/ctx-aide/ctx-aide.mjs scan --json

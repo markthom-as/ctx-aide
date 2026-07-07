@@ -53,11 +53,29 @@ make validate
 
 ## Setup
 
-To install the local CLI without publishing a package:
+To build and verify the local npm package payload without publishing:
 
 ```sh
-npm install -g /path/to/ctx-aide
-ctxa --help
+npm run build -- --json
+```
+
+Use a dry run when you want the same checks without writing a tarball:
+
+```sh
+npm run build -- --dry-run --json
+```
+
+To install the local CLI without publishing a package or mutating the user-level npm prefix:
+
+```sh
+npm run install:local -- --json
+.ctx-aide/install/bin/ctxa --help
+```
+
+`install:local` installs into `.ctx-aide/install` by default, which is ignored by git. A custom prefix is available for isolated smoke tests:
+
+```sh
+npm run install:local -- --prefix /tmp/ctx-aide-install --json
 ```
 
 For active development on this checkout, link the same local `ctxa` command:
@@ -67,7 +85,9 @@ npm link
 ctxa --help
 ```
 
-These commands install from a local path only. Registry publishing, package scope, and remote install instructions are gated by the public-release launch decisions.
+`npm run install:global` is available for an explicit global install into the active npm prefix. These commands install from a local path only. Registry publishing, package scope, and remote install instructions are gated by the public-release launch decisions.
+
+CTX Aide is currently runnable through Node/npm. It is not currently a Rust/Cargo package because this repository does not contain a `Cargo.toml` or Rust crate.
 
 For the fuller local smoke path:
 

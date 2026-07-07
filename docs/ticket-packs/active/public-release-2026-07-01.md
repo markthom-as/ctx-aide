@@ -16,6 +16,7 @@ tickets:
   - ticket.context.055
   - ticket.context.056
   - ticket.context.057
+  - ticket.context.058
 run_policy:
   max_parallel_agents: 3
   stale_after_minutes: 20
@@ -36,6 +37,7 @@ parallel_groups:
       - ticket.context.055
       - ticket.context.056
       - ticket.context.057
+      - ticket.context.058
   launch:
     tickets:
       - ticket.context.044
@@ -71,11 +73,12 @@ Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credibl
 - `ticket.context.055`: done
 - `ticket.context.056`: done
 - `ticket.context.057`: done
+- `ticket.context.058`: done
 
 ## Execution Plan
 
 - Parallel groups: `naming` and `safety` can start immediately in parallel.
-- Sequential dependencies: `ticket.context.042` and `ticket.context.043` depend on `ticket.context.040`; `ticket.context.044` depends on all prior tickets; `ticket.context.054` is a follow-on documentation hardening slice; `ticket.context.055` performs the repo/tool namespace rename requested before publication; `ticket.context.056` removes the remaining legacy naming compatibility and aligns historical docs; `ticket.context.057` makes `ctxa` the single installed CLI binary while keeping `ctx-aide` as the package/repo namespace.
+- Sequential dependencies: `ticket.context.042` and `ticket.context.043` depend on `ticket.context.040`; `ticket.context.044` depends on all prior tickets; `ticket.context.054` is a follow-on documentation hardening slice; `ticket.context.055` performs the repo/tool namespace rename requested before publication; `ticket.context.056` removes the remaining legacy naming compatibility and aligns historical docs; `ticket.context.057` makes `ctxa` the single installed CLI binary while keeping `ctx-aide` as the package/repo namespace; `ticket.context.058` adds explicit build and local install scripts for package preflight.
 - Shared-file coordination: `README.md`, release docs, and repo metadata must be coordinated by a single agent after the name decision lands.
 - Worktree strategy: use separate worktrees for independent naming and safety work if parallel agents run concurrently.
 - Merge queue strategy: one clean commit per completed ticket; merge naming before docs/demo copy changes.
@@ -95,7 +98,7 @@ Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credibl
 
 ## Completion
 
-- Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.054`, `ticket.context.055`, `ticket.context.056`, `ticket.context.057`.
+- Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.054`, `ticket.context.055`, `ticket.context.056`, `ticket.context.057`, `ticket.context.058`.
 - Remaining tickets: none ready.
 - Blocked tickets: `ticket.context.044` pending GitHub owner/org, license, and Cargo/package publication decisions.
 - Final validation: pending.

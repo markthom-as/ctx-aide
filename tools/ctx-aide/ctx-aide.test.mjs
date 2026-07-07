@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import {
   buildScreenshotReviewState,
   buildTicketDraftPlan,
@@ -11,13 +12,21 @@ import {
   savePostedFeedback,
 } from "./screenshot-review-ui.mjs";
 
-const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const ctxAide = path.join(repoRoot, "tools/ctx-aide/ctx-aide.mjs");
+const buildScript = path.join(repoRoot, "scripts/build.mjs");
+const installScript = path.join(repoRoot, "scripts/install-local.mjs");
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "ctx-aide-"));
 const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
 assert.deepEqual(Object.keys(packageJson.bin), ["ctxa"]);
 assert.equal(packageJson.bin.ctxa, "./tools/ctx-aide/ctx-aide.mjs");
 assert.equal(packageJson.bin["ctx-aide"], undefined);
+assert.equal(packageJson.scripts.build, "node scripts/build.mjs");
+assert.equal(packageJson.scripts["install:local"], "node scripts/install-local.mjs");
+assert.equal(packageJson.scripts["install:global"], "node scripts/install-local.mjs --global");
+assert.equal(packageJson.files.includes("scripts/*.mjs"), true);
+assert.equal(execFileSync(process.execPath, [buildScript, "--help"], { encoding: "utf8" }).includes("--pack-destination <dir>"), true);
+assert.equal(execFileSync(process.execPath, [installScript, "--help"], { encoding: "utf8" }).includes("--prefix <path>"), true);
 
 function commandExists(binary) {
   try {
