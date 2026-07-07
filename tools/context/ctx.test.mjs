@@ -574,22 +574,47 @@ const adoptionDryRun = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--p
 assert.equal(adoptionDryRun.ok, true);
 assert.equal(adoptionDryRun.write, false);
 assert.equal(adoptionDryRun.changes.some((change) => change.file === "docs/config/repo-context.tools.json" && change.action === "planned"), true);
+assert.equal(adoptionDryRun.changes.some((change) => change.file === "docs/config/repo-context.settings.json" && change.action === "planned"), true);
 assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), false);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.settings.json")), false);
 assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json")), false);
 
 const unbootstrappedAdoptionStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"], { allowFailure: true });
 assert.equal(unbootstrappedAdoptionStatus.ok, false);
 assert.equal(unbootstrappedAdoptionStatus.profile.profile, "wetware");
 assert.equal(unbootstrappedAdoptionStatus.context.count, 0);
+assert.equal(unbootstrappedAdoptionStatus.settings.exists, false);
 assert.equal(unbootstrappedAdoptionStatus.tools_policy.exists, false);
 assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.profile.json")), true);
+assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.settings.json")), true);
 assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.tools.json")), true);
 
 const adoptionBootstrap = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware", "--write"]);
 assert.equal(adoptionBootstrap.ok, true);
 assert.equal(adoptionBootstrap.profile.profile, "wetware");
 assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), true);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.settings.json")), true);
 assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json")), true);
+const bootstrappedSettingsText = fs.readFileSync(path.join(adoptedRepo, "docs/config/repo-context.settings.json"), "utf8");
+assert.equal(bootstrappedSettingsText.includes('"screenshot_feedback_review_ui"'), true);
+assert.equal(bootstrappedSettingsText.includes('"enabled": false'), true);
+
+const enabledBootstrapRepo = path.join(fixture, "enabled-bootstrap-app");
+fs.mkdirSync(enabledBootstrapRepo, { recursive: true });
+fs.writeFileSync(path.join(enabledBootstrapRepo, "package.json"), `${JSON.stringify({ name: "enabled-bootstrap-app", private: true }, null, 2)}\n`);
+const enabledBootstrap = run([
+  "adoption",
+  "bootstrap",
+  "--repo",
+  enabledBootstrapRepo,
+  "--profile",
+  "default",
+  "--enable-screenshot-feedback-ui",
+  "--write",
+]);
+assert.equal(enabledBootstrap.ok, true);
+const enabledBootstrapSettings = JSON.parse(fs.readFileSync(path.join(enabledBootstrapRepo, "docs/config/repo-context.settings.json"), "utf8"));
+assert.equal(enabledBootstrapSettings.features.screenshot_feedback_review_ui.enabled, true);
 
 const adoptedContext = run([
   "adoption",
@@ -619,6 +644,9 @@ assert.equal(fs.existsSync(path.join(adoptedRepo, adoptedContext.context.file)),
 const bootstrappedAdoptionStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"]);
 assert.equal(bootstrappedAdoptionStatus.ok, true);
 assert.equal(bootstrappedAdoptionStatus.config.exists, true);
+assert.equal(bootstrappedAdoptionStatus.settings.exists, true);
+assert.equal(bootstrappedAdoptionStatus.settings.features.screenshot_feedback_review_ui.enabled, false);
+assert.equal(bootstrappedAdoptionStatus.settings.features.screenshot_feedback_review_ui.stability, "beta");
 assert.equal(bootstrappedAdoptionStatus.tools_policy.exists, true);
 assert.equal(bootstrappedAdoptionStatus.tools_policy.ok, true);
 assert.equal(bootstrappedAdoptionStatus.context.count, 1);
@@ -795,6 +823,64 @@ assert.equal(feedbackReview.artifacts[0].width, 390);
 assert.equal(feedbackReview.artifacts[0].height, 844);
 assert.equal(feedbackReview.artifacts[0].url, "http://localhost:3000/settings");
 assert.equal(feedbackReview.changed_files.includes("package.json"), true);
+
+const disabledReviewUi = run([
+  "feedback",
+  "review-ui",
+  "--repo",
+  adoptedRepo,
+  "--screenshot-dir",
+  ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+  "--plan-only",
+], { allowFailure: true });
+assert.equal(disabledReviewUi.ok, false);
+assert.equal(disabledReviewUi.feature.enabled, false);
+assert.equal(disabledReviewUi.feature.stability, "beta");
+assert.equal(disabledReviewUi.blockers[0].includes("optional beta"), true);
+
+const betaOverrideReviewUi = run([
+  "feedback",
+  "review-ui",
+  "--repo",
+  adoptedRepo,
+  "--screenshot-dir",
+  ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+  "--plan-only",
+  "--allow-beta",
+]);
+assert.equal(betaOverrideReviewUi.ok, true);
+
+const settingsGet = run(["settings", "get", "--repo", adoptedRepo]);
+assert.equal(settingsGet.ok, true);
+assert.equal(settingsGet.features.screenshot_feedback_review_ui.enabled, false);
+assert.equal(settingsGet.features.screenshot_feedback_review_ui.stability, "beta");
+
+const settingsSet = run([
+  "settings",
+  "set",
+  "--repo",
+  adoptedRepo,
+  "--feature",
+  "screenshot-feedback-review-ui",
+  "--enabled",
+  "true",
+  "--write",
+]);
+assert.equal(settingsSet.ok, true);
+assert.equal(settingsSet.feature.enabled, true);
+const settingsGetEnabled = run(["settings", "get", "--repo", adoptedRepo]);
+assert.equal(settingsGetEnabled.features.screenshot_feedback_review_ui.enabled, true);
+
+const enabledReviewUi = run([
+  "feedback",
+  "review-ui",
+  "--repo",
+  adoptedRepo,
+  "--screenshot-dir",
+  ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+  "--plan-only",
+]);
+assert.equal(enabledReviewUi.ok, true);
 
 const feedbackPlan = run([
   "feedback",

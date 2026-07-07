@@ -2,7 +2,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
-import { screenshotReviewUiCommand } from "./screenshot-review-ui.mjs";
+import {
+  SCREENSHOT_REVIEW_UI_FEATURE_ID,
+  defaultRepoContextSettings,
+  normalizeFeatureId,
+  readRepoContextSettings,
+  repoContextSettingsPath,
+  screenshotReviewUiCommand,
+} from "./screenshot-review-ui.mjs";
 
 const root = process.cwd();
 const toolRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
@@ -3289,6 +3296,14 @@ function splitCsv(value) {
   return String(value).split(",").map((item) => item.trim()).filter(Boolean);
 }
 
+function parseBooleanSetting(value) {
+  if (typeof value === "boolean") return { ok: true, value };
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (["true", "1", "yes", "on", "enabled"].includes(normalized)) return { ok: true, value: true };
+  if (["false", "0", "no", "off", "disabled"].includes(normalized)) return { ok: true, value: false };
+  return { ok: false, value: null };
+}
+
 function argValues(name) {
   const values = [];
   for (let index = 0; index < args.length; index += 1) {
@@ -3572,6 +3587,87 @@ function pullRequestPreflight() {
   };
 }
 
+function settingsGet() {
+  const repoPath = targetRepoPath();
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "settings get", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const settings = readRepoContextSettings(repoPath);
+  return {
+    ok: settings.ok,
+    scope: "settings get",
+    repo: displayPath(repoPath),
+    path: displayPath(settings.path),
+    exists: settings.exists,
+    settings: settings.settings,
+    features: settings.settings.features,
+    errors: settings.errors.map((error) => ({ ...error, file: displayPath(error.file) })),
+  };
+}
+
+function settingsSet() {
+  const repoPath = targetRepoPath();
+  const write = args.includes("--write");
+  if (!fs.existsSync(repoPath)) {
+    return { ok: false, scope: "settings set", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
+  }
+  const featureId = normalizeFeatureId(argValue("--feature", args[2] && !args[2].startsWith("--") ? args[2] : ""));
+  if (!featureId) {
+    return {
+      ok: false,
+      scope: "settings set",
+      errors: [{ file: "settings set", message: "missing or unsupported --feature <id>" }],
+      supported_features: [SCREENSHOT_REVIEW_UI_FEATURE_ID],
+    };
+  }
+  const settingsResult = readRepoContextSettings(repoPath);
+  if (!settingsResult.ok) {
+    return {
+      ok: false,
+      scope: "settings set",
+      errors: settingsResult.errors.map((error) => ({ ...error, file: displayPath(error.file) })),
+    };
+  }
+  const enabledInput = args.includes("--enable")
+    ? true
+    : (args.includes("--disable") ? false : argValue("--enabled", null));
+  const parsed = parseBooleanSetting(enabledInput);
+  if (!parsed.ok) {
+    return {
+      ok: false,
+      scope: "settings set",
+      errors: [{ file: "settings set", message: "provide --enabled true|false, --enable, or --disable" }],
+    };
+  }
+  const settings = settingsResult.settings;
+  settings.features[featureId] = {
+    ...defaultRepoContextSettings().features[featureId],
+    ...(settings.features[featureId] ?? {}),
+    enabled: parsed.value,
+  };
+  settings.updated = todayDate();
+  const outPath = repoContextSettingsPath(repoPath);
+  if (write) {
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, `${JSON.stringify(settings, null, 2)}\n`);
+  }
+  return {
+    ok: true,
+    scope: "settings set",
+    repo: displayPath(repoPath),
+    write,
+    path: displayPath(outPath),
+    feature: {
+      id: featureId,
+      enabled: settings.features[featureId].enabled,
+      stability: settings.features[featureId].stability,
+      setup: settings.features[featureId].setup,
+    },
+    changes: [{ action: write ? "updated" : "planned", file: displayPath(outPath) }],
+    errors: [],
+  };
+}
+
 function targetPackRows(repoPath, profile) {
   const ticketRoot = path.join(repoPath, profile.ticket_root);
   if (!fs.existsSync(ticketRoot)) return [];
@@ -3611,6 +3707,7 @@ function adoptionStatus() {
   const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
   const configPath = path.join(repoPath, "docs/config/repo-context.profile.json");
   const config = readJsonIfExists(configPath);
+  const settingsResult = readRepoContextSettings(repoPath);
   const toolsPolicyResult = readAgentToolsConfig(repoPath, "");
   const toolsPolicyErrors = toolsPolicyResult.exists
     ? agentToolsPolicyErrors(toolsPolicyResult, targetWorkflowIds(repoPath))
@@ -3620,6 +3717,7 @@ function adoptionStatus() {
     profile.ticket_root,
     "docs/context/README.md",
     "docs/config/repo-context.profile.json",
+    "docs/config/repo-context.settings.json",
     "docs/config/repo-context.tools.json",
   ];
   const pathRows = requiredPaths.map((relativePath) => ({
@@ -3638,6 +3736,10 @@ function adoptionStatus() {
   if (config.exists && !config.ok) blockers.push(`invalid profile config JSON: ${config.error}`);
   if (config.ok && config.value?.profile && config.value.profile !== profile.profile) {
     blockers.push(`profile config ${config.value.profile} does not match detected profile ${profile.profile}`);
+  }
+  if (!settingsResult.exists) blockers.push("missing docs/config/repo-context.settings.json; run adoption bootstrap with --write");
+  if (settingsResult.exists && !settingsResult.ok) {
+    blockers.push(`invalid settings config JSON: ${settingsResult.errors.map((error) => error.message).join("; ")}`);
   }
   if (!toolsPolicyResult.exists) blockers.push("missing docs/config/repo-context.tools.json; run adoption bootstrap with --write");
   for (const error of toolsPolicyErrors) {
@@ -3663,6 +3765,12 @@ function adoptionStatus() {
       exists: config.exists,
       ok: config.ok,
       profile: config.value?.profile ?? null,
+    },
+    settings: {
+      path: displayPath(settingsResult.path),
+      exists: settingsResult.exists,
+      ok: settingsResult.ok,
+      features: settingsResult.settings.features,
     },
     tools_policy: {
       path: toolsPolicyResult.path,
@@ -3727,6 +3835,41 @@ function writeFileIfAllowed(repoPath, relativePath, text, options) {
   return { action: options.write ? "created" : "planned", file: relativePath };
 }
 
+function writeAdoptionSettings(repoPath, options) {
+  const relativePath = "docs/config/repo-context.settings.json";
+  const fullPath = path.join(repoPath, relativePath);
+  const write = Boolean(options.write);
+  const force = Boolean(options.force);
+  const enableScreenshotFeedbackUi = Boolean(options.enableScreenshotFeedbackUi);
+  if (fs.existsSync(fullPath) && !force) {
+    if (!enableScreenshotFeedbackUi) return { action: "skipped", file: relativePath, reason: "exists" };
+    const current = readRepoContextSettings(repoPath);
+    if (!current.ok) {
+      return {
+        action: "blocked",
+        file: relativePath,
+        reason: current.errors.map((error) => error.message).join("; "),
+      };
+    }
+    const settings = current.settings;
+    settings.features[SCREENSHOT_REVIEW_UI_FEATURE_ID] = {
+      ...defaultRepoContextSettings().features[SCREENSHOT_REVIEW_UI_FEATURE_ID],
+      ...(settings.features[SCREENSHOT_REVIEW_UI_FEATURE_ID] ?? {}),
+      enabled: true,
+    };
+    settings.updated = todayDate();
+    if (write) fs.writeFileSync(fullPath, `${JSON.stringify(settings, null, 2)}\n`);
+    return { action: write ? "updated" : "planned", file: relativePath };
+  }
+  const settings = defaultRepoContextSettings({
+    screenshotFeedbackReviewUi: {
+      enabled: enableScreenshotFeedbackUi,
+      updated: todayDate(),
+    },
+  });
+  return writeFileIfAllowed(repoPath, relativePath, `${JSON.stringify(settings, null, 2)}\n`, { write, force });
+}
+
 function adoptionBootstrap() {
   const repoPath = targetRepoPath();
   const write = args.includes("--write");
@@ -3735,6 +3878,7 @@ function adoptionBootstrap() {
     return { ok: false, scope: "adoption bootstrap", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
   }
   const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
+  const enableScreenshotFeedbackUi = args.includes("--enable-screenshot-feedback-ui");
   const changes = [];
   for (const dir of [...adoptionContextDirs, profile.ticket_root]) {
     const full = path.join(repoPath, dir);
@@ -3760,6 +3904,7 @@ function adoptionBootstrap() {
     updated: todayDate(),
   };
   changes.push(writeFileIfAllowed(repoPath, "docs/config/repo-context.profile.json", `${JSON.stringify(config, null, 2)}\n`, { write, force }));
+  changes.push(writeAdoptionSettings(repoPath, { write, force, enableScreenshotFeedbackUi }));
   changes.push(writeFileIfAllowed(
     repoPath,
     "docs/config/repo-context.tools.json",
@@ -3781,6 +3926,9 @@ function adoptionBootstrap() {
     profile,
     changes,
     next_commands: [
+      enableScreenshotFeedbackUi
+        ? `ctx feedback review-ui --repo ${repoPath} --json`
+        : `ctx settings set --repo ${repoPath} --feature screenshot-feedback-review-ui --enabled true --write --json`,
       `ctx adoption context --repo ${repoPath} --kind flow --title "<flow>" --path "<path>" --task "<task>" --write --json`,
       `ctx adoption pack --repo ${repoPath} --title "<pack>" --slug <pack-slug> --write --json`,
       `ctx adoption ticket --repo ${repoPath} --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --context "<context-id>" --write --json`,
@@ -4904,6 +5052,10 @@ if (command === "lint") {
   printResult(workflowValidationPlan());
 } else if (command === "pr" && subcommand === "preflight") {
   printResult(pullRequestPreflight());
+} else if (command === "settings" && subcommand === "get") {
+  printResult(settingsGet());
+} else if (command === "settings" && subcommand === "set") {
+  printResult(settingsSet());
 } else if (command === "feedback" && subcommand === "plan") {
   printResult(feedbackPlan());
 } else if (command === "feedback" && subcommand === "review") {
@@ -4983,6 +5135,8 @@ if (command === "lint") {
       "ctx workflow deps --workflow workflow.browser-validation --repo . --json",
       "ctx workflow views --workflow workflow.browser-validation --repo . --json",
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",
+      "ctx settings get --repo . --json",
+      "ctx settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
       "ctx feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json",
       "ctx feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .repo-context/artifacts/screenshots/example.png --url http://localhost:3000 --json",
       "ctx feedback review-ui --repo . --screenshot-dir .repo-context/artifacts/screenshots --port 0",

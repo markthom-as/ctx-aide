@@ -7,6 +7,13 @@ const SEVERITIES = ["P0", "P1", "P2", "P3"];
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp"]);
 const DEFAULT_SCREENSHOT_DIR = ".repo-context/artifacts/screenshots";
 const DEFAULT_ASTRO_RUN_ROOT = "output/playwright/prod-total-coverage";
+export const SCREENSHOT_REVIEW_UI_FEATURE_ID = "screenshot_feedback_review_ui";
+const FEATURE_ALIASES = new Map([
+  [SCREENSHOT_REVIEW_UI_FEATURE_ID, SCREENSHOT_REVIEW_UI_FEATURE_ID],
+  ["screenshot-feedback-review-ui", SCREENSHOT_REVIEW_UI_FEATURE_ID],
+  ["screenshot-review-ui", SCREENSHOT_REVIEW_UI_FEATURE_ID],
+  ["feedback-review-ui", SCREENSHOT_REVIEW_UI_FEATURE_ID],
+]);
 
 function argValue(args, name, fallback = null) {
   const index = args.indexOf(name);
@@ -67,6 +74,92 @@ function walk(dir) {
 
 function readJsonFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
+export function repoContextSettingsPath(repoPath) {
+  return path.join(repoPath, "docs/config/repo-context.settings.json");
+}
+
+export function defaultRepoContextSettings(overrides = {}) {
+  const screenshotFeature = overrides.screenshotFeedbackReviewUi ?? {};
+  return {
+    config_version: 1,
+    generated_by: "repo-context settings",
+    features: {
+      [SCREENSHOT_REVIEW_UI_FEATURE_ID]: {
+        enabled: Boolean(screenshotFeature.enabled),
+        stability: "beta",
+        setup: "optional",
+        label: "Screenshot feedback review UI",
+        description: "Local UI for reviewing screenshot feedback and drafting canonical non-ready tickets.",
+        screenshot_dir: screenshotFeature.screenshot_dir ?? DEFAULT_SCREENSHOT_DIR,
+        ticket_dir: screenshotFeature.ticket_dir ?? "docs/tickets/needs-questions",
+        feedback_dir: screenshotFeature.feedback_dir ?? null,
+      },
+    },
+    updated: screenshotFeature.updated ?? null,
+  };
+}
+
+function mergeFeatureSettings(base, override) {
+  if (!override || typeof override !== "object" || Array.isArray(override)) return base;
+  return { ...base, ...override };
+}
+
+function mergeRepoContextSettings(parsed) {
+  const defaults = defaultRepoContextSettings();
+  const features = parsed?.features && typeof parsed.features === "object" ? parsed.features : {};
+  return {
+    ...defaults,
+    ...(parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}),
+    config_version: 1,
+    features: {
+      ...defaults.features,
+      ...features,
+      [SCREENSHOT_REVIEW_UI_FEATURE_ID]: mergeFeatureSettings(
+        defaults.features[SCREENSHOT_REVIEW_UI_FEATURE_ID],
+        features[SCREENSHOT_REVIEW_UI_FEATURE_ID],
+      ),
+    },
+  };
+}
+
+export function normalizeFeatureId(featureId) {
+  return FEATURE_ALIASES.get(String(featureId ?? "").trim()) ?? null;
+}
+
+export function readRepoContextSettings(repoPath) {
+  const settingsPath = repoContextSettingsPath(repoPath);
+  if (!fs.existsSync(settingsPath)) {
+    return {
+      ok: true,
+      exists: false,
+      path: settingsPath,
+      settings: defaultRepoContextSettings(),
+      errors: [],
+    };
+  }
+  try {
+    return {
+      ok: true,
+      exists: true,
+      path: settingsPath,
+      settings: mergeRepoContextSettings(readJsonFile(settingsPath)),
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      exists: true,
+      path: settingsPath,
+      settings: defaultRepoContextSettings(),
+      errors: [{ file: settingsPath, message: `invalid settings JSON: ${error.message}` }],
+    };
+  }
+}
+
+export function screenshotReviewUiFeature(settings) {
+  return mergeRepoContextSettings(settings).features[SCREENSHOT_REVIEW_UI_FEATURE_ID];
 }
 
 function asString(value) {
@@ -1011,14 +1104,16 @@ export function startScreenshotReviewServer(state, options = {}) {
 function stateFromArgs(args, cwd) {
   const repoArg = argValue(args, "--repo", ".");
   const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(cwd, repoArg);
+  const settingsResult = readRepoContextSettings(repoPath);
+  const feature = screenshotReviewUiFeature(settingsResult.settings);
   return buildScreenshotReviewState({
     cwd,
     repoPath,
     runDir: argValue(args, "--run-dir", null),
     summaryPath: argValue(args, "--summary", null),
-    screenshotDir: argValue(args, "--screenshot-dir", null),
-    feedbackDir: argValue(args, "--feedback-dir", null),
-    ticketDir: argValue(args, "--ticket-dir", null),
+    screenshotDir: argValue(args, "--screenshot-dir", null) ?? feature.screenshot_dir,
+    feedbackDir: argValue(args, "--feedback-dir", null) ?? feature.feedback_dir,
+    ticketDir: argValue(args, "--ticket-dir", null) ?? feature.ticket_dir,
     ticketPackId: argValue(args, "--ticket-pack", null) ?? undefined,
     milestoneId: argValue(args, "--milestone", null) ?? undefined,
   });
@@ -1026,11 +1121,14 @@ function stateFromArgs(args, cwd) {
 
 export function screenshotReviewUiCommand(args, options = {}) {
   const cwd = path.resolve(options.cwd ?? process.cwd());
+  const repoArg = argValue(args, "--repo", ".");
+  const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(cwd, repoArg);
   if (hasArg(args, "--help")) {
     return {
       ok: true,
       scope: "feedback review-ui",
       usage: [
+        "ctx settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
         "ctx feedback review-ui --repo . [--screenshot-dir .repo-context/artifacts/screenshots] [--port 0]",
         "ctx feedback review-ui --repo . --run-dir output/playwright/prod-total-coverage/<run> --port 0",
         "ctx feedback review-ui --repo . --summary output/run/summary.json --port 0",
@@ -1038,10 +1136,58 @@ export function screenshotReviewUiCommand(args, options = {}) {
         "ctx feedback review-ui --repo . --write-drafts --json",
       ],
       notes: [
+        "Beta feature: disabled by default in docs/config/repo-context.settings.json.",
         "Starts a local-only UI on 127.0.0.1.",
         "Ticket markdown is written only after draft confirmation in the UI.",
         "Generated tickets default to docs/tickets/needs-questions.",
         "Cost delta: $0/month.",
+      ],
+    };
+  }
+  const settingsResult = readRepoContextSettings(repoPath);
+  const feature = screenshotReviewUiFeature(settingsResult.settings);
+  const allowBetaOverride = hasArg(args, "--allow-beta") || hasArg(args, "--beta");
+  if (!settingsResult.ok) {
+    return {
+      ok: false,
+      scope: "feedback review-ui",
+      repo: repoDisplayPath(cwd, repoPath),
+      feature: {
+        id: SCREENSHOT_REVIEW_UI_FEATURE_ID,
+        enabled: false,
+        stability: "beta",
+      },
+      errors: settingsResult.errors.map((error) => ({
+        ...error,
+        file: repoDisplayPath(repoPath, error.file),
+      })),
+    };
+  }
+  if (!feature.enabled && !allowBetaOverride) {
+    return {
+      ok: false,
+      scope: "feedback review-ui",
+      repo: repoDisplayPath(cwd, repoPath),
+      feature: {
+        id: SCREENSHOT_REVIEW_UI_FEATURE_ID,
+        enabled: false,
+        stability: feature.stability,
+        setup: feature.setup,
+        settings_path: repoDisplayPath(repoPath, settingsResult.path),
+      },
+      blockers: [
+        "screenshot feedback review UI is an optional beta feature and is disabled in repo-context settings",
+      ],
+      next_commands: [
+        "ctx adoption bootstrap --repo . --enable-screenshot-feedback-ui --write --json",
+        "ctx settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
+        "ctx feedback review-ui --repo . --allow-beta --json",
+      ],
+      errors: [
+        {
+          file: repoDisplayPath(repoPath, settingsResult.path),
+          message: "enable features.screenshot_feedback_review_ui.enabled before starting the beta UI",
+        },
       ],
     };
   }
@@ -1059,6 +1205,9 @@ export function screenshotReviewUiCommand(args, options = {}) {
         process.stdout.write(`Feedback: ${payload.feedbackPath}\n`);
         process.stdout.write(`Ticket directory: ${payload.ticketDirectory}\n`);
         process.stdout.write(`Cost delta: ${payload.cost_delta}\n`);
+        if (allowBetaOverride && !feature.enabled) {
+          process.stdout.write("Beta override: enabled for this run only; repo settings remain disabled.\n");
+        }
       }
     },
   });
