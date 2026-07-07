@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-mvp
+id: pack.ctx-aide-mvp
 status: done
-title: Repo Context MVP
+title: CTX Aide MVP
 milestones:
-  - milestone.repo-context-mvp
+  - milestone.ctx-aide-mvp
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.013
   - ticket.context.012
@@ -76,7 +76,7 @@ completion:
   final_validation: []
 ---
 
-# Repo Context MVP
+# CTX Aide MVP
 
 ## Outcome
 
@@ -93,21 +93,21 @@ Make this repository its own first usable fixture for repo-local context, canoni
 - Excluded:
   - Hosted infrastructure.
   - Replacing markdown with SQLite as source of truth.
-  - Full Idvisor plugin implementation before local ctx behavior stabilizes.
+  - Full Idvisor plugin implementation before local ctx-aide behavior stabilizes.
 
 ## Tickets
 
 - `ticket.context.013`: done - Implement scan and query index
-- `ticket.context.012`: done - Implement ctx init bootstrap
+- `ticket.context.012`: done - Implement ctx-aide init bootstrap
 - `ticket.context.000`: done - Define high-effort spec to ticket workflow
 - `ticket.context.001`: done - Add repo-local context markdown substrate
-- `ticket.context.002`: done - Implement ctx scan query lint CLI foundation
+- `ticket.context.002`: done - Implement ctx-aide scan query lint CLI foundation
 - `ticket.context.003`: done - Generate Codex Claude and Cursor context packs
 - `ticket.context.004`: done - Add lightweight component and design catalog
 - `ticket.context.005`: done - Hydrate markdown tickets with scoped context
 - `ticket.context.006`: done - Add impact and regression checks
 - `ticket.context.007`: done - Add canonical ticket statuses and ticket packs
-- `ticket.context.008`: done - Define Idvisor repo-context plugin integration
+- `ticket.context.008`: done - Define Idvisor ctx-aide plugin integration
 - `ticket.context.009`: done - Add milestone run orchestration
 - `ticket.context.010`: done - Add Semble-backed code discovery
 - `ticket.context.011`: done - Add daily usability tooling
@@ -130,7 +130,7 @@ Make this repository its own first usable fixture for repo-local context, canoni
 ## Pack Validation
 
 - Smoke tests:
-  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
   - `make validate`
 - Screenshots:
   - Not required for this documentation/tooling pack.
@@ -142,4 +142,4 @@ Make this repository its own first usable fixture for repo-local context, canoni
 
 - Completed tickets: ticket.context.013, ticket.context.012, ticket.context.000, ticket.context.001, ticket.context.002, ticket.context.003, ticket.context.004, ticket.context.005, ticket.context.006, ticket.context.007, ticket.context.008, ticket.context.009, ticket.context.010, ticket.context.011.
 - Remaining tickets: none.
-- Final validation: `make validate`; `node tools/context/ctx.mjs pack status pack.repo-context-mvp --json`.
+- Final validation: `make validate`; `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-mvp --json`.

@@ -3,7 +3,7 @@ id: pack.2026-07-loc-volume-tracking
 status: done
 title: LOC Volume Tracking
 milestones:
-  - milestone.repo-context-cli-hardening
+  - milestone.ctx-aide-cli-hardening
 source_specs: []
 tickets:
   - ticket.2026-07-01.loc-volume-tracking
@@ -21,8 +21,8 @@ created: 2026-07-01
 completion:
   completed_at: 2026-07-01
   final_validation:
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs loc check --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs loc check --json
     - make validate
 ---
 
@@ -30,7 +30,7 @@ completion:
 
 ## Outcome
 
-Repo-context can measure and enforce path-scoped LOC volume targets through the local `ctx` command surface.
+CTX Aide can measure and enforce path-scoped LOC volume targets through the local `ctx-aide` command surface.
 
 ## Scope
 
@@ -45,7 +45,7 @@ Repo-context can measure and enforce path-scoped LOC volume targets through the 
 
 - Parallel groups: one CLI-and-docs ticket.
 - Sequential dependencies: none.
-- Shared-file coordination: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `Makefile`, and docs.
+- Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `Makefile`, and docs.
 - Worktree strategy: main checkout is sufficient.
 - Merge queue strategy: one clean commit.
 
@@ -58,7 +58,7 @@ Repo-context can measure and enforce path-scoped LOC volume targets through the 
 
 ## Pack Validation
 
-- Smoke tests: `ctx loc --json` and `ctx loc check --json`.
+- Smoke tests: `ctx-aide loc --json` and `ctx-aide loc check --json`.
 - Screenshots: not applicable.
 - Full regression checks: `make validate`.
 

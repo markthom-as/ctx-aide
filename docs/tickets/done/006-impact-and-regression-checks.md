@@ -2,10 +2,10 @@
 id: ticket.context.006
 status: done
 title: Add impact and regression checks
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -25,15 +25,15 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add impact and regression checks"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -59,7 +59,7 @@ Show affected routes, components, flows, feedback, and design rules for proposed
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -95,8 +95,8 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx impact --path <file> --json`.
-  - Add `ctx changed-context --base main --json`.
+  - Add `ctx-aide impact --path <file> --json`.
+  - Add `ctx-aide changed-context --base main --json`.
   - Generate PR or ticket summaries listing affected context ids.
   - Add CI checks for malformed or stale context.
 - Out:
@@ -126,7 +126,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 - Status: done
 - Commit: 8dc9b97
 - Verification evidence:
-  - `node tools/context/ctx.mjs impact --path docs/context/components/context-entry-card.md --json`
-  - `node tools/context/ctx.mjs impact --path tools/context/ctx.mjs --json`
+  - `node tools/ctx-aide/ctx-aide.mjs impact --path docs/context/components/context-entry-card.md --json`
+  - `node tools/ctx-aide/ctx-aide.mjs impact --path tools/ctx-aide/ctx-aide.mjs --json`
   - `make validate`
 - Follow-up tickets: none

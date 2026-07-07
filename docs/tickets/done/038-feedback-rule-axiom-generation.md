@@ -4,7 +4,7 @@ status: done
 title: Generate rules and axioms from feedback
 ticket_pack: pack.feedback-rule-axiom-generation-2026-06-28
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_spec: spec.feedback-rule-axiom-generation-2026-06-28
 source_feedback: []
 implementation_agent: codex
@@ -17,8 +17,8 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/feedback-review.md
   directories:
     - docs/tickets
@@ -38,9 +38,9 @@ axioms:
 validation:
   automated:
     - make validate
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
   smoke:
-    - node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json
+    - node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json
   screenshots: []
 completion:
   commit: feedback-rule-axiom-generation-change
@@ -101,18 +101,18 @@ Feedback can be a one-off implementation request or a reusable operating rule. T
 
 ## Acceptance Criteria
 
-- `ctx feedback plan` returns candidate rules and `axiom.feedback.*` ids for durable wording.
-- `ctx feedback capture` writes a Suggested Rules and Axioms section.
-- `ctx feedback promote --mode follow-up-ticket` carries candidates into ticket Positive Rules, Negative Rules, and Axioms.
+- `ctx-aide feedback plan` returns candidate rules and `axiom.feedback.*` ids for durable wording.
+- `ctx-aide feedback capture` writes a Suggested Rules and Axioms section.
+- `ctx-aide feedback promote --mode follow-up-ticket` carries candidates into ticket Positive Rules, Negative Rules, and Axioms.
 - Existing feedback commands remain JSON-first and write only with `--write`.
 
 ## Validation
 
 - Automated:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Smoke:
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`
 - Screenshots:
   - Not required.
 
@@ -122,6 +122,6 @@ Feedback can be a one-off implementation request or a reusable operating rule. T
 - Commit: feedback-rule-axiom-generation-change
 - Verification evidence:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`
 - Follow-up tickets:
   - Consider a later command to accept selected `axiom.feedback.*` candidates into scoped context entries.

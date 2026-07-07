@@ -2,10 +2,10 @@
 id: ticket.context.021
 status: done
 title: Add validation breakpoint config
-ticket_pack: pack.repo-context-validation-breakpoint-config
+ticket_pack: pack.ctx-aide-validation-breakpoint-config
 milestones:
-  - milestone.repo-context-docs-maintenance
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-docs-maintenance
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -19,11 +19,11 @@ scope:
   routes: []
   files:
     - README.md
-    - docs/config/repo-context.validation.json
+    - docs/config/ctx-aide.validation.json
     - docs/future-work/captured/2026-06-26-smart-tui-validation-config.md
     - docs/workflows/browser-validation.md
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories:
     - docs/config
     - docs/future-work
@@ -32,12 +32,12 @@ scope:
     - docs/ticket-packs
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add validation breakpoint config"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -45,10 +45,10 @@ axioms:
 validation:
   automated:
     - Run `make validate`.
-    - Run `node tools/context/ctx.test.mjs`.
+    - Run `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
-    - Run `ctx workflow validation-plan` with built-in/default config.
-    - Run `ctx workflow validation-plan` with config-file breakpoint overrides.
+    - Run `ctx-aide workflow validation-plan` with built-in/default config.
+    - Run `ctx-aide workflow validation-plan` with config-file breakpoint overrides.
   screenshots: []
 completion:
   commit: validation-breakpoint-config-change
@@ -69,7 +69,7 @@ Browser validation should not be a single viewport smoke. It needs a standard se
 
 - Preserve JSON-first command output.
 - Use sensible defaults when no config file exists.
-- Let target repos override views and breakpoints through `docs/config/repo-context.validation.json`.
+- Let target repos override views and breakpoints through `docs/config/ctx-aide.validation.json`.
 - Capture the smart TUI as future work until its interaction contract is hardened.
 
 ## Negative Rules
@@ -88,8 +88,8 @@ Browser validation should not be a single viewport smoke. It needs a standard se
 ## Frozen Decisions
 
 - Default breakpoints are `mobile`, `tablet`, `desktop`, and `wide`.
-- `ctx workflow validation-plan` returns a matrix of workflow views crossed with breakpoints.
-- Config file path is `docs/config/repo-context.validation.json` by default and can be overridden with `--config`.
+- `ctx-aide workflow validation-plan` returns a matrix of workflow views crossed with breakpoints.
+- Config file path is `docs/config/ctx-aide.validation.json` by default and can be overridden with `--config`.
 - Config breakpoints can be preset ids or custom `{ "id", "width", "height" }` objects.
 - The smart TUI is future work and must write the same config file.
 
@@ -103,7 +103,7 @@ Browser validation should not be a single viewport smoke. It needs a standard se
 ## Scope
 
 - In:
-  - `ctx workflow validation-plan`.
+  - `ctx-aide workflow validation-plan`.
   - Default breakpoint catalog.
   - Config-file override support.
   - Browser workflow breakpoint metadata.
@@ -124,9 +124,9 @@ Browser validation should not be a single viewport smoke. It needs a standard se
 
 - Automated:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Smoke:
-  - `node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
 - Screenshots:
   - Not required.
 
@@ -136,6 +136,6 @@ Browser validation should not be a single viewport smoke. It needs a standard se
 - Commit: validation-breakpoint-config-change
 - Verification evidence:
   - `make smoke`
-  - `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=secret node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=secret node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
 - Follow-up tickets:
   - Promote `future.2026-06-26.smart-tui-validation-config` when ready to design the smart TUI.

@@ -2,9 +2,9 @@
 id: ticket.context.034
 status: done
 title: Add capability policy to implementation plans
-ticket_pack: pack.repo-context-adoption-capability-policy-propagation-2026-06-27
+ticket_pack: pack.ctx-aide-adoption-capability-policy-propagation-2026-06-27
 milestones:
-  - milestone.repo-context-adoption-capability-policy-propagation
+  - milestone.ctx-aide-adoption-capability-policy-propagation
 source_spec: spec.adoption-capability-policy-propagation-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,25 +19,25 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "add capability policy to generated tickets and implementation plans"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.capability-policy-deny-wins
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
-    - node tools/context/ctx.test.mjs
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
   smoke: []
   screenshots: []
 completion:
@@ -53,7 +53,7 @@ Generated adoption tickets can declare capability workflow/step metadata, and im
 
 ## Context
 
-Agents currently need to call `ctx tools policy` separately and infer which workflow/step applies to a ticket.
+Agents currently need to call `ctx-aide tools policy` separately and infer which workflow/step applies to a ticket.
 
 ## Positive Rules
 
@@ -92,8 +92,8 @@ Agents currently need to call `ctx tools policy` separately and infer which work
 
 ## Acceptance Criteria
 
-- `ctx adoption ticket --capability-workflow ... --capability-step ...` writes metadata into the ticket.
-- `ctx adoption implementation-plan` returns capability workflow, step, policy, and check command.
+- `ctx-aide adoption ticket --capability-workflow ... --capability-step ...` writes metadata into the ticket.
+- `ctx-aide adoption implementation-plan` returns capability workflow, step, policy, and check command.
 - Legacy tickets without metadata still return a global/default policy envelope.
 - Command-line workflow/step overrides work without editing a ticket.
 
@@ -105,14 +105,14 @@ Agents currently need to call `ctx tools policy` separately and infer which work
 
 ## Implementation Notes
 
-Do not make denied capabilities fail implementation-plan; planning should show policy, while `ctx tools check` remains the failing guard.
+Do not make denied capabilities fail implementation-plan; planning should show policy, while `ctx-aide tools check` remains the failing guard.
 
 ## Completion
 
 - Status: done
 - Commit: add-capability-policy-to-implementation-plans
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs tools check --repo . --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs tools check --repo . --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json`
 - Follow-up tickets: `ticket.context.035`.

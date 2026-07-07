@@ -4,7 +4,7 @@ status: done
 title: Add pull request preflight command
 ticket_pack: pack.pull-request-review-usability-2026-07-05
 milestones:
-  - milestone.repo-context-pr-review-usability
+  - milestone.ctx-aide-pr-review-usability
 source_spec: spec.pull-request-review-workflow-2026-07-05
 source_feedback: []
 implementation_agent: codex
@@ -18,8 +18,8 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - README.md
     - docs/workflows/pull-request-review.md
     - docs/workflows/pull-request-review-runbook.md
@@ -30,7 +30,7 @@ scope:
   flows:
     - workflow.pull-request-review
 context_query:
-  task: "add ctx pr preflight command"
+  task: "add ctx-aide pr preflight command"
   generated_at: 2026-07-05
   context_ids:
     - workflow.pull-request-review
@@ -40,11 +40,11 @@ axioms:
   - axiom.pr-preflight-blocks-unsafe-mutation
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs pr preflight --repo . --allow-dirty --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke: []
   screenshots: []
 completion:
@@ -56,7 +56,7 @@ completion:
 
 ## Outcome
 
-Add `ctx pr preflight` so agents can machine-check git worktree state, `gh` availability/auth, optional PR metadata, and merge readiness blockers before comments, pushes, or merges.
+Add `ctx-aide pr preflight` so agents can machine-check git worktree state, `gh` availability/auth, optional PR metadata, and merge readiness blockers before comments, pushes, or merges.
 
 ## Context
 
@@ -84,7 +84,7 @@ The runbook gives a manual command path. A preflight command should return one J
 
 ## Frozen Decisions
 
-- Decision: `ctx pr preflight` is read-only.
+- Decision: `ctx-aide pr preflight` is read-only.
 - Rationale: preflight should be safe to run before any PR action.
 - Decision: `--pr` is optional.
 - Rationale: agents often need local readiness before selecting a PR.
@@ -103,19 +103,19 @@ The runbook gives a manual command path. A preflight command should return one J
 
 ## Acceptance Criteria
 
-- `ctx pr preflight --repo . --json` returns git and gh readiness without requiring a PR.
-- `ctx pr preflight --repo . --pr <pr> --json` includes PR metadata when `gh pr view` succeeds.
+- `ctx-aide pr preflight --repo . --json` returns git and gh readiness without requiring a PR.
+- `ctx-aide pr preflight --repo . --pr <pr> --json` includes PR metadata when `gh pr view` succeeds.
 - Dirty worktree, missing `gh` auth, draft PRs, failing/pending checks, and blocking reviews produce blockers.
 - Tests cover clean local readiness and PR metadata blocker parsing with fake `gh`.
 
 ## Validation
 
 - Automated:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs pr preflight --repo . --allow-dirty --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Smoke: none.
 - Screenshots: none.
 
@@ -124,10 +124,10 @@ The runbook gives a manual command path. A preflight command should return one J
 - Status: done
 - Commit: current-change
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs pr preflight --repo . --allow-dirty --json`
-  - `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs pr preflight --repo . --allow-dirty --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Follow-up tickets: none.

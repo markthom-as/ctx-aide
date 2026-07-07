@@ -70,7 +70,7 @@ The name is simple, agent-adjacent, and pragmatic. It keeps the `ctx-aide` machi
 - `CTX Aide`: selected. It is direct, pragmatic, and names the product as a context aide for coding-agent work.
 - `ctx-aide`: selected as the package-facing name if a later publishing ticket proceeds.
 - `Repo Charter`: rejected because the user disliked it and because the `Charter` adjacency made the name feel too formal and governance-oriented for public copy.
-- `repo-context`: rejected as the public name because it describes an implementation mechanism rather than the broader workflow.
+- `ctx-aide`: rejected as the public name because it describes an implementation mechanism rather than the broader workflow.
 - `Concordat`: rejected because `/Users/jove/code/concordat` is a separate local project and should not carry this product surface.
 - `Workmark`: rejected because live search surfaced a scoped npm package and workspace-tooling description using the same name.
 - `Context Accord`: rejected because search results surfaced the existing Accord Project ecosystem and related package/project names.

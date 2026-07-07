@@ -2,9 +2,9 @@
 id: ticket.context.026
 status: done
 title: Close the staff review dogfood path
-ticket_pack: pack.repo-context-staff-review-hardening-2026-06-26
+ticket_pack: pack.ctx-aide-staff-review-hardening-2026-06-26
 milestones:
-  - milestone.repo-context-staff-review-hardening
+  - milestone.ctx-aide-staff-review-hardening
 source_spec: spec.staff-review-hardening-2026-06-26
 source_feedback: []
 implementation_agent: codex
@@ -25,12 +25,12 @@ scope:
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "close staff review dogfood path"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -38,7 +38,7 @@ validation:
   automated:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json
+    - node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-staff-review-hardening-2026-06-26 --json
   smoke: []
   screenshots: []
 completion:
@@ -54,7 +54,7 @@ Update the repo-facing evidence so the hardening run is inspectable as a complet
 
 ## Context
 
-The repo-context dogfood flow requires context-aware tickets, validation evidence, and pack status metadata rather than chat-only claims.
+The ctx-aide dogfood flow requires context-aware tickets, validation evidence, and pack status metadata rather than chat-only claims.
 
 ## Positive Rules
 
@@ -81,7 +81,7 @@ The repo-context dogfood flow requires context-aware tickets, validation evidenc
 ## Implementation Rules
 
 - Required approach: update docs and pack metadata after earlier tickets are committed.
-- Existing components/helpers to use: `ctx pack status`, `make validate`, and `make smoke`.
+- Existing components/helpers to use: `ctx-aide pack status`, `make validate`, and `make smoke`.
 - Anti-patterns to avoid: a prose-only closeout without command evidence.
 - Stop and escalate if: any hardening ticket remains open.
 
@@ -98,7 +98,7 @@ The repo-context dogfood flow requires context-aware tickets, validation evidenc
 
 ## Validation
 
-- Automated: `make validate`; `make smoke`; `ctx pack status`.
+- Automated: `make validate`; `make smoke`; `ctx-aide pack status`.
 - Smoke: inspect final git status and pack status output.
 - Screenshots: none.
 
@@ -113,5 +113,5 @@ This ticket should be the final commit in the hardening pack.
 - Verification evidence:
   - `make validate`
   - `make smoke`
-  - `node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-staff-review-hardening-2026-06-26 --json`
 - Follow-up tickets: none.

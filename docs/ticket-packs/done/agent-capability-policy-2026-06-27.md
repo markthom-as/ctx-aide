@@ -1,9 +1,9 @@
 ---
-id: pack.repo-context-agent-capability-policy-2026-06-27
+id: pack.ctx-aide-agent-capability-policy-2026-06-27
 status: done
 title: Agent Capability Policy
 milestones:
-  - milestone.repo-context-agent-capability-policy
+  - milestone.ctx-aide-agent-capability-policy
 source_specs:
   - spec.agent-capability-policy-2026-06-27
 tickets:
@@ -30,11 +30,11 @@ created: 2026-06-27
 completion:
   completed_at: 2026-06-27
   final_validation:
-    - node --check tools/context/ctx.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs lint --json
-    - node tools/context/ctx.mjs tools list --json
-    - node tools/context/ctx.mjs tools check --capability tool.semble --json
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs lint --json
+    - node tools/ctx-aide/ctx-aide.mjs tools list --json
+    - node tools/ctx-aide/ctx-aide.mjs tools check --capability tool.semble --json
     - make validate
     - make smoke
 ---
@@ -43,7 +43,7 @@ completion:
 
 ## Outcome
 
-Repo-context can describe agent tools/skills and resolve repo-local allow/deny policy globally and for workflow steps.
+CTX Aide can describe agent tools/skills and resolve repo-local allow/deny policy globally and for workflow steps.
 
 ## Scope
 
@@ -73,7 +73,7 @@ Repo-context can describe agent tools/skills and resolve repo-local allow/deny p
 
 ## Pack Validation
 
-- Smoke tests: `ctx tools list`, `ctx tools policy`, and `ctx tools check`.
+- Smoke tests: `ctx-aide tools list`, `ctx-aide tools policy`, and `ctx-aide tools check`.
 - Screenshots: none.
 - Full regression checks: `make validate` and `make smoke`.
 
@@ -82,10 +82,10 @@ Repo-context can describe agent tools/skills and resolve repo-local allow/deny p
 - Completed tickets: `ticket.context.030`, `ticket.context.031`, `ticket.context.032`.
 - Remaining tickets: none.
 - Final validation:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs lint --json`
-  - `node tools/context/ctx.mjs tools list --json`
-  - `node tools/context/ctx.mjs tools check --capability tool.semble --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools list --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools check --capability tool.semble --json`
   - `make validate`
   - `make smoke`

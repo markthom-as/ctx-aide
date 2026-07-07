@@ -3,7 +3,7 @@ id: pack.screenshot-feedback-review-ui-2026-07-07
 status: done
 title: Screenshot Feedback Review UI
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_specs: []
 tickets:
   - ticket.context.052
@@ -28,11 +28,11 @@ completion:
 
 ## Outcome
 
-Add a local screenshot feedback review UI that turns reviewed screenshot notes into canonical repo-context tickets.
+Add a local screenshot feedback review UI that turns reviewed screenshot notes into canonical ctx-aide tickets.
 
 ## Scope
 
-- Included: `ctx feedback review-ui`, feedback autosave, draft preview, confirmed ticket writing, tests, and workflow docs.
+- Included: `ctx-aide feedback review-ui`, feedback autosave, draft preview, confirmed ticket writing, tests, and workflow docs.
 - Excluded: hosted review infrastructure, screenshot capture execution, and implementation of generated tickets.
 
 ## Tickets
@@ -42,7 +42,7 @@ Add a local screenshot feedback review UI that turns reviewed screenshot notes i
 ## Execution Plan
 
 - Add the local UI server and command entrypoint.
-- Reuse repo-context ticket structure for confirmed generated tickets.
+- Reuse ctx-aide ticket structure for confirmed generated tickets.
 - Validate with focused tests and repo ticket/pack checks.
 
 ## Run Policy
@@ -54,11 +54,11 @@ Add a local screenshot feedback review UI that turns reviewed screenshot notes i
 
 ## Pack Validation
 
-- `node --check tools/context/ctx.mjs`
-- `node --check tools/context/screenshot-review-ui.mjs`
-- `node tools/context/ctx.test.mjs`
-- `node tools/context/ctx.mjs ticket check --json`
-- `node tools/context/ctx.mjs pack check --json`
+- `node --check tools/ctx-aide/ctx-aide.mjs`
+- `node --check tools/ctx-aide/screenshot-review-ui.mjs`
+- `node tools/ctx-aide/ctx-aide.test.mjs`
+- `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+- `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 
 ## Completion
 

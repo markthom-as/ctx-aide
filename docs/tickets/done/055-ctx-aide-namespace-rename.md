@@ -88,7 +88,7 @@ Rename the current public and local tooling namespace to `ctx-aide` before publi
 - Use `CTX Aide` for the public display name.
 - Use `ctx-aide` for the repository directory, executable command, package-facing name, local skill name, config filenames, generated rule filename, and current validation commands.
 - Keep generated SQLite and agent packs rebuildable from markdown.
-- Preserve compatibility for adopted repos that still contain the old `<!-- repo-context: ignore -->` scan sentinel.
+- Require the `<!-- ctx-aide: ignore -->` scan sentinel for first-line markdown exclusion.
 
 ## Negative Rules
 
@@ -108,8 +108,8 @@ Rename the current public and local tooling namespace to `ctx-aide` before publi
 
 - Public display name: `CTX Aide`.
 - Repo/tool namespace: `ctx-aide`.
-- CLI command: `ctx-aide`; no legacy `ctx` bin is kept in this package.
-- Compatibility alias: `<!-- repo-context: ignore -->` remains accepted as an old scan-ignore sentinel.
+- CLI command: `ctx-aide`; no legacy command alias is kept in this package.
+- Only `<!-- ctx-aide: ignore -->` is accepted as the scan-ignore sentinel.
 - Cost delta: `$0/month`; this ticket changes local files and the local checkout directory only.
 
 ## Implementation Rules
@@ -128,7 +128,7 @@ Rename the current public and local tooling namespace to `ctx-aide` before publi
 - `package.json` exposes a `ctx-aide` bin backed by `tools/ctx-aide/ctx-aide.mjs`.
 - First-party current docs and validation commands use `ctx-aide`.
 - Active public-release ticket/pack/spec metadata is coherent after the rename.
-- The scanner accepts the new `<!-- ctx-aide: ignore -->` sentinel and the old `<!-- repo-context: ignore -->` compatibility sentinel.
+- The scanner accepts `<!-- ctx-aide: ignore -->` as the only first-line scan-ignore sentinel.
 - Generated agent artifacts are refreshed from the renamed sources.
 - The local checkout directory is renamed to `/Users/jove/code/ctx-aide`.
 

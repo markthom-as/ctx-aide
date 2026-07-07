@@ -2,9 +2,9 @@
 id: ticket.context.032
 status: done
 title: Validate and document capability policy
-ticket_pack: pack.repo-context-agent-capability-policy-2026-06-27
+ticket_pack: pack.ctx-aide-agent-capability-policy-2026-06-27
 milestones:
-  - milestone.repo-context-agent-capability-policy
+  - milestone.ctx-aide-agent-capability-policy
 source_spec: spec.agent-capability-policy-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,19 +19,19 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - README.md
   directories:
     - docs/config
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "validate and document agent capability policy"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -40,8 +40,8 @@ validation:
   automated:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs tools list --json
-    - node tools/context/ctx.mjs tools check --capability tool.semble --json
+    - node tools/ctx-aide/ctx-aide.mjs tools list --json
+    - node tools/ctx-aide/ctx-aide.mjs tools check --capability tool.semble --json
   smoke: []
   screenshots: []
 completion:
@@ -80,7 +80,7 @@ Policy is not production-ready unless malformed config fails checks and the comm
 ## Frozen Decisions
 
 - Decision: lint validates policy shape and known ids; it does not probe external auth or paid services.
-- Rationale: repo-context remains local, deterministic, and non-invasive.
+- Rationale: ctx-aide remains local, deterministic, and non-invasive.
 
 ## Implementation Rules
 
@@ -96,7 +96,7 @@ Policy is not production-ready unless malformed config fails checks and the comm
 
 ## Acceptance Criteria
 
-- `ctx lint --json` reports invalid policy ids and allow/deny overlaps.
+- `ctx-aide lint --json` reports invalid policy ids and allow/deny overlaps.
 - README shows global and workflow-step policy examples.
 - `make validate` and `make smoke` pass.
 - Pack and ticket completion metadata are updated truthfully.
@@ -104,7 +104,7 @@ Policy is not production-ready unless malformed config fails checks and the comm
 ## Validation
 
 - Automated: frontmatter commands.
-- Smoke: `ctx tools list` and `ctx tools check`.
+- Smoke: `ctx-aide tools list` and `ctx-aide tools check`.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -116,11 +116,11 @@ This ticket performs closeout after the first two implementation commits.
 - Status: done
 - Commit: validate-and-document-capability-policy
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs lint --json`
-  - `node tools/context/ctx.mjs tools list --json`
-  - `node tools/context/ctx.mjs tools check --capability tool.semble --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools list --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools check --capability tool.semble --json`
   - `make validate`
   - `make smoke`
 - Follow-up tickets: none.

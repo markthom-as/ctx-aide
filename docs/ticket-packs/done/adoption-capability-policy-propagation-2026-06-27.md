@@ -1,9 +1,9 @@
 ---
-id: pack.repo-context-adoption-capability-policy-propagation-2026-06-27
+id: pack.ctx-aide-adoption-capability-policy-propagation-2026-06-27
 status: done
 title: Adoption Capability Policy Propagation
 milestones:
-  - milestone.repo-context-adoption-capability-policy-propagation
+  - milestone.ctx-aide-adoption-capability-policy-propagation
 source_specs:
   - spec.adoption-capability-policy-propagation-2026-06-27
 tickets:
@@ -32,7 +32,7 @@ completion:
   final_validation:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json returned expected bootstrap blockers
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json returned expected bootstrap blockers
 ---
 
 # Adoption Capability Policy Propagation

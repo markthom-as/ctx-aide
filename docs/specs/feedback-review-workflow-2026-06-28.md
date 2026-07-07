@@ -23,7 +23,7 @@ Add a guided ticket feedback loop that summarizes review context, captures opera
 ## Affected Surfaces
 
 - Routes: none.
-- Files/directories: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `docs/workflows/`, `docs/context/feedback/`, `docs/tickets/`, `docs/ticket-packs/`.
+- Files/directories: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `docs/workflows/`, `docs/context/feedback/`, `docs/tickets/`, `docs/ticket-packs/`.
 - Components: none.
 - Flows: ticket lifecycle, browser validation, feedback review.
 - Design-system areas: none.
@@ -42,7 +42,7 @@ Add a guided ticket feedback loop that summarizes review context, captures opera
 
 ## Architecture Decisions
 
-- Decision: implement JSON-first commands under `ctx feedback`.
+- Decision: implement JSON-first commands under `ctx-aide feedback`.
 - Rationale: agents and future UIs can consume the same non-interactive packet and markdown mutation commands.
 - Rejected alternatives: a separate hosted review app or a screenshot-only folder convention.
 
@@ -75,4 +75,4 @@ None.
 
 - Independent tickets: `ticket.context.036`.
 - Sequential tickets: none.
-- Shared files that require coordination: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, workflow docs.
+- Shared files that require coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, workflow docs.

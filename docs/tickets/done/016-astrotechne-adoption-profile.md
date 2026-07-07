@@ -2,10 +2,10 @@
 id: ticket.context.016
 status: done
 title: Add Astrotechne adoption profile
-ticket_pack: pack.repo-context-astrotechne-adoption
+ticket_pack: pack.ctx-aide-astrotechne-adoption
 milestones:
-  - milestone.repo-context-docs-maintenance
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-docs-maintenance
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -19,7 +19,7 @@ scope:
   routes: []
   files:
     - README.md
-    - tools/context/ctx.mjs
+    - tools/ctx-aide/ctx-aide.mjs
     - docs/workflows/astrotechne-adoption.md
   directories:
     - docs/tickets
@@ -31,14 +31,14 @@ context_query:
   task: "Add Astrotechne adoption profile"
   generated_at: 2026-06-26
   context_ids:
-    - spec.repo-context-mvp
+    - spec.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
 validation:
   automated:
     - Run `make validate`.
-    - Run `node tools/context/ctx.mjs customize --profile astrotechne --dry-run --json`.
+    - Run `node tools/ctx-aide/ctx-aide.mjs customize --profile astrotechne --dry-run --json`.
   smoke:
     - Confirm README describes Astrotechne overlay adoption.
   screenshots: []
@@ -51,11 +51,11 @@ completion:
 
 ## Outcome
 
-Make repo-context ready to start as an overlay for Astrotechne's existing ticket and packet workflow.
+Make ctx-aide ready to start as an overlay for Astrotechne's existing ticket and packet workflow.
 
 ## Context
 
-Astrotechne already has a mature markdown ticket tree, packet README convention, and `npm run tickets:status` validation command. Repo-context should learn from that workflow instead of requiring a disruptive historical-ticket migration.
+Astrotechne already has a mature markdown ticket tree, packet README convention, and `npm run tickets:status` validation command. CTX Aide should learn from that workflow instead of requiring a disruptive historical-ticket migration.
 
 ## Positive Rules
 
@@ -67,7 +67,7 @@ Astrotechne already has a mature markdown ticket tree, packet README convention,
 
 - Do not edit the Astrotechne repository in this ticket.
 - Do not require migration of historical Astrotechne tickets.
-- Stop and harden if implementation requires changing repo-context status invariants.
+- Stop and harden if implementation requires changing ctx-aide status invariants.
 
 ## Axioms
 
@@ -99,14 +99,14 @@ Astrotechne already has a mature markdown ticket tree, packet README convention,
 
 ## Acceptance Criteria
 
-- `ctx customize --profile astrotechne --dry-run --json` returns a valid profile.
+- `ctx-aide customize --profile astrotechne --dry-run --json` returns a valid profile.
 - README documents the Astrotechne overlay adoption path.
 - Workflow note captures Astrotechne ticket root, statuses, packet convention, and rollout steps.
 
 ## Validation
 
 - Run `make validate`.
-- Run `node tools/context/ctx.mjs customize --profile astrotechne --dry-run --json`.
+- Run `node tools/ctx-aide/ctx-aide.mjs customize --profile astrotechne --dry-run --json`.
 
 ## Implementation Notes
 
@@ -120,7 +120,7 @@ Astrotechne already has a mature markdown ticket tree, packet README convention,
 - Commit: astrotechne-adoption-profile-change
 - Verification evidence:
   - `make validate`
-  - `node tools/context/ctx.mjs customize --profile astrotechne --dry-run --json`
+  - `node tools/ctx-aide/ctx-aide.mjs customize --profile astrotechne --dry-run --json`
 - Follow-up tickets:
   - Legacy ticket adapter.
   - Completion metadata finalizer.

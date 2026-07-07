@@ -2,9 +2,9 @@
 id: ticket.context.035
 status: done
 title: Document adoption capability policy propagation
-ticket_pack: pack.repo-context-adoption-capability-policy-propagation-2026-06-27
+ticket_pack: pack.ctx-aide-adoption-capability-policy-propagation-2026-06-27
 milestones:
-  - milestone.repo-context-adoption-capability-policy-propagation
+  - milestone.ctx-aide-adoption-capability-policy-propagation
 source_spec: spec.adoption-capability-policy-propagation-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -20,17 +20,17 @@ scope:
   routes: []
   files:
     - README.md
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "document and close out adoption capability policy propagation"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -39,7 +39,7 @@ validation:
   automated:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json returns expected bootstrap blockers
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json returns expected bootstrap blockers
   smoke: []
   screenshots: []
 completion:
@@ -55,7 +55,7 @@ Document the target adoption capability policy flow and close the pack with full
 
 ## Context
 
-The feature is not adoption-ready unless README and command usage tell agents how bootstrap, generated tickets, implementation-plan, and `ctx tools check` fit together.
+The feature is not adoption-ready unless README and command usage tell agents how bootstrap, generated tickets, implementation-plan, and `ctx-aide tools check` fit together.
 
 ## Positive Rules
 
@@ -116,5 +116,5 @@ Use exact command examples that match the implemented CLI.
 - Verification evidence:
   - `make validate`
   - `make smoke`
-  - `node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/tools policy blockers
+  - `node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/tools policy blockers
 - Follow-up tickets: none.

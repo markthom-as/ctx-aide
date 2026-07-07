@@ -5,7 +5,7 @@ title: Agent Capability Policy
 owner_agent: codex-high-effort
 source_feedback: []
 context_ids:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 target_agents:
   spec:
     - codex-high-effort
@@ -17,37 +17,37 @@ created: 2026-06-27
 
 ## Goal
 
-Make repo-context aware of agent runtime tools and skills, with repo-local policy for global and workflow-step allow/deny decisions.
+Make ctx-aide aware of agent runtime tools and skills, with repo-local policy for global and workflow-step allow/deny decisions.
 
 ## Affected Surfaces
 
 - Routes: none.
-- Files/directories: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `docs/config`, `README.md`.
+- Files/directories: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `docs/config`, `README.md`.
 - Components: none.
-- Flows: `flow.repo-context-dogfood`.
+- Flows: `flow.ctx-aide-dogfood`.
 - Design-system areas: none.
 
 ## Existing Context
 
-- `ctx workflow deps/views/validation-plan` already exposes workflow readiness as structured JSON.
+- `ctx-aide workflow deps/views/validation-plan` already exposes workflow readiness as structured JSON.
 - Workflow dependencies describe repo-pinned runtime prerequisites, while agent capabilities are supplied by the invoking agent environment and should be policy-gated rather than installed.
 - Staff-review hardening requires parseable output, non-interactive commands, and lint-enforced config.
 
 ## Product Decisions
 
 - Decision: capability policy is advisory and enforceable at planning/check time; it does not attempt to control the host agent runtime directly.
-- Rationale: repo-context can make allowed tools explicit and testable without claiming ownership over Codex, Claude, browser, or connector availability.
+- Rationale: ctx-aide can make allowed tools explicit and testable without claiming ownership over Codex, Claude, browser, or connector availability.
 - Regression risk: agents may over-trust policy if the output does not distinguish catalog awareness from live runtime availability.
 
 ## Architecture Decisions
 
-- Decision: add a dedicated `docs/config/repo-context.tools.json` policy file with built-in defaults and a built-in capability catalog.
+- Decision: add a dedicated `docs/config/ctx-aide.tools.json` policy file with built-in defaults and a built-in capability catalog.
 - Rationale: tools/skills policy has different semantics than package dependencies, browser views, or validation breakpoints.
 - Rejected alternatives: overloading `workflow_dependencies`, because dependencies are installability/readiness checks and capabilities are authorization/context decisions.
 
 ## Design Decisions
 
-- Decision: expose `ctx tools list`, `ctx tools policy`, and `ctx tools check` JSON commands.
+- Decision: expose `ctx-aide tools list`, `ctx-aide tools policy`, and `ctx-aide tools check` JSON commands.
 - Components/tokens to use: existing CLI output helpers and command naming.
 - Anti-patterns to avoid: human-only prose policy, prompts, shell execution, and unbounded capability dumps.
 
@@ -74,4 +74,4 @@ None for this implementation.
 
 - Independent tickets: catalog/config and docs can be reasoned about independently.
 - Sequential tickets: command resolver depends on catalog/config helpers; validation/docs depends on command behavior.
-- Shared files that require coordination: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, and `README.md`.
+- Shared files that require coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, and `README.md`.

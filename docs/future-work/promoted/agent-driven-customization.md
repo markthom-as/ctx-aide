@@ -9,13 +9,13 @@ applies_to:
   routes: []
   files:
     - README.md
-    - skills/repo-context/SKILL.md
+    - skills/ctx-aide/SKILL.md
   components: []
   flows:
     - flow.workflow-customization
 promotion_target:
   spec: spec.agent-driven-customization
-  ticket_pack: pack.repo-context-post-v0.1
+  ticket_pack: pack.ctx-aide-post-v0.1
   ticket: ticket.context.014
 ---
 
@@ -39,5 +39,5 @@ Users should be able to turn workflow features on and off through an agent-guide
 ## Promotion Notes
 
 - Suggested spec: `spec.agent-driven-customization`
-- Suggested ticket pack: `pack.repo-context-post-v0.1`
+- Suggested ticket pack: `pack.ctx-aide-post-v0.1`
 - Suggested validation: dry-run profile output plus proof required axioms cannot be disabled.

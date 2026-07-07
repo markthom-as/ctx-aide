@@ -15,7 +15,7 @@ Turn rough implementation intent into hardened, atomic tickets that can be execu
 
 1. Describe the desired outcome, affected surfaces, constraints, and non-goals.
 2. Draft a spec under `docs/specs/` from `docs/specs/templates/spec.md`.
-3. Query repo context for affected routes, files, directories, components, flows, design notes, architecture notes, and accepted feedback.
+3. Query CTX Aide context for affected routes, files, directories, components, flows, design notes, architecture notes, and accepted feedback.
 4. Ask only questions whose answers change implementation behavior.
 5. Harden the spec through architecture, design, security, best-practices, testing, and parallelization lenses.
 6. Freeze resolved decisions in the spec and leave unresolved implementation-changing questions in `Open Questions`.

@@ -2,10 +2,10 @@
 id: ticket.context.001
 status: done
 title: Add repo-local context markdown substrate
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -24,24 +24,24 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add repo-local context markdown substrate"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run `node tools/context/ctx.mjs lint --json`.
+  - Run `node tools/ctx-aide/ctx-aide.mjs lint --json`.
   smoke:
-  - Run `node tools/context/ctx.mjs lint --json`.
+  - Run `node tools/ctx-aide/ctx-aide.mjs lint --json`.
   - Review example entries against README schema.
   screenshots: []
 completion:
@@ -57,7 +57,7 @@ Create the committed markdown structure for route, file, directory, component, f
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -108,20 +108,20 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 ## Validation
 
-- Run `node tools/context/ctx.mjs lint --json`.
+- Run `node tools/ctx-aide/ctx-aide.mjs lint --json`.
 - Review example entries against README schema.
 
 ## Implementation Notes
 
 - Parallel group: `substrate-a`.
 - Dependencies: `ticket.context.000`.
-- Expected commit message: `Add repo context markdown substrate`.
+- Expected commit message: `Add ctx-aide markdown substrate`.
 
 ## Completion
 
 - Status: done
 - Commit: 408b8b1
 - Verification evidence:
-  - `node tools/context/ctx.mjs lint --json`
-  - `node tools/context/ctx.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
 - Follow-up tickets: none

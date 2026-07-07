@@ -4,7 +4,7 @@ status: done
 title: Add LOC volume tracking
 ticket_pack: pack.2026-07-loc-volume-tracking
 milestones:
-  - milestone.repo-context-cli-hardening
+  - milestone.ctx-aide-cli-hardening
 source_spec: []
 source_feedback: []
 implementation_agent: codex
@@ -17,9 +17,9 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
-    - docs/config/repo-context.loc.json
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
+    - docs/config/ctx-aide.loc.json
     - docs/config/customization.md
     - README.md
     - Makefile
@@ -36,8 +36,8 @@ axioms:
   - axiom.loc-tracking-local-first
 validation:
   automated:
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs loc check --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs loc check --json
     - make validate
   smoke: []
   screenshots: []
@@ -50,11 +50,11 @@ completion:
 
 ## Outcome
 
-Add a local `ctx loc` surface that can measure LOC volume and enforce configured or inline path-scoped targets.
+Add a local `ctx-aide loc` surface that can measure LOC volume and enforce configured or inline path-scoped targets.
 
 ## Context
 
-Repo-context uses markdown and local JSON config as canonical workflow truth. LOC volume tracking should follow the same pattern: local config, parseable command output, and validation-friendly checks.
+CTX Aide uses markdown and local JSON config as canonical workflow truth. LOC volume tracking should follow the same pattern: local config, parseable command output, and validation-friendly checks.
 
 ## Positive Rules
 
@@ -76,13 +76,13 @@ Repo-context uses markdown and local JSON config as canonical workflow truth. LO
 
 ## Frozen Decisions
 
-- Decision: `ctx loc` measures and reports without failing.
-- Decision: `ctx loc check` enforces targets and fails only when a target is under or over its configured range.
+- Decision: `ctx-aide loc` measures and reports without failing.
+- Decision: `ctx-aide loc check` enforces targets and fails only when a target is under or over its configured range.
 - Rationale: inspection and enforcement should be separate so agents can audit volume without triggering false negatives.
 
 ## Implementation Rules
 
-- Required approach: implement LOC measurement in `tools/context/ctx.mjs` with config from `docs/config/repo-context.loc.json`.
+- Required approach: implement LOC measurement in `tools/ctx-aide/ctx-aide.mjs` with config from `docs/config/ctx-aide.loc.json`.
 - Existing components/helpers to use: `targetRepoPath`, `displayPath`, argument parsing helpers, and fixture tests.
 - Anti-patterns to avoid: shelling out to `wc` for portability-critical logic or adding dependencies for simple traversal.
 - Stop and escalate if binary parsing, language-specific semantic LOC, or trend persistence becomes required.
@@ -94,26 +94,26 @@ Repo-context uses markdown and local JSON config as canonical workflow truth. LO
 
 ## Acceptance Criteria
 
-- `ctx loc --json` returns totals, breakdowns, largest files, and target status.
-- `ctx loc check --json` fails when an enforced LOC target is violated.
+- `ctx-aide loc --json` returns totals, breakdowns, largest files, and target status.
+- `ctx-aide loc check --json` fails when an enforced LOC target is violated.
 - Configured targets can be scoped to path prefixes and line kinds.
 - Generated context output, dependency folders, VCS data, and common build output are ignored by default.
 
 ## Validation
 
-- Automated: `node tools/context/ctx.test.mjs`.
-- Automated: `node tools/context/ctx.mjs loc check --json`.
+- Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
+- Automated: `node tools/ctx-aide/ctx-aide.mjs loc check --json`.
 - Automated: `make validate`.
 - Smoke: no browser or screenshot smoke is needed for this CLI-only ticket.
 - Screenshots: not applicable.
 
 ## Implementation Notes
 
-The first config records broad repo-source and `tools/context` targets. Future tickets can add trend capture if the project needs historical LOC deltas over time.
+The first config records broad repo-source and `tools/ctx-aide` targets. Future tickets can add trend capture if the project needs historical LOC deltas over time.
 
 ## Completion
 
 - Status: done.
 - Commit: current-change.
-- Verification evidence: `node tools/context/ctx.test.mjs`, `node tools/context/ctx.mjs loc check --json`, and `make validate` passed on 2026-07-01.
+- Verification evidence: `node tools/ctx-aide/ctx-aide.test.mjs`, `node tools/ctx-aide/ctx-aide.mjs loc check --json`, and `make validate` passed on 2026-07-01.
 - Follow-up tickets: none.

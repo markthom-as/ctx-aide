@@ -2,9 +2,9 @@
 id: ticket.context.031
 status: done
 title: Resolve workflow step capability policy
-ticket_pack: pack.repo-context-agent-capability-policy-2026-06-27
+ticket_pack: pack.ctx-aide-agent-capability-policy-2026-06-27
 milestones:
-  - milestone.repo-context-agent-capability-policy
+  - milestone.ctx-aide-agent-capability-policy
 source_spec: spec.agent-capability-policy-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,27 +19,27 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories:
     - docs/config
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "resolve global workflow and workflow step tool policy"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.capability-policy-deny-wins
 validation:
   automated:
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
-    - node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.computer-use --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
+    - node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.computer-use --json
   smoke: []
   screenshots: []
 completion:
@@ -82,7 +82,7 @@ The user needs both global policy and workflow-step policy. Agents should be abl
 
 ## Implementation Rules
 
-- Required approach: add `ctx tools policy` and `ctx tools check` commands with optional `--workflow`, `--step`, and required-or-optional `--capability`.
+- Required approach: add `ctx-aide tools policy` and `ctx-aide tools check` commands with optional `--workflow`, `--step`, and required-or-optional `--capability`.
 - Existing components/helpers to use: workflow selection helpers and JSON config parsing.
 - Anti-patterns to avoid: ambiguous boolean-only answers and non-deterministic ordering.
 - Stop and escalate if: workflow steps need a new markdown workflow schema before policy can be useful.
@@ -97,11 +97,11 @@ The user needs both global policy and workflow-step policy. Agents should be abl
 - Global deny blocks a capability even if workflow or step allow includes it.
 - Step deny blocks a capability even if global allow includes it.
 - Workflow/step allow can approve a capability not globally listed when there is no deny.
-- `ctx tools check` exits non-zero when a requested capability is denied.
+- `ctx-aide tools check` exits non-zero when a requested capability is denied.
 
 ## Validation
 
-- Automated: `node tools/context/ctx.test.mjs`.
+- Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
 - Smoke: listed frontmatter commands.
 - Screenshots: none.
 
@@ -114,8 +114,8 @@ Return the layered policy and a decision envelope so agents can explain why a ca
 - Status: done
 - Commit: resolve-workflow-step-tool-policy
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json`
-  - `node tools/context/ctx.mjs tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.computer-use --json` returned the expected denial
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.computer-use --json` returned the expected denial
 - Follow-up tickets: `ticket.context.032`.

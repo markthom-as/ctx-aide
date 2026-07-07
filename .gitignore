@@ -1,5 +1,5 @@
 .DS_Store
-.repo-context/
+.ctx-aide/
 docs/context/generated/context.sqlite
 docs/context/generated/*.sqlite
 node_modules/

@@ -20,23 +20,23 @@ created: 2026-06-25
 
 ## Goal
 
-Define post-v0.1 customization that lets users choose repo-context workflow profiles and toggles through an agent-guided process without weakening required validation gates.
+Define post-v0.1 customization that lets users choose ctx-aide workflow profiles and toggles through an agent-guided process without weakening required validation gates.
 
 ## Affected Surfaces
 
 - Routes: none.
-- Files/directories: `README.md`, `skills/repo-context/SKILL.md`, `tools/context`, `docs/future-work`, `docs/ticket-packs`.
+- Files/directories: `README.md`, `skills/ctx-aide/SKILL.md`, `tools/ctx-aide`, `docs/future-work`, `docs/ticket-packs`.
 - Components: none.
 - Flows: workflow customization, profile selection, dry-run validation.
 - Design-system areas: none.
 
 ## Existing Context
 
-The customization idea was captured as future work and promoted into `pack.repo-context-post-v0.1` with `ticket.context.014`. It should remain post-v0.1 so the baseline workflow can stabilize first.
+The customization idea was captured as future work and promoted into `pack.ctx-aide-post-v0.1` with `ticket.context.014`. It should remain post-v0.1 so the baseline workflow can stabilize first.
 
 ## Product Decisions
 
-- Decision: customization is optional and never required for basic repo-context use.
+- Decision: customization is optional and never required for basic ctx-aide use.
 - Decision: profiles and toggles must be reviewable in repo-local markdown or config.
 - Decision: a dry-run questionnaire should precede mutating CLI commands.
 - Regression risk: customization could fragment the workflow or silently disable critical axioms.
@@ -78,4 +78,4 @@ The customization idea was captured as future work and promoted into `pack.repo-
 
 - Independent tickets: `ticket.context.014` after the MVP pack.
 - Sequential tickets: profile model before mutating CLI commands.
-- Shared files that require coordination: `README.md`, `skills/repo-context/SKILL.md`, and `tools/context/ctx.mjs`.
+- Shared files that require coordination: `README.md`, `skills/ctx-aide/SKILL.md`, and `tools/ctx-aide/ctx-aide.mjs`.

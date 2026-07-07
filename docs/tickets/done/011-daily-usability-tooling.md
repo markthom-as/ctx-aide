@@ -2,10 +2,10 @@
 id: ticket.context.011
 status: done
 title: Add daily usability tooling
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -23,15 +23,15 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add daily usability tooling"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -40,11 +40,11 @@ validation:
   automated:
   - Run `make validate`.
   - Run skill validator.
-  - Run `node tools/context/ctx.mjs lint --json`.
+  - Run `node tools/ctx-aide/ctx-aide.mjs lint --json`.
   smoke:
   - Run `make validate`.
   - Run skill validator.
-  - Run `node tools/context/ctx.mjs lint --json`.
+  - Run `node tools/ctx-aide/ctx-aide.mjs lint --json`.
   screenshots: []
 completion:
   commit: ea6b9ef
@@ -59,7 +59,7 @@ Make the repo usable every day with validation, skill install, and smoke command
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -100,7 +100,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
   - Add fixture smoke command.
   - Ensure skill validation is part of daily validation.
 - Out:
-  - Implement full `ctx query` ranking.
+  - Implement full `ctx-aide query` ranking.
 
 ## Acceptance Criteria
 
@@ -112,7 +112,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 - Run `make validate`.
 - Run skill validator.
-- Run `node tools/context/ctx.mjs lint --json`.
+- Run `node tools/ctx-aide/ctx-aide.mjs lint --json`.
 
 ## Implementation Notes
 
@@ -127,5 +127,5 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 - Verification evidence:
   - `make validate`
   - `make smoke`
-  - `node tools/context/ctx.mjs doctor --json`
+  - `node tools/ctx-aide/ctx-aide.mjs doctor --json`
 - Follow-up tickets: none

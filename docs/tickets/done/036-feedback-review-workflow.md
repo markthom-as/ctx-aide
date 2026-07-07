@@ -4,7 +4,7 @@ status: done
 title: Add feedback review workflow
 ticket_pack: pack.feedback-review-workflow-2026-06-28
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_spec: spec.feedback-review-workflow-2026-06-28
 source_feedback: []
 implementation_agent: codex
@@ -17,8 +17,8 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/feedback-review.md
     - docs/workflows/spec-to-ticket.md
     - docs/workflows/browser-validation.md
@@ -42,9 +42,9 @@ axioms:
 validation:
   automated:
     - make validate
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
   smoke:
-    - node tools/context/ctx.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json
+    - node tools/ctx-aide/ctx-aide.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json
   screenshots: []
 completion:
   commit: feedback-review-workflow-change
@@ -83,7 +83,7 @@ The existing lifecycle already has specs, tickets, ticket packs, browser validat
 
 ## Frozen Decisions
 
-- Command namespace: `ctx feedback`.
+- Command namespace: `ctx-aide feedback`.
 - Feedback source of truth: `docs/context/feedback/`.
 - Promotion modes: `acceptance-criteria` and `follow-up-ticket`.
 - Follow-up tickets start in a non-done status and must be hardened before implementation when clarifying questions remain.
@@ -98,9 +98,9 @@ The existing lifecycle already has specs, tickets, ticket packs, browser validat
 ## Scope
 
 - In:
-  - `ctx feedback review`
-  - `ctx feedback capture`
-  - `ctx feedback promote`
+  - `ctx-aide feedback review`
+  - `ctx-aide feedback capture`
+  - `ctx-aide feedback promote`
   - Workflow docs and command usage.
   - Fixture tests for capture and promotion.
 - Out:
@@ -120,9 +120,9 @@ The existing lifecycle already has specs, tickets, ticket packs, browser validat
 
 - Automated:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Smoke:
-  - `node tools/context/ctx.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`
 - Screenshots:
   - Not required.
 
@@ -132,6 +132,6 @@ The existing lifecycle already has specs, tickets, ticket packs, browser validat
 - Commit: feedback-review-workflow-change
 - Verification evidence:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`
 - Follow-up tickets:
   - Build an interactive TUI or browser-hosted review surface on top of the JSON commands if needed.

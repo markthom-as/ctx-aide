@@ -2,7 +2,7 @@
 id: ticket.context.014
 status: done
 title: Add agent-driven workflow customization
-ticket_pack: pack.repo-context-post-v0.1
+ticket_pack: pack.ctx-aide-post-v0.1
 milestones:
   - milestone.post-v0.1-customization
 source_spec: spec.agent-driven-customization
@@ -23,8 +23,8 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
-    - tools/context
+    - skills/ctx-aide
+    - tools/ctx-aide
   components: []
   flows:
     - flow.workflow-customization
@@ -39,7 +39,7 @@ axioms:
   - axiom.rule-polarity-preserved
 validation:
   automated:
-    - node tools/context/ctx.mjs lint --json
+    - node tools/ctx-aide/ctx-aide.mjs lint --json
   smoke:
     - Run a dry-run customization questionnaire against a fixture repo.
     - Verify generated config toggles only documented settings.
@@ -53,7 +53,7 @@ completion:
 
 ## Outcome
 
-Let users customize repo-context workflow behavior through an agent-guided setup flow, with persisted profiles and toggles that the skill and CLI can honor.
+Let users customize ctx-aide workflow behavior through an agent-guided setup flow, with persisted profiles and toggles that the skill and CLI can honor.
 
 ## Context
 
@@ -93,8 +93,8 @@ This is future, post-v0.1 work. The MVP should first prove canonical tickets, pa
 ## Scope
 
 - In:
-  - Define `docs/context/config.md` or `repo-context.config.*` conventions.
-  - Add `ctx customize --profile <name> --dry-run --json` concept.
+  - Define `docs/context/config.md` or `ctx-aide.config.*` conventions.
+  - Add `ctx-aide customize --profile <name> --dry-run --json` concept.
   - Add skill instructions for agent-guided setup questions.
   - Define toggles for optional features such as Semble discovery, Cursor export, Claude UI audit, Idvisor orchestration, screenshots, and strict pack gates.
 - Out:
@@ -126,8 +126,8 @@ This is future, post-v0.1 work. The MVP should first prove canonical tickets, pa
 - Status: done
 - Commit: 40e0375
 - Verification evidence:
-  - `node tools/context/ctx.mjs customize --profile strict --dry-run --json`
-  - `node tools/context/ctx.mjs customize --profile web-app --dry-run --json`
-  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.mjs customize --profile strict --dry-run --json`
+  - `node tools/ctx-aide/ctx-aide.mjs customize --profile web-app --dry-run --json`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
   - `make validate`
 - Follow-up tickets: none

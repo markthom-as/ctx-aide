@@ -5,7 +5,7 @@ title: Adoption Capability Policy Propagation
 owner_agent: codex-high-effort
 source_feedback: []
 context_ids:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 target_agents:
   spec:
     - codex-high-effort
@@ -22,21 +22,21 @@ Make capability allow/deny policy travel through target-repo adoption, generated
 ## Affected Surfaces
 
 - Routes: none.
-- Files/directories: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `README.md`.
+- Files/directories: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`.
 - Components: none.
-- Flows: `flow.repo-context-dogfood`.
+- Flows: `flow.ctx-aide-dogfood`.
 - Design-system areas: none.
 
 ## Existing Context
 
-- `ctx tools list/policy/check` can resolve global and workflow-step capability policy.
-- `ctx adoption bootstrap` currently writes target profile config and context directories, but not target capability policy.
-- `ctx adoption implementation-plan` currently returns context entries, target paths, validation commands, and stop conditions, but not policy guidance.
+- `ctx-aide tools list/policy/check` can resolve global and workflow-step capability policy.
+- `ctx-aide adoption bootstrap` currently writes target profile config and context directories, but not target capability policy.
+- `ctx-aide adoption implementation-plan` currently returns context entries, target paths, validation commands, and stop conditions, but not policy guidance.
 
 ## Product Decisions
 
-- Decision: adoption bootstrap should seed a target `docs/config/repo-context.tools.json` policy unless it already exists.
-- Rationale: agents using repo-context in a production repo should not need to remember an extra source-repo command to learn allowed tools and skills.
+- Decision: adoption bootstrap should seed a target `docs/config/ctx-aide.tools.json` policy unless it already exists.
+- Rationale: agents using ctx-aide in a production repo should not need to remember an extra source-repo command to learn allowed tools and skills.
 - Regression risk: target repos may accidentally inherit a policy that is too restrictive for custom workflows.
 
 ## Architecture Decisions
@@ -74,4 +74,4 @@ None for this implementation.
 
 - Independent tickets: bootstrap/status policy adoption and implementation-plan propagation are conceptually separate.
 - Sequential tickets: implementation-plan propagation depends on target policy files existing in bootstrap fixtures.
-- Shared files that require coordination: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, and `README.md`.
+- Shared files that require coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, and `README.md`.

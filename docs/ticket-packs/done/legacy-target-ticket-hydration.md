@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-legacy-target-ticket-hydration
+id: pack.ctx-aide-legacy-target-ticket-hydration
 status: done
 title: Legacy Target Ticket Hydration
 milestones:
-  - milestone.repo-context-daily-use
+  - milestone.ctx-aide-daily-use
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.022
 run_policy:
@@ -22,7 +22,7 @@ created: 2026-06-26
 completion:
   completed_at: 2026-06-26
   final_validation:
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
     - make validate
 ---
 
@@ -51,7 +51,7 @@ Allow adoption implementation plans to hydrate useful context from existing targ
 
 - Parallel groups: `cli-a`
 - Sequential dependencies: `ticket.context.020`
-- Shared-file coordination: `tools/context/ctx.mjs` and `tools/context/ctx.test.mjs`.
+- Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs`.
 - Worktree strategy: not required.
 - Merge queue strategy: direct local commit.
 
@@ -75,6 +75,6 @@ Allow adoption implementation plans to hydrate useful context from existing targ
 - Remaining tickets:
   - None.
 - Final validation:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs doctor --json`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs doctor --json`
   - `make validate`

@@ -27,7 +27,7 @@ scope:
   flows:
     - flow.ctx-aide-dogfood
 context_query:
-  task: "polish README for public repo-context release"
+  task: "polish README for public ctx-aide release"
   generated_at: 2026-07-01
   context_ids:
     - flow.ctx-aide-dogfood
@@ -67,7 +67,7 @@ The public release should quickly explain what the project does, why it exists, 
 ## Negative Rules
 
 - Do not make claims that exceed implemented behavior.
-- Do not leave stale `repo-context` branding in prominent public-facing copy unless it is intentionally described as the internal/legacy working name.
+- Do not leave stale `ctx-aide` branding in prominent public-facing copy unless it is intentionally described as the internal/legacy working name.
 - Stop and escalate if the README requires behavior that does not exist.
 
 ## Axioms
@@ -84,7 +84,7 @@ The public release should quickly explain what the project does, why it exists, 
 ## Implementation Rules
 
 - Required approach: revise README structure for public consumption while preserving existing operational truth.
-- Existing components/helpers to use: existing README sections, workflow docs, `ctx` command list, and generated context model.
+- Existing components/helpers to use: existing README sections, workflow docs, `ctx-aide` command list, and generated context model.
 - Anti-patterns to avoid: marketing-only README with no quickstart or proof.
 - Stop and escalate if: public docs require a package/command rename not resolved by `ticket.context.040`.
 

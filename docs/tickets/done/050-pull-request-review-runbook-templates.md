@@ -4,7 +4,7 @@ status: done
 title: Add pull request review runbook and templates
 ticket_pack: pack.pull-request-review-usability-2026-07-05
 milestones:
-  - milestone.repo-context-pr-review-usability
+  - milestone.ctx-aide-pr-review-usability
 source_spec: spec.pull-request-review-workflow-2026-07-05
 source_feedback: []
 implementation_agent: codex
@@ -38,9 +38,9 @@ axioms:
   - axiom.ticket-done-requires-commit
 validation:
   automated:
-    - node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke: []
   screenshots: []
 completion:
@@ -101,9 +101,9 @@ Add copy-paste PR review commands and reusable review body templates so agents c
 ## Validation
 
 - Automated:
-  - `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Smoke: none.
 - Screenshots: none.
 
@@ -112,7 +112,7 @@ Add copy-paste PR review commands and reusable review body templates so agents c
 - Status: done
 - Commit: current-change
 - Verification evidence:
-  - `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Follow-up tickets: `ticket.context.051`.

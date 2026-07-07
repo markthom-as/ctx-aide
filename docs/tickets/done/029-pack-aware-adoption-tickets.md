@@ -2,9 +2,9 @@
 id: ticket.context.029
 status: done
 title: Make adoption tickets pack-aware
-ticket_pack: pack.repo-context-pre-production-adoption-hardening-2026-06-27
+ticket_pack: pack.ctx-aide-pre-production-adoption-hardening-2026-06-27
 milestones:
-  - milestone.repo-context-pre-production-adoption-hardening
+  - milestone.ctx-aide-pre-production-adoption-hardening
 source_spec: spec.pre-production-adoption-hardening-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,19 +19,19 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - README.md
     - docs/ticket-packs/done/pre-production-adoption-hardening-2026-06-27.md
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "make adoption tickets pack-aware"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -39,8 +39,8 @@ validation:
   automated:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/ctx-aide/ctx-aide.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
   smoke: []
   screenshots: []
 completion:
@@ -101,7 +101,7 @@ Native pack creation is only useful if tickets can be generated into the pack pa
 ## Validation
 
 - Automated: `make validate`; `make smoke`; Astrotechne adoption dry-runs.
-- Smoke: `ctx pack status pack.repo-context-pre-production-adoption-hardening-2026-06-27 --json`.
+- Smoke: `ctx-aide pack status pack.ctx-aide-pre-production-adoption-hardening-2026-06-27 --json`.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -115,7 +115,7 @@ This is the closeout ticket for the hardening cycle.
 - Verification evidence:
   - `make validate`
   - `make smoke`
-  - `node tools/context/ctx.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json`
-  - `node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/context blockers
-  - `node tools/context/ctx.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'Repo Context Dogfood' --slug repo-context-dogfood --json`
+  - `node tools/ctx-aide/ctx-aide.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json`
+  - `node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/context blockers
+  - `node tools/ctx-aide/ctx-aide.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'CTX Aide Dogfood' --slug ctx-aide-dogfood --json`
 - Follow-up tickets: none.

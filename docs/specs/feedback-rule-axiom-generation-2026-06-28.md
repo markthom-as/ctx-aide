@@ -22,7 +22,7 @@ Use operator feedback to suggest durable positive rules, negative rules, and axi
 ## Affected Surfaces
 
 - Routes: none.
-- Files/directories: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `docs/workflows/feedback-review.md`.
+- Files/directories: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `docs/workflows/feedback-review.md`.
 - Components: none.
 - Flows: feedback planning, feedback capture, feedback promotion.
 - Design-system areas: none.

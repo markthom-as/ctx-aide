@@ -19,14 +19,14 @@ scope:
   routes: []
   files:
     - package.json
-    - tools/context/ctx.mjs
+    - tools/ctx-aide/ctx-aide.mjs
     - README.md
   directories: []
   components: []
   flows:
     - workflow.astrotechne-adoption
 context_query:
-  task: "create installable local CLI packaging for ctx"
+  task: "create installable local CLI packaging for ctx-aide"
   generated_at: 2026-07-05
   context_ids:
     - workflow.astrotechne-adoption
@@ -36,13 +36,13 @@ axioms:
   - axiom.no-paid-infra-without-cost-estimate
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
+    - node --check tools/ctx-aide/ctx-aide.mjs
     - npm install --package-lock-only --ignore-scripts
     - npm pack --dry-run
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
   smoke:
     - npm link --dry-run
-    - node tools/context/ctx.mjs --help
+    - node tools/ctx-aide/ctx-aide.mjs --help
   screenshots: []
 completion:
   commit: this commit
@@ -53,15 +53,15 @@ completion:
 
 ## Outcome
 
-Make the existing `ctx` CLI installable through normal Node package tooling without publishing to a registry.
+Make the existing `ctx-aide` CLI installable through normal Node package tooling without publishing to a registry.
 
 ## Context
 
-The CLI already has a Node shebang in `tools/context/ctx.mjs`, but the repo has no `package.json`, so users must call `node tools/context/ctx.mjs`.
+The CLI already has a Node shebang in `tools/ctx-aide/ctx-aide.mjs`, but the repo has no `package.json`, so users must call `node tools/ctx-aide/ctx-aide.mjs`.
 
 ## Positive Rules
 
-- Preserve the `ctx` command name.
+- Preserve the `ctx-aide` command name.
 - Prefer local/package-manager installation paths such as `npm link` or `npm install -g <repo-path>`.
 - Keep install support local-only until public owner, license, and package scope decisions are resolved.
 
@@ -79,7 +79,7 @@ The CLI already has a Node shebang in `tools/context/ctx.mjs`, but the repo has 
 
 ## Frozen Decisions
 
-- Decision: package metadata should expose `ctx` as a bin that points at `tools/context/ctx.mjs`.
+- Decision: package metadata should expose `ctx-aide` as a bin that points at `tools/ctx-aide/ctx-aide.mjs`.
 - Rationale: the command is already executable and should remain the single CLI entrypoint.
 - Decision: registry publishing is out of scope.
 - Rationale: public-release owner, license, and package-scope decisions are separate blockers.
@@ -87,7 +87,7 @@ The CLI already has a Node shebang in `tools/context/ctx.mjs`, but the repo has 
 ## Implementation Rules
 
 - Required approach: add minimal package metadata and documentation for local install/link.
-- Existing components/helpers to use: existing `ctx.mjs` shebang and command routing.
+- Existing components/helpers to use: existing `ctx-aide.mjs` shebang and command routing.
 - Anti-patterns to avoid: postinstall scripts, global filesystem writes during tests, or package metadata that claims public registry availability.
 - Stop and escalate if: implementation requires a package name/scope, license, or registry ownership decision.
 
@@ -99,9 +99,9 @@ The CLI already has a Node shebang in `tools/context/ctx.mjs`, but the repo has 
 ## Acceptance Criteria
 
 - `npm pack --dry-run` includes the CLI and required docs without generated caches.
-- `npm link --dry-run` identifies a `ctx` bin without mutating global state.
+- `npm link --dry-run` identifies a `ctx-aide` bin without mutating global state.
 - README shows a local install command and the first setup command.
-- Existing direct invocation through `node tools/context/ctx.mjs` still works.
+- Existing direct invocation through `node tools/ctx-aide/ctx-aide.mjs` still works.
 
 ## Validation
 
@@ -116,6 +116,6 @@ Use `private: true` if needed to prevent accidental registry publishing during t
 ## Completion
 
 - Status: done
-- Commit: this commit (`Create installable ctx package metadata`)
-- Verification evidence: `node --check tools/context/ctx.mjs`, `npm install --package-lock-only --ignore-scripts`, `npm pack --dry-run`, `node tools/context/ctx.test.mjs`, `npm link --dry-run`, and `node tools/context/ctx.mjs --help` passed on 2026-07-07.
+- Commit: this commit (`Create installable ctx-aide package metadata`)
+- Verification evidence: `node --check tools/ctx-aide/ctx-aide.mjs`, `npm install --package-lock-only --ignore-scripts`, `npm pack --dry-run`, `node tools/ctx-aide/ctx-aide.test.mjs`, `npm link --dry-run`, and `node tools/ctx-aide/ctx-aide.mjs --help` passed on 2026-07-07.
 - Follow-up tickets: none

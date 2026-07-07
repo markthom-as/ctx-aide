@@ -2,9 +2,9 @@
 id: ticket.context.033
 status: done
 title: Add adoption tools policy bootstrap status
-ticket_pack: pack.repo-context-adoption-capability-policy-propagation-2026-06-27
+ticket_pack: pack.ctx-aide-adoption-capability-policy-propagation-2026-06-27
 milestones:
-  - milestone.repo-context-adoption-capability-policy-propagation
+  - milestone.ctx-aide-adoption-capability-policy-propagation
 source_spec: spec.adoption-capability-policy-propagation-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,26 +19,26 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "add target adoption tools policy bootstrap and status"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.capability-policy-deny-wins
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json returns expected bootstrap blockers
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json returns expected bootstrap blockers
   smoke: []
   screenshots: []
 completion:
@@ -50,11 +50,11 @@ completion:
 
 ## Outcome
 
-`ctx adoption bootstrap` writes a target tools policy file, and `ctx adoption status` reports whether target policy exists and validates.
+`ctx-aide adoption bootstrap` writes a target tools policy file, and `ctx-aide adoption status` reports whether target policy exists and validates.
 
 ## Context
 
-The source repo now has `docs/config/repo-context.tools.json`, but target repos do not receive that policy during adoption bootstrap.
+The source repo now has `docs/config/ctx-aide.tools.json`, but target repos do not receive that policy during adoption bootstrap.
 
 ## Positive Rules
 
@@ -93,8 +93,8 @@ The source repo now has `docs/config/repo-context.tools.json`, but target repos 
 
 ## Acceptance Criteria
 
-- Dry-run bootstrap plans `docs/config/repo-context.tools.json` without writing it.
-- Write bootstrap creates `docs/config/repo-context.tools.json`.
+- Dry-run bootstrap plans `docs/config/ctx-aide.tools.json` without writing it.
+- Write bootstrap creates `docs/config/ctx-aide.tools.json`.
 - Adoption status reports policy config path, existence, ok state, and validation errors.
 - Invalid target policy creates a status blocker.
 
@@ -113,7 +113,7 @@ Keep target status bounded; do not dump the full capability catalog in adoption 
 - Status: done
 - Commit: add-adoption-tools-policy-bootstrap-status
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected missing bootstrap/tools policy blockers
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected missing bootstrap/tools policy blockers
 - Follow-up tickets: `ticket.context.034`, `ticket.context.035`.

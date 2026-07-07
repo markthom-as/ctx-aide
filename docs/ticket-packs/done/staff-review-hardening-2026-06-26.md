@@ -1,9 +1,9 @@
 ---
-id: pack.repo-context-staff-review-hardening-2026-06-26
+id: pack.ctx-aide-staff-review-hardening-2026-06-26
 status: done
 title: Staff Review Hardening
 milestones:
-  - milestone.repo-context-staff-review-hardening
+  - milestone.ctx-aide-staff-review-hardening
 source_specs:
   - spec.staff-review-hardening-2026-06-26
 tickets:
@@ -32,14 +32,14 @@ completion:
   final_validation:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json
+    - node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-staff-review-hardening-2026-06-26 --json
 ---
 
 # Staff Review Hardening
 
 ## Outcome
 
-Prepare repo-context for staff-engineering review and harsh public scrutiny by hardening command safety, validation truthfulness, and dogfood evidence.
+Prepare ctx-aide for staff-engineering review and harsh public scrutiny by hardening command safety, validation truthfulness, and dogfood evidence.
 
 ## Scope
 
@@ -56,7 +56,7 @@ Prepare repo-context for staff-engineering review and harsh public scrutiny by h
 
 - Parallel groups: three logical audit lanes are listed, but implementation is sequential because the write sets overlap.
 - Sequential dependencies: `ticket.context.025` depends on `ticket.context.024`; `ticket.context.026` depends on both prior tickets.
-- Shared-file coordination: `tools/context/ctx.mjs` and `tools/context/ctx.test.mjs` must be read before each edit.
+- Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs` must be read before each edit.
 - Worktree strategy: use the current clean worktree; do not create paid infrastructure or deploy anything.
 - Merge queue strategy: one commit per completed ticket.
 
@@ -69,7 +69,7 @@ Prepare repo-context for staff-engineering review and harsh public scrutiny by h
 
 ## Pack Validation
 
-- Smoke tests: `node tools/context/ctx.mjs doctor --json`, `node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json`, and targeted fixture tests.
+- Smoke tests: `node tools/ctx-aide/ctx-aide.mjs doctor --json`, `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-staff-review-hardening-2026-06-26 --json`, and targeted fixture tests.
 - Screenshots: not applicable.
 - Full regression checks: `make validate` and `make smoke`.
 
@@ -80,4 +80,4 @@ Prepare repo-context for staff-engineering review and harsh public scrutiny by h
 - Final validation:
   - `make validate`
   - `make smoke`
-  - `node tools/context/ctx.mjs pack status pack.repo-context-staff-review-hardening-2026-06-26 --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-staff-review-hardening-2026-06-26 --json`

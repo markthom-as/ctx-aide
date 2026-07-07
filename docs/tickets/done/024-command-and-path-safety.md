@@ -2,9 +2,9 @@
 id: ticket.context.024
 status: done
 title: Harden command execution and write paths
-ticket_pack: pack.repo-context-staff-review-hardening-2026-06-26
+ticket_pack: pack.ctx-aide-staff-review-hardening-2026-06-26
 milestones:
-  - milestone.repo-context-staff-review-hardening
+  - milestone.ctx-aide-staff-review-hardening
 source_spec: spec.staff-review-hardening-2026-06-26
 source_feedback: []
 implementation_agent: codex
@@ -19,24 +19,24 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "harden command execution and write paths"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
 validation:
   automated:
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs ticket hydrate docs/tickets/ready/024-command-and-path-safety.md --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs ticket hydrate docs/tickets/ready/024-command-and-path-safety.md --json
   smoke: []
   screenshots: []
 completion:
@@ -98,8 +98,8 @@ The CLI currently exposes local-agent conveniences that a reviewer can reasonabl
 
 ## Validation
 
-- Automated: `node tools/context/ctx.test.mjs`.
-- Smoke: hydrate this ticket with `ctx ticket hydrate`.
+- Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
+- Smoke: hydrate this ticket with `ctx-aide ticket hydrate`.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -111,7 +111,7 @@ Run this ticket before the other hardening tickets because later validation evid
 - Status: done
 - Commit: command-and-path-safety-hardening
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs ticket hydrate docs/tickets/ready/024-command-and-path-safety.md --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket hydrate docs/tickets/ready/024-command-and-path-safety.md --json`
 - Follow-up tickets: none.

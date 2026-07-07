@@ -111,7 +111,7 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
 - Summary: Use this repository as the first fixture for the repo-local context, ticket, pack, validation, and agent skill workflow.
 - Positive rules:
   - Update markdown context in the same ticket when intentional behavior changes.
-  - Validate the repo context graph before committing ticket work.
+  - Validate the ctx-aide context graph before committing ticket work.
 - Negative rules:
   - Do not treat generated indexes as canonical truth.
   - Do not implement a ticket that still requires product or architecture decisions.

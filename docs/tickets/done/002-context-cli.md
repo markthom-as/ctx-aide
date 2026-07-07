@@ -1,11 +1,11 @@
 ---
 id: ticket.context.002
 status: done
-title: Implement ctx scan query lint CLI foundation
-ticket_pack: pack.repo-context-mvp
+title: Implement ctx-aide scan query lint CLI foundation
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -25,15 +25,15 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
-  task: "Implement ctx scan query lint CLI foundation"
+  task: "Implement ctx-aide scan query lint CLI foundation"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -59,7 +59,7 @@ Provide an agent-native local CLI foundation for scan, query, lint, and checks.
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -95,9 +95,9 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Implement `ctx scan --json`.
-  - Implement `ctx query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
-  - Implement `ctx lint --json`, `ctx ticket check --json`, and `ctx pack check --json`.
+  - Implement `ctx-aide scan --json`.
+  - Implement `ctx-aide query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
+  - Implement `ctx-aide lint --json`, `ctx-aide ticket check --json`, and `ctx-aide pack check --json`.
   - Generate `docs/context/generated/context-manifest.json`.
   - Preserve positive and negative rule polarity.
 - Out:
@@ -121,15 +121,15 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 - Parallel group: `cli-a`.
 - Dependencies: `ticket.context.001`.
-- Expected commit message: `Implement repo context CLI foundation`.
+- Expected commit message: `Implement ctx-aide CLI foundation`.
 
 ## Completion
 
 - Status: done
 - Commit: 5059008
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs scan --json`
-  - `node tools/context/ctx.mjs query --path tools/context/ctx.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs scan --json`
+  - `node tools/ctx-aide/ctx-aide.mjs query --path tools/ctx-aide/ctx-aide.mjs --task "ctx-aide dogfood rule polarity" --agent codex --budget 1200 --json`
   - `make validate`
 - Follow-up tickets: none

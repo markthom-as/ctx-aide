@@ -2,10 +2,10 @@
 id: ticket.context.022
 status: done
 title: Hydrate legacy target tickets
-ticket_pack: pack.repo-context-legacy-target-ticket-hydration
+ticket_pack: pack.ctx-aide-legacy-target-ticket-hydration
 milestones:
-  - milestone.repo-context-daily-use
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-daily-use
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -18,26 +18,26 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories:
     - docs/tickets
     - docs/ticket-packs
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Hydrate legacy target tickets that use ticket_id, source_docs, and Verification sections"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.explicit-context-loading
 validation:
   automated:
-    - Run `node tools/context/ctx.test.mjs`.
+    - Run `node tools/ctx-aide/ctx-aide.test.mjs`.
     - Run `make validate`.
   smoke:
     - Hydrate a Wetware-style dependency ticket with `ticket_id`, `source_docs`, and `## Verification`.
@@ -51,11 +51,11 @@ completion:
 
 ## Outcome
 
-Make `ctx adoption implementation-plan` produce useful output for target repos that already have non-canonical markdown tickets.
+Make `ctx-aide adoption implementation-plan` produce useful output for target repos that already have non-canonical markdown tickets.
 
 ## Context
 
-Dogfooding against Wetware showed that older tickets can use `ticket_id`, omit `context_query`, and put validation commands under `## Verification`. The adoption command needs to support those tickets so repo-context can be layered onto Astrotechne and Wetware without migrating historical tickets first.
+Dogfooding against Wetware showed that older tickets can use `ticket_id`, omit `context_query`, and put validation commands under `## Verification`. The adoption command needs to support those tickets so ctx-aide can be layered onto Astrotechne and Wetware without migrating historical tickets first.
 
 ## Positive Rules
 
@@ -79,7 +79,7 @@ Dogfooding against Wetware showed that older tickets can use `ticket_id`, omit `
 
 ## Frozen Decisions
 
-- Legacy support is implemented in `adoption implementation-plan`, not in the canonical repo-context validator.
+- Legacy support is implemented in `adoption implementation-plan`, not in the canonical ctx-aide validator.
 - Compatibility covers `ticket_id`, first `#` heading title inference, `source_docs`, and `## Verification`.
 
 ## Implementation Rules
@@ -110,7 +110,7 @@ Dogfooding against Wetware showed that older tickets can use `ticket_id`, omit `
 ## Validation
 
 - Automated:
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
   - `make validate`
 - Smoke:
   - Wetware dependency ticket hydration.
@@ -122,8 +122,8 @@ Dogfooding against Wetware showed that older tickets can use `ticket_id`, omit `
 - Status: done
 - Commit: legacy-target-ticket-hydration-change
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs doctor --json`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs doctor --json`
   - `make validate`
 - Follow-up tickets:
   - Add an Astrotechne status adapter after the first Astrotechne dogfood run.

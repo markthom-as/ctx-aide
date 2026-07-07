@@ -76,11 +76,11 @@ function readJsonFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-export function repoContextSettingsPath(repoPath) {
+export function ctxAideSettingsPath(repoPath) {
   return path.join(repoPath, "docs/config/ctx-aide.settings.json");
 }
 
-export function defaultRepoContextSettings(overrides = {}) {
+export function defaultCtxAideSettings(overrides = {}) {
   const screenshotFeature = overrides.screenshotFeedbackReviewUi ?? {};
   return {
     config_version: 1,
@@ -106,8 +106,8 @@ function mergeFeatureSettings(base, override) {
   return { ...base, ...override };
 }
 
-function mergeRepoContextSettings(parsed) {
-  const defaults = defaultRepoContextSettings();
+function mergeCtxAideSettings(parsed) {
+  const defaults = defaultCtxAideSettings();
   const features = parsed?.features && typeof parsed.features === "object" ? parsed.features : {};
   return {
     ...defaults,
@@ -128,14 +128,14 @@ export function normalizeFeatureId(featureId) {
   return FEATURE_ALIASES.get(String(featureId ?? "").trim()) ?? null;
 }
 
-export function readRepoContextSettings(repoPath) {
-  const settingsPath = repoContextSettingsPath(repoPath);
+export function readCtxAideSettings(repoPath) {
+  const settingsPath = ctxAideSettingsPath(repoPath);
   if (!fs.existsSync(settingsPath)) {
     return {
       ok: true,
       exists: false,
       path: settingsPath,
-      settings: defaultRepoContextSettings(),
+      settings: defaultCtxAideSettings(),
       errors: [],
     };
   }
@@ -144,7 +144,7 @@ export function readRepoContextSettings(repoPath) {
       ok: true,
       exists: true,
       path: settingsPath,
-      settings: mergeRepoContextSettings(readJsonFile(settingsPath)),
+      settings: mergeCtxAideSettings(readJsonFile(settingsPath)),
       errors: [],
     };
   } catch (error) {
@@ -152,14 +152,14 @@ export function readRepoContextSettings(repoPath) {
       ok: false,
       exists: true,
       path: settingsPath,
-      settings: defaultRepoContextSettings(),
+      settings: defaultCtxAideSettings(),
       errors: [{ file: settingsPath, message: `invalid settings JSON: ${error.message}` }],
     };
   }
 }
 
 export function screenshotReviewUiFeature(settings) {
-  return mergeRepoContextSettings(settings).features[SCREENSHOT_REVIEW_UI_FEATURE_ID];
+  return mergeCtxAideSettings(settings).features[SCREENSHOT_REVIEW_UI_FEATURE_ID];
 }
 
 function asString(value) {
@@ -1104,7 +1104,7 @@ export function startScreenshotReviewServer(state, options = {}) {
 function stateFromArgs(args, cwd) {
   const repoArg = argValue(args, "--repo", ".");
   const repoPath = path.isAbsolute(repoArg) ? repoArg : path.join(cwd, repoArg);
-  const settingsResult = readRepoContextSettings(repoPath);
+  const settingsResult = readCtxAideSettings(repoPath);
   const feature = screenshotReviewUiFeature(settingsResult.settings);
   return buildScreenshotReviewState({
     cwd,
@@ -1144,7 +1144,7 @@ export function screenshotReviewUiCommand(args, options = {}) {
       ],
     };
   }
-  const settingsResult = readRepoContextSettings(repoPath);
+  const settingsResult = readCtxAideSettings(repoPath);
   const feature = screenshotReviewUiFeature(settingsResult.settings);
   const allowBetaOverride = hasArg(args, "--allow-beta") || hasArg(args, "--beta");
   if (!settingsResult.ok) {

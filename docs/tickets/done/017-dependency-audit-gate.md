@@ -2,10 +2,10 @@
 id: ticket.context.017
 status: done
 title: Add dependency audit gate
-ticket_pack: pack.repo-context-dependency-audit-gate
+ticket_pack: pack.ctx-aide-dependency-audit-gate
 milestones:
-  - milestone.repo-context-docs-maintenance
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-docs-maintenance
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -19,8 +19,8 @@ scope:
   routes: []
   files:
     - README.md
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories:
     - docs/tickets
     - docs/ticket-packs
@@ -31,16 +31,16 @@ context_query:
   task: "Add dependency audit gate"
   generated_at: 2026-06-26
   context_ids:
-    - spec.repo-context-mvp
+    - spec.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
 validation:
   automated:
     - Run `make validate`.
-    - Run `node tools/context/ctx.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`.
+    - Run `node tools/ctx-aide/ctx-aide.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`.
   smoke:
-    - Confirm `ctx ticket check` fails a done dependency-upgrade ticket without cleared audit metadata.
+    - Confirm `ctx-aide ticket check` fails a done dependency-upgrade ticket without cleared audit metadata.
   screenshots: []
 completion:
   commit: dependency-audit-gate-change
@@ -51,7 +51,7 @@ completion:
 
 ## Outcome
 
-Make repo-context distinguish dependency implementation evidence from actual dependency-audit clearance.
+Make ctx-aide distinguish dependency implementation evidence from actual dependency-audit clearance.
 
 ## Context
 
@@ -77,7 +77,7 @@ The Wetware Gallery dependency work showed that "sweep findings implemented" and
 ## Frozen Decisions
 
 - Dependency tickets opt into the gate with `work_type: dependency-upgrade` or `work_type: dependency-sweep`.
-- `ctx dependency audit` runs a caller-provided audit command and records bounded evidence.
+- `ctx-aide dependency audit` runs a caller-provided audit command and records bounded evidence.
 - A done dependency-upgrade ticket must record cleared audit metadata in frontmatter.
 
 ## Implementation Rules
@@ -90,7 +90,7 @@ The Wetware Gallery dependency work showed that "sweep findings implemented" and
 ## Scope
 
 - In:
-  - `ctx dependency audit`.
+  - `ctx-aide dependency audit`.
   - Dependency-upgrade ticket completion validation.
   - README and tests.
 - Out:
@@ -101,12 +101,12 @@ The Wetware Gallery dependency work showed that "sweep findings implemented" and
 
 - A passing audit command returns `audit_cleared: true`.
 - A failing audit command returns vulnerability counts when parseable and exits non-zero.
-- `ctx ticket check` rejects a done dependency-upgrade ticket without cleared audit metadata.
+- `ctx-aide ticket check` rejects a done dependency-upgrade ticket without cleared audit metadata.
 
 ## Validation
 
 - Run `make validate`.
-- Run `node tools/context/ctx.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`.
+- Run `node tools/ctx-aide/ctx-aide.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`.
 
 ## Implementation Notes
 
@@ -120,6 +120,6 @@ The Wetware Gallery dependency work showed that "sweep findings implemented" and
 - Commit: dependency-audit-gate-change
 - Verification evidence:
   - `make validate`
-  - `node tools/context/ctx.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`
+  - `node tools/ctx-aide/ctx-aide.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`
 - Follow-up tickets:
   - Optional package-manager profile presets.

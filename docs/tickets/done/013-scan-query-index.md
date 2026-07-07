@@ -2,10 +2,10 @@
 id: ticket.context.013
 status: done
 title: Implement scan and query index
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -27,15 +27,15 @@ scope:
   files: []
   directories:
     - docs
-    - tools/context
+    - tools/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Implement scan and query index"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -63,7 +63,7 @@ Build the generated manifest and SQLite-backed query index for scoped context lo
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an independently implementable slice.
+This ticket is part of `pack.ctx-aide-mvp` and narrows the CLI work into an independently implementable slice.
 
 ## Positive Rules
 
@@ -91,17 +91,17 @@ This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an 
 ## Implementation Rules
 
 - Required approach: implement only this command slice.
-- Existing components/helpers to use: reuse `tools/context/ctx.mjs` patterns.
+- Existing components/helpers to use: reuse `tools/ctx-aide/ctx-aide.mjs` patterns.
 - Anti-patterns to avoid: prompts in JSON mode, unbounded output, and hidden overwrites.
 - Stop and escalate if: schema or command vocabulary conflicts with README.
 
 ## Scope
 
 - In:
-  - Implement `ctx scan --json`.
+  - Implement `ctx-aide scan --json`.
   - Generate `docs/context/generated/context-manifest.json`.
   - Generate or refresh local SQLite index.
-  - Implement `ctx query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
+  - Implement `ctx-aide query --path <path> --task <text> --agent <agent> --budget <tokens> --json`.
 - Out:
   - Implement agent-pack export.
   - Implement run orchestration.
@@ -129,10 +129,10 @@ This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an 
 - Status: done
 - Commit: fced959
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs scan --json`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs scan --json`
   - `sqlite3 docs/context/generated/context.sqlite '.tables'`
   - `sqlite3 docs/context/generated/context.sqlite 'select id, kind, status from context_entries order by id;'`
-  - `node tools/context/ctx.mjs query --path tools/context/ctx.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json`
+  - `node tools/ctx-aide/ctx-aide.mjs query --path tools/ctx-aide/ctx-aide.mjs --task "ctx-aide dogfood rule polarity" --agent codex --budget 1200 --json`
   - `make validate`
 - Follow-up tickets: none

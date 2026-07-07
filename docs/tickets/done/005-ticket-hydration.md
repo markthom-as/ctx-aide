@@ -2,10 +2,10 @@
 id: ticket.context.005
 status: done
 title: Hydrate markdown tickets with scoped context
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -25,15 +25,15 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Hydrate markdown tickets with scoped context"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -59,7 +59,7 @@ Ensure each implementation ticket starts with relevant context ids, rules, decis
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -95,16 +95,16 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx ticket create --from-feedback <id> --json`.
-  - Add `ctx ticket hydrate <ticket-path> --agent codex --json`.
-  - Add `ctx ticket check --json`.
+  - Add `ctx-aide ticket create --from-feedback <id> --json`.
+  - Add `ctx-aide ticket hydrate <ticket-path> --agent codex --json`.
+  - Add `ctx-aide ticket check --json`.
   - Populate canonical ticket fields from query results.
 - Out:
   - Implement code changes from hydrated tickets.
 
 ## Acceptance Criteria
 
-- Tickets include context snapshots generated from `ctx query`.
+- Tickets include context snapshots generated from `ctx-aide query`.
 - Tickets preserve source ids rather than untraceable prose only.
 - Ticket check fails on missing or stale context ids.
 - Completion records final commit hash.
@@ -119,14 +119,14 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 - Parallel group: `ticketing-a`.
 - Dependencies: `ticket.context.002`, `ticket.context.007`.
-- Expected commit message: `Hydrate tickets with repo context`.
+- Expected commit message: `Hydrate tickets with ctx-aide context`.
 
 ## Completion
 
 - Status: done
 - Commit: 1abf9c1
 - Verification evidence:
-  - `node tools/context/ctx.mjs ticket hydrate docs/tickets/done/005-ticket-hydration.md --json`
-  - `node tools/context/ctx.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket hydrate docs/tickets/done/005-ticket-hydration.md --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
   - `make validate`
 - Follow-up tickets: none

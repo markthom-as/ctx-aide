@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-dependency-audit-gate
+id: pack.ctx-aide-dependency-audit-gate
 status: done
 title: Dependency Audit Gate
 milestones:
-  - milestone.repo-context-docs-maintenance
+  - milestone.ctx-aide-docs-maintenance
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.017
 run_policy:
@@ -34,7 +34,7 @@ Add a machine-checkable dependency audit gate so dependency-upgrade tickets cann
 ## Scope
 
 - Included:
-  - `ctx dependency audit` command.
+  - `ctx-aide dependency audit` command.
   - `work_type: dependency-upgrade` done-ticket validation.
   - Tests and README documentation.
 - Excluded:
@@ -49,7 +49,7 @@ Add a machine-checkable dependency audit gate so dependency-upgrade tickets cann
 
 - Parallel groups: `cli-a`.
 - Sequential dependencies: none.
-- Shared-file coordination: README and `tools/context/ctx.mjs`.
+- Shared-file coordination: README and `tools/ctx-aide/ctx-aide.mjs`.
 - Worktree strategy: current worktree is sufficient.
 - Merge queue strategy: one local commit.
 
@@ -64,11 +64,11 @@ Add a machine-checkable dependency audit gate so dependency-upgrade tickets cann
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`
+  - `node tools/ctx-aide/ctx-aide.mjs dependency audit --repo . --command "node -e 'process.exit(0)'" --json`
 - Screenshots:
   - Not required.
 - Full regression checks:
-  - `ctx ticket check` fails a done dependency-upgrade ticket that lacks cleared audit metadata.
+  - `ctx-aide ticket check` fails a done dependency-upgrade ticket that lacks cleared audit metadata.
 
 ## Completion
 

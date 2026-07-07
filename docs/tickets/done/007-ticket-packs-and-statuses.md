@@ -2,10 +2,10 @@
 id: ticket.context.007
 status: done
 title: Add canonical ticket statuses and ticket packs
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -23,26 +23,26 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add canonical ticket statuses and ticket packs"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.rule-polarity-preserved
 validation:
   automated:
-  - Run `ctx ticket check --json` and `ctx pack check --json`.
+  - Run `ctx-aide ticket check --json` and `ctx-aide pack check --json`.
   smoke:
   - Create one sample pack with at least three tickets.
   - Include parallel and dependent tickets.
-  - Run `ctx ticket check --json` and `ctx pack check --json`.
+  - Run `ctx-aide ticket check --json` and `ctx-aide pack check --json`.
   screenshots: []
 completion:
   commit: e3d72ee
@@ -57,7 +57,7 @@ Introduce canonical ticket template, fixed statuses, and ticket packs for milest
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -97,7 +97,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
   - Maintain `docs/ticket-packs/` structure and template.
   - Add fixed ticket and pack status vocabularies.
   - Add pack membership fields to generated tickets.
-  - Add `ctx pack check --json`.
+  - Add `ctx-aide pack check --json`.
 - Out:
   - Implement Idvisor plugin dispatch.
 
@@ -111,7 +111,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 - Create one sample pack with at least three tickets.
 - Include parallel and dependent tickets.
-- Run `ctx ticket check --json` and `ctx pack check --json`.
+- Run `ctx-aide ticket check --json` and `ctx-aide pack check --json`.
 
 ## Implementation Notes
 
@@ -124,8 +124,8 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 - Status: done
 - Commit: e3d72ee
 - Verification evidence:
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
-  - `node tools/context/ctx.mjs pack status pack.repo-context-mvp --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-mvp --json`
   - `make validate`
 - Follow-up tickets: none

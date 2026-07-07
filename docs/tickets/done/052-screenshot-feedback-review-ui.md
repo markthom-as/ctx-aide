@@ -4,7 +4,7 @@ status: done
 title: Add screenshot feedback review UI
 ticket_pack: pack.screenshot-feedback-review-ui-2026-07-07
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_spec: null
 source_feedback: []
 implementation_agent: codex
@@ -19,9 +19,9 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/screenshot-review-ui.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/screenshot-review-ui.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/feedback-review.md
   directories:
     - docs/tickets
@@ -41,13 +41,13 @@ axioms:
   - axiom.feedback-review-promotes-actionable-work
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
-    - node --check tools/context/screenshot-review-ui.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node --check tools/ctx-aide/screenshot-review-ui.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke:
-    - node tools/context/ctx.mjs feedback review-ui --repo . --help
+    - node tools/ctx-aide/ctx-aide.mjs feedback review-ui --repo . --help
     - temporary screenshot live-server API smoke
   screenshots: []
 completion:
@@ -59,16 +59,16 @@ completion:
 
 ## Outcome
 
-Add a local browser UI that lets operators review screenshot artifacts, record per-screenshot feedback, preview proposed ticket splits, and write canonical repo-context ticket markdown only after confirmation.
+Add a local browser UI that lets operators review screenshot artifacts, record per-screenshot feedback, preview proposed ticket splits, and write canonical ctx-aide ticket markdown only after confirmation.
 
 ## Context
 
-Astrotechne added a local screenshot review UI for screenshot feedback and ticket drafting. Repo-context already has CLI feedback review, decomposition, capture, and promotion commands, but does not yet provide the visual review surface that bridges screenshots to new tickets.
+Astrotechne added a local screenshot review UI for screenshot feedback and ticket drafting. CTX Aide already has CLI feedback review, decomposition, capture, and promotion commands, but does not yet provide the visual review surface that bridges screenshots to new tickets.
 
 ## Positive Rules
 
 - Keep screenshot review local-only and bind the server to `127.0.0.1`.
-- Reuse repo-context ticket readiness discipline when writing ticket markdown.
+- Reuse ctx-aide ticket readiness discipline when writing ticket markdown.
 - Preview draft ticket candidates before writing files.
 - Support both screenshot run `summary.json` files and plain screenshot directories.
 
@@ -87,7 +87,7 @@ Astrotechne added a local screenshot review UI for screenshot feedback and ticke
 
 ## Frozen Decisions
 
-- Command: `ctx feedback review-ui`.
+- Command: `ctx-aide feedback review-ui`.
 - Server bind address: `127.0.0.1`.
 - Generated ticket status: `needs-questions`.
 - Cost delta: `$0/month`; this is local-only tooling.
@@ -106,23 +106,23 @@ Astrotechne added a local screenshot review UI for screenshot feedback and ticke
 
 ## Acceptance Criteria
 
-- `ctx feedback review-ui` starts a local-only screenshot review UI.
+- `ctx-aide feedback review-ui` starts a local-only screenshot review UI.
 - The UI records per-screenshot status, severity, title, tags, and feedback notes.
 - Draft planning splits structured multi-issue feedback before writing files.
 - No ticket markdown is written until the draft review stop is confirmed.
-- Confirmed tickets are canonical repo-context markdown in `needs-questions`.
+- Confirmed tickets are canonical ctx-aide markdown in `needs-questions`.
 - The server only serves discovered screenshot image files.
 
 ## Validation
 
 - Automated:
-  - `node --check tools/context/ctx.mjs`
-  - `node --check tools/context/screenshot-review-ui.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node --check tools/ctx-aide/screenshot-review-ui.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Smoke:
-  - `node tools/context/ctx.mjs feedback review-ui --repo . --help`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback review-ui --repo . --help`
 - Screenshots:
   - Not required; this is local tooling validated through focused API tests.
 
@@ -131,12 +131,12 @@ Astrotechne added a local screenshot review UI for screenshot feedback and ticke
 - Status: done
 - Commit: current-change
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node --check tools/context/screenshot-review-ui.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
-  - `node tools/context/ctx.mjs feedback review-ui --repo . --help --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node --check tools/ctx-aide/screenshot-review-ui.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback review-ui --repo . --help --json`
   - Temporary screenshot live-server API smoke returned `{"ok":true,"screenshots":1,"bind":true}`.
   - `make validate`
 - Follow-up tickets: none.

@@ -2,10 +2,10 @@
 id: ticket.context.010
 status: done
 title: Add Semble-backed code discovery
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -24,15 +24,15 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add Semble-backed code discovery"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -58,7 +58,7 @@ Integrate Semble as an optional code-discovery backend for behavioral tasks and 
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -94,7 +94,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx discover --backend semble --task <text> --repo <path> --json`.
+  - Add `ctx-aide discover --backend semble --task <text> --repo <path> --json`.
   - Fall back to `uvx --from "semble[mcp]" semble` when `semble` is not on PATH.
   - Persist bounded code discovery metadata in ticket hydration.
   - Document when agents should use Semble versus exact path context queries.
@@ -126,8 +126,8 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 - Status: done
 - Commit: 494758c
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs discover --backend none --task "known path" --repo . --out docs/context/generated/discovery.none.json --json`
-  - `node tools/context/ctx.mjs discover --backend semble --task "repo context dogfood" --repo . --limit 2 --json`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs discover --backend none --task "known path" --repo . --out docs/context/generated/discovery.none.json --json`
+  - `node tools/ctx-aide/ctx-aide.mjs discover --backend semble --task "ctx-aide dogfood" --repo . --limit 2 --json`
   - `make validate`
 - Follow-up tickets: none

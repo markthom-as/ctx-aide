@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-workflow-dependency-management
+id: pack.ctx-aide-workflow-dependency-management
 status: done
 title: Workflow Dependency Management
 milestones:
-  - milestone.repo-context-docs-maintenance
+  - milestone.ctx-aide-docs-maintenance
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.018
 run_policy:
@@ -23,19 +23,19 @@ completion:
   completed_at: 2026-06-26
   final_validation:
     - make validate
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
 ---
 
 # Workflow Dependency Management
 
 ## Outcome
 
-Add a workflow dependency contract so repo-context can check and write repo-local pins for workflow runtimes such as browser validation.
+Add a workflow dependency contract so ctx-aide can check and write repo-local pins for workflow runtimes such as browser validation.
 
 ## Scope
 
 - Included:
-  - `ctx workflow deps`.
+  - `ctx-aide workflow deps`.
   - Browser-validation workflow dependency declaration.
   - README and tests.
 - Excluded:
@@ -51,7 +51,7 @@ Add a workflow dependency contract so repo-context can check and write repo-loca
 
 - Parallel groups: `cli-a`.
 - Sequential dependencies: none.
-- Shared-file coordination: README and `tools/context/ctx.mjs`.
+- Shared-file coordination: README and `tools/ctx-aide/ctx-aide.mjs`.
 - Worktree strategy: current worktree is sufficient.
 - Merge queue strategy: one local commit.
 
@@ -66,7 +66,7 @@ Add a workflow dependency contract so repo-context can check and write repo-loca
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Screenshots:
   - Not required.
 - Full regression checks:
@@ -78,4 +78,4 @@ Add a workflow dependency contract so repo-context can check and write repo-loca
 - Remaining tickets: none.
 - Final validation:
   - `make validate`
-  - `node tools/context/ctx.mjs workflow deps --workflow workflow.browser-validation --repo . --json` reports the expected missing browser-app package pins for this repo.
+  - `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.browser-validation --repo . --json` reports the expected missing browser-app package pins for this repo.

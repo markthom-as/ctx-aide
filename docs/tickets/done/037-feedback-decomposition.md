@@ -4,7 +4,7 @@ status: done
 title: Add feedback decomposition planning
 ticket_pack: pack.feedback-decomposition-2026-06-28
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_spec: spec.feedback-decomposition-2026-06-28
 source_feedback: []
 implementation_agent: codex
@@ -17,8 +17,8 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/feedback-review.md
   directories:
     - docs/tickets
@@ -38,9 +38,9 @@ axioms:
 validation:
   automated:
     - make validate
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
   smoke:
-    - node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json
+    - node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json
   screenshots: []
 completion:
   commit: feedback-decomposition-change
@@ -79,7 +79,7 @@ Operators often give several separate feedback points in one chat response. The 
 
 ## Frozen Decisions
 
-- Command: `ctx feedback plan`.
+- Command: `ctx-aide feedback plan`.
 - Mutation boundary: planning is read-only; capture and promote still require `--write`.
 - Agent behavior: ask clarifying questions with suggested interpretations before implementation when the plan is ambiguous.
 
@@ -93,8 +93,8 @@ Operators often give several separate feedback points in one chat response. The 
 ## Scope
 
 - In:
-  - No-write `ctx feedback plan`.
-  - Split metadata in `ctx feedback capture`.
+  - No-write `ctx-aide feedback plan`.
+  - Split metadata in `ctx-aide feedback capture`.
   - Feedback workflow documentation.
   - Tests for multi-point feedback and further-split suggestions.
 - Out:
@@ -103,19 +103,19 @@ Operators often give several separate feedback points in one chat response. The 
 
 ## Acceptance Criteria
 
-- `ctx feedback plan` splits bullet-list feedback into separate points.
+- `ctx-aide feedback plan` splits bullet-list feedback into separate points.
 - The plan suggests promotion modes and ticket titles.
 - The plan flags mixed points for further splitting.
 - The plan includes suggested user prompts for clarification.
-- `ctx feedback capture` returns decomposition metadata.
+- `ctx-aide feedback capture` returns decomposition metadata.
 
 ## Validation
 
 - Automated:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Smoke:
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`
 - Screenshots:
   - Not required.
 
@@ -125,6 +125,6 @@ Operators often give several separate feedback points in one chat response. The 
 - Commit: feedback-decomposition-change
 - Verification evidence:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`
 - Follow-up tickets:
   - Consider a batch promote command only after the agent-reviewed split plan proves useful.

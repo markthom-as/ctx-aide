@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-validation-runtime-settings
+id: pack.ctx-aide-validation-runtime-settings
 status: done
 title: Validation Runtime Settings
 milestones:
-  - milestone.repo-context-docs-maintenance
+  - milestone.ctx-aide-docs-maintenance
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.023
 run_policy:
@@ -23,7 +23,7 @@ completion:
   completed_at: 2026-06-26
   final_validation:
     - make validate
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
 ---
 
 # Validation Runtime Settings
@@ -53,7 +53,7 @@ Add managed testing, screenshot, CI, and deploy settings to workflow validation 
 
 - Parallel groups: `cli-a`.
 - Sequential dependencies: `ticket.context.021`.
-- Shared-file coordination: README, browser workflow docs, validation config, and `tools/context/ctx.mjs`.
+- Shared-file coordination: README, browser workflow docs, validation config, and `tools/ctx-aide/ctx-aide.mjs`.
 - Worktree strategy: current worktree is sufficient.
 - Merge queue strategy: one local commit.
 
@@ -68,7 +68,7 @@ Add managed testing, screenshot, CI, and deploy settings to workflow validation 
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
 - Screenshots:
   - Not required.
 - Full regression checks:
@@ -80,4 +80,4 @@ Add managed testing, screenshot, CI, and deploy settings to workflow validation 
 - Remaining tickets: none.
 - Final validation:
   - `make validate`
-  - `node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`

@@ -1,11 +1,11 @@
 ---
 id: ticket.context.012
 status: done
-title: Implement ctx init bootstrap
-ticket_pack: pack.repo-context-mvp
+title: Implement ctx-aide init bootstrap
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -25,15 +25,15 @@ scope:
   files: []
   directories:
     - docs
-    - tools/context
+    - tools/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
-  task: "Implement ctx init bootstrap"
+  task: "Implement ctx-aide init bootstrap"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -57,11 +57,11 @@ completion:
 
 ## Outcome
 
-Create the target-repo bootstrap command that installs the repo-context directory structure, templates, and agent snippets.
+Create the target-repo bootstrap command that installs the ctx-aide directory structure, templates, and agent snippets.
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an independently implementable slice.
+This ticket is part of `pack.ctx-aide-mvp` and narrows the CLI work into an independently implementable slice.
 
 ## Positive Rules
 
@@ -89,14 +89,14 @@ This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an 
 ## Implementation Rules
 
 - Required approach: implement only this command slice.
-- Existing components/helpers to use: reuse `tools/context/ctx.mjs` patterns.
+- Existing components/helpers to use: reuse `tools/ctx-aide/ctx-aide.mjs` patterns.
 - Anti-patterns to avoid: prompts in JSON mode, unbounded output, and hidden overwrites.
 - Stop and escalate if: schema or command vocabulary conflicts with README.
 
 ## Scope
 
 - In:
-  - Add `ctx init --json`.
+  - Add `ctx-aide init --json`.
   - Create missing context/spec/ticket/pack/run directories.
   - Copy canonical templates.
   - Emit AGENTS, CLAUDE, and Cursor snippet instructions without overwriting by default.
@@ -120,14 +120,14 @@ This ticket is part of `pack.repo-context-mvp` and narrows the CLI work into an 
 ## Implementation Notes
 
 - Parallel group: `cli-bootstrap-a`.
-- Expected commit message: `Implement ctx init bootstrap`.
+- Expected commit message: `Implement ctx-aide init bootstrap`.
 
 ## Completion
 
 - Status: done
 - Commit: 54ea012
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs init --json`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs init --json`
   - `make validate`
 - Follow-up tickets: none

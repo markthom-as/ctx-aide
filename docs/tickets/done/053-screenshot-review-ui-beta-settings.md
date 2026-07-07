@@ -4,7 +4,7 @@ status: done
 title: Gate screenshot review UI behind beta settings
 ticket_pack: pack.screenshot-review-ui-beta-settings-2026-07-07
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_spec: null
 source_feedback: []
 implementation_agent: codex
@@ -18,9 +18,9 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/screenshot-review-ui.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/screenshot-review-ui.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/feedback-review.md
   directories:
     - docs/tickets
@@ -39,15 +39,15 @@ axioms:
   - axiom.beta-features-require-explicit-opt-in
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
-    - node --check tools/context/screenshot-review-ui.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node --check tools/ctx-aide/screenshot-review-ui.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke:
-    - node tools/context/ctx.mjs settings get --repo . --json
-    - node tools/context/ctx.mjs settings set --repo . --feature screenshot-feedback-review-ui --enabled true --json
-    - node tools/context/ctx.mjs feedback review-ui --repo . --plan-only --json
+    - node tools/ctx-aide/ctx-aide.mjs settings get --repo . --json
+    - node tools/ctx-aide/ctx-aide.mjs settings set --repo . --feature screenshot-feedback-review-ui --enabled true --json
+    - node tools/ctx-aide/ctx-aide.mjs feedback review-ui --repo . --plan-only --json
   screenshots: []
 completion:
   commit: current-change
@@ -68,7 +68,7 @@ The screenshot feedback review UI was added as local tooling. It should not beco
 
 - Seed screenshot review UI settings during onboarding with the feature disabled by default.
 - Provide a settings command that can inspect and update the beta opt-in.
-- Require explicit opt-in before `ctx feedback review-ui` starts in a target repo.
+- Require explicit opt-in before `ctx-aide feedback review-ui` starts in a target repo.
 
 ## Negative Rules
 
@@ -84,7 +84,7 @@ The screenshot feedback review UI was added as local tooling. It should not beco
 
 ## Frozen Decisions
 
-- Settings file: `docs/config/repo-context.settings.json`.
+- Settings file: `docs/config/ctx-aide.settings.json`.
 - Feature id: `screenshot_feedback_review_ui`.
 - Default state: disabled beta.
 - Onboarding flag: `--enable-screenshot-feedback-ui`.
@@ -99,26 +99,26 @@ The screenshot feedback review UI was added as local tooling. It should not beco
 ## Scope
 
 - In: settings config, onboarding bootstrap flag, status reporting, review UI gate, docs, tests, and closeout metadata.
-- Out: a full interactive `ctx setup` TUI and hosted settings UI.
+- Out: a full interactive `ctx-aide setup` TUI and hosted settings UI.
 
 ## Acceptance Criteria
 
 - Adoption bootstrap writes beta settings with screenshot review UI disabled by default.
-- `ctx settings get` reports the feature as beta and disabled by default.
-- `ctx settings set --feature screenshot-feedback-review-ui --enabled true --write` enables the feature.
-- `ctx feedback review-ui` reports a blocker when the beta feature is disabled.
+- `ctx-aide settings get` reports the feature as beta and disabled by default.
+- `ctx-aide settings set --feature screenshot-feedback-review-ui --enabled true --write` enables the feature.
+- `ctx-aide feedback review-ui` reports a blocker when the beta feature is disabled.
 - The feature can still be one-shot tested with an explicit beta override.
 
 ## Validation
 
 - Automated:
-  - `node --check tools/context/ctx.mjs`
-  - `node --check tools/context/screenshot-review-ui.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node --check tools/ctx-aide/screenshot-review-ui.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Smoke:
-  - `node tools/context/ctx.mjs settings get --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs settings get --repo . --json`
 - Screenshots:
   - Not required.
 
@@ -127,13 +127,13 @@ The screenshot feedback review UI was added as local tooling. It should not beco
 - Status: done
 - Commit: current-change
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node --check tools/context/screenshot-review-ui.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs settings get --repo . --json`
-  - `node tools/context/ctx.mjs settings set --repo . --feature screenshot-feedback-review-ui --enabled true --json`
-  - `node tools/context/ctx.mjs feedback review-ui --repo . --plan-only --json` returned the expected disabled-beta blocker.
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node --check tools/ctx-aide/screenshot-review-ui.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs settings get --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs settings set --repo . --feature screenshot-feedback-review-ui --enabled true --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback review-ui --repo . --plan-only --json` returned the expected disabled-beta blocker.
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
   - `make validate`
 - Follow-up tickets: none.

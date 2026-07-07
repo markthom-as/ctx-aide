@@ -1,11 +1,11 @@
 ---
 id: ticket.context.008
 status: done
-title: Define Idvisor repo-context plugin integration
-ticket_pack: pack.repo-context-mvp
+title: Define Idvisor ctx-aide plugin integration
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -27,15 +27,15 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
-  task: "Define Idvisor repo-context plugin integration"
+  task: "Define Idvisor ctx-aide plugin integration"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -54,15 +54,15 @@ completion:
   completed_at: 2026-06-26
 ---
 
-# Define Idvisor repo-context plugin integration
+# Define Idvisor ctx-aide plugin integration
 
 ## Outcome
 
-Define how repo-context runs as an Idvisor plugin or workflow pack while markdown remains source of truth.
+Define how ctx-aide runs as an Idvisor plugin or workflow pack while markdown remains source of truth.
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -98,7 +98,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Define repo-context plugin responsibilities versus `ctx`.
+  - Define ctx-aide plugin responsibilities versus `ctx-aide`.
   - Add Idvisor workflow template for describe/spec/questions/harden/tickets/implementation/validation/report.
   - Define plugin commands for init, scan, harden, pack create/status, and dispatch.
   - Define concrete event, gate, lease, and progress-report expectations.
@@ -109,7 +109,7 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 - Plugin treats target repo markdown as source of truth.
 - Idvisor records workflow runs, gates, progress reports, and audit events.
-- Initial implementation can shell out to `ctx` as governed local tool.
+- Initial implementation can shell out to `ctx-aide` as governed local tool.
 - Tickets dispatch only when ready.
 
 ## Validation
@@ -123,14 +123,14 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 
 - Parallel group: `idvisor-a`.
 - Dependencies: `ticket.context.002`, `ticket.context.003`, `ticket.context.005`, `ticket.context.007`, `ticket.context.009`.
-- Expected commit message: `Define Idvisor repo context plugin`.
+- Expected commit message: `Define Idvisor ctx-aide plugin`.
 
 ## Completion
 
 - Status: done
 - Commit: 9f64e7d
 - Verification evidence:
-  - `node tools/context/ctx.mjs idvisor workflow --json`
-  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.mjs idvisor workflow --json`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
   - `make validate`
 - Follow-up tickets: none

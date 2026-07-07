@@ -2,9 +2,9 @@
 id: ticket.context.028
 status: done
 title: Add native target adoption pack creation
-ticket_pack: pack.repo-context-pre-production-adoption-hardening-2026-06-27
+ticket_pack: pack.ctx-aide-pre-production-adoption-hardening-2026-06-27
 milestones:
-  - milestone.repo-context-pre-production-adoption-hardening
+  - milestone.ctx-aide-pre-production-adoption-hardening
 source_spec: spec.pre-production-adoption-hardening-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,24 +19,24 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/astrotechne-adoption.md
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "add native target adoption pack creation"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
 validation:
   automated:
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
   smoke: []
   screenshots: []
 completion:
@@ -48,7 +48,7 @@ completion:
 
 ## Outcome
 
-Add `ctx adoption pack` so target repos can get a reviewable pack artifact before generated tickets are created.
+Add `ctx-aide adoption pack` so target repos can get a reviewable pack artifact before generated tickets are created.
 
 ## Context
 
@@ -58,7 +58,7 @@ Astrotechne uses packet directories with `README.md`. Creating standalone ticket
 
 - Preserve target profile conventions.
 - Create Astrotechne packs as `docs/domain-redesign/tickets/<slug>/README.md`.
-- Keep default and Wetware packs as repo-context-style markdown under `docs/ticket-packs`.
+- Keep default and Wetware packs as ctx-aide-style markdown under `docs/ticket-packs`.
 
 ## Negative Rules
 
@@ -90,13 +90,13 @@ Astrotechne uses packet directories with `README.md`. Creating standalone ticket
 
 ## Acceptance Criteria
 
-- `ctx adoption pack --repo <target> --profile astrotechne --slug <slug> --write --json` creates a packet README path.
+- `ctx-aide adoption pack --repo <target> --profile astrotechne --slug <slug> --write --json` creates a packet README path.
 - Dry-run reports planned path without writing.
 - Fixture tests verify no overwrite without `--force`.
 
 ## Validation
 
-- Automated: `node tools/context/ctx.test.mjs`.
+- Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
 - Smoke: target fixture pack creation.
 - Screenshots: none.
 
@@ -109,9 +109,9 @@ This ticket prepares the target repo for generated tickets but does not change t
 - Status: done
 - Commit: native-target-adoption-pack
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'Repo Context Dogfood' --slug repo-context-dogfood --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'CTX Aide Dogfood' --slug ctx-aide-dogfood --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Follow-up tickets: none.

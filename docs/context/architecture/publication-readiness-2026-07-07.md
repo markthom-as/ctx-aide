@@ -78,7 +78,6 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 Last checked on 2026-07-07:
 
 - `npm view ctx-aide name version description --json` returned npm 404, which indicates no public package was visible to this environment at check time.
-- `npm view ctx name version description --json` returned an unrelated `ctx@0.3.0`, so the package does not keep a legacy `ctx` bin.
 - `cargo search ctx-aide --limit 5` returned no matches.
 
 Registry state can change. Recheck immediately before any publishing ticket claims name availability.
@@ -104,7 +103,6 @@ Before posting publicly or publishing packages, rerun and record these registry 
 
 ```sh
 npm view ctx-aide name version description --json
-npm view ctx name version description --json
 cargo search ctx-aide --limit 5
 ```
 

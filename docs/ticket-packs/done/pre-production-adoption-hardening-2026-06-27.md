@@ -1,9 +1,9 @@
 ---
-id: pack.repo-context-pre-production-adoption-hardening-2026-06-27
+id: pack.ctx-aide-pre-production-adoption-hardening-2026-06-27
 status: done
 title: Pre-Production Adoption Hardening
 milestones:
-  - milestone.repo-context-pre-production-adoption-hardening
+  - milestone.ctx-aide-pre-production-adoption-hardening
 source_specs:
   - spec.pre-production-adoption-hardening-2026-06-27
 tickets:
@@ -32,16 +32,16 @@ completion:
   final_validation:
     - make validate
     - make smoke
-    - node tools/context/ctx.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
-    - node tools/context/ctx.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'Repo Context Dogfood' --slug repo-context-dogfood --json
+    - node tools/ctx-aide/ctx-aide.mjs adoption bootstrap --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/ctx-aide/ctx-aide.mjs adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title 'CTX Aide Dogfood' --slug ctx-aide-dogfood --json
 ---
 
 # Pre-Production Adoption Hardening
 
 ## Outcome
 
-Make repo-context safer and more complete for target-repo dogfooding before it is used on Astrotechne production code.
+Make ctx-aide safer and more complete for target-repo dogfooding before it is used on Astrotechne production code.
 
 ## Scope
 
@@ -58,7 +58,7 @@ Make repo-context safer and more complete for target-repo dogfooding before it i
 
 - Parallel groups: listed for ownership, but implementation is sequential because the CLI and tests overlap.
 - Sequential dependencies: `ticket.context.028` depends on `ticket.context.027`; `ticket.context.029` depends on both.
-- Shared-file coordination: read `tools/context/ctx.mjs` and `tools/context/ctx.test.mjs` before every edit.
+- Shared-file coordination: read `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs` before every edit.
 - Worktree strategy: current clean worktree; one commit per ticket.
 - Merge queue strategy: no queue required.
 
@@ -71,7 +71,7 @@ Make repo-context safer and more complete for target-repo dogfooding before it i
 
 ## Pack Validation
 
-- Smoke tests: target fixture adoption flow, target Astrotechne dry-run, and `ctx adoption status`.
+- Smoke tests: target fixture adoption flow, target Astrotechne dry-run, and `ctx-aide adoption status`.
 - Screenshots: not applicable.
 - Full regression checks: `make validate` and `make smoke`.
 

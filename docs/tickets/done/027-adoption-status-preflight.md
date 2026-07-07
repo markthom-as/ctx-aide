@@ -2,9 +2,9 @@
 id: ticket.context.027
 status: done
 title: Add target adoption status preflight
-ticket_pack: pack.repo-context-pre-production-adoption-hardening-2026-06-27
+ticket_pack: pack.ctx-aide-pre-production-adoption-hardening-2026-06-27
 milestones:
-  - milestone.repo-context-pre-production-adoption-hardening
+  - milestone.ctx-aide-pre-production-adoption-hardening
 source_spec: spec.pre-production-adoption-hardening-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,24 +19,24 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "add target adoption status preflight"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
 validation:
   automated:
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
   smoke: []
   screenshots: []
 completion:
@@ -48,7 +48,7 @@ completion:
 
 ## Outcome
 
-Add a read-only `ctx adoption status` command that reports target-repo adoption readiness before any production-code work begins.
+Add a read-only `ctx-aide adoption status` command that reports target-repo adoption readiness before any production-code work begins.
 
 ## Context
 
@@ -91,14 +91,14 @@ Bootstrap dry-runs show planned writes, but there is no single command that repo
 
 ## Acceptance Criteria
 
-- `ctx adoption status --repo <target> --json` reports profile, config, context counts, ticket root, pack roots, generated artifacts, and git dirty summary.
+- `ctx-aide adoption status --repo <target> --json` reports profile, config, context counts, ticket root, pack roots, generated artifacts, and git dirty summary.
 - Missing config/context entries produce blockers.
 - Fixture tests cover unbootstrapped and bootstrapped target repos.
 
 ## Validation
 
-- Automated: `node tools/context/ctx.test.mjs`.
-- Smoke: `node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json`.
+- Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
+- Smoke: `node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json`.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -110,9 +110,9 @@ Keep this as a prerequisite for target production-code use.
 - Status: done
 - Commit: adoption-status-preflight
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/context blockers
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json` returned expected bootstrap/context blockers
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Follow-up tickets: none.

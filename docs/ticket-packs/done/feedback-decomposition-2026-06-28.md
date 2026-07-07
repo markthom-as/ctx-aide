@@ -3,7 +3,7 @@ id: pack.feedback-decomposition-2026-06-28
 status: done
 title: Feedback Decomposition
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_specs:
   - spec.feedback-decomposition-2026-06-28
 tickets:
@@ -23,7 +23,7 @@ completion:
   completed_at: 2026-06-28
   final_validation:
     - make validate
-    - node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json
+    - node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json
 ---
 
 # Feedback Decomposition
@@ -35,7 +35,7 @@ Add a planning step that decomposes natural operator feedback into candidate tic
 ## Scope
 
 - Included:
-  - `ctx feedback plan`.
+  - `ctx-aide feedback plan`.
   - Capture response decomposition metadata.
   - Feedback review workflow guidance.
   - Fixture coverage.
@@ -66,7 +66,7 @@ Add a planning step that decomposes natural operator feedback into candidate tic
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`
 - Screenshots:
   - Not required.
 - Full regression checks:
@@ -78,4 +78,4 @@ Add a planning step that decomposes natural operator feedback into candidate tic
 - Remaining tickets: none.
 - Final validation:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/037-feedback-decomposition.md --body "Spacing is tight. Copy is wrong." --json`

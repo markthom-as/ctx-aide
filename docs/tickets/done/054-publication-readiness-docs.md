@@ -128,7 +128,7 @@ The project already had public-release README, demo, and safety-audit tickets. T
 
 The registry observations were checked on 2026-07-07 and can change. A publishing ticket must repeat them immediately before claiming availability or publishing.
 
-Registry observation evidence for this slice: `npm view ctx-aide name version description --json` returned npm 404, `npm view ctx name version description --json` returned an unrelated `ctx@0.3.0`, and `cargo search ctx-aide --limit 5` returned no matches.
+Registry observation evidence for this slice: `npm view ctx-aide name version description --json` returned npm 404, and `cargo search ctx-aide --limit 5` returned no matches.
 
 ## Completion
 

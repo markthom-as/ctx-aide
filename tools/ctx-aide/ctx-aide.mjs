@@ -4,10 +4,10 @@ import path from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
 import {
   SCREENSHOT_REVIEW_UI_FEATURE_ID,
-  defaultRepoContextSettings,
+  defaultCtxAideSettings,
   normalizeFeatureId,
-  readRepoContextSettings,
-  repoContextSettingsPath,
+  readCtxAideSettings,
+  ctxAideSettingsPath,
   screenshotReviewUiCommand,
 } from "./screenshot-review-ui.mjs";
 
@@ -126,10 +126,7 @@ function parseValue(value) {
 
 function parseDocText(file, text) {
   const normalizedText = text.replace(/^\uFEFF/, "");
-  if (
-    normalizedText.startsWith("<!-- ctx-aide: ignore -->") ||
-    normalizedText.startsWith("<!-- repo-context: ignore -->")
-  ) {
+  if (normalizedText.startsWith("<!-- ctx-aide: ignore -->")) {
     return { file, ignored: true, frontmatter: {}, body: text };
   }
   const match = text.match(/^---\n([\s\S]*?)\n---\n?/);
@@ -3597,7 +3594,7 @@ function settingsGet() {
   if (!fs.existsSync(repoPath)) {
     return { ok: false, scope: "settings get", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
   }
-  const settings = readRepoContextSettings(repoPath);
+  const settings = readCtxAideSettings(repoPath);
   return {
     ok: settings.ok,
     scope: "settings get",
@@ -3625,7 +3622,7 @@ function settingsSet() {
       supported_features: [SCREENSHOT_REVIEW_UI_FEATURE_ID],
     };
   }
-  const settingsResult = readRepoContextSettings(repoPath);
+  const settingsResult = readCtxAideSettings(repoPath);
   if (!settingsResult.ok) {
     return {
       ok: false,
@@ -3646,12 +3643,12 @@ function settingsSet() {
   }
   const settings = settingsResult.settings;
   settings.features[featureId] = {
-    ...defaultRepoContextSettings().features[featureId],
+    ...defaultCtxAideSettings().features[featureId],
     ...(settings.features[featureId] ?? {}),
     enabled: parsed.value,
   };
   settings.updated = todayDate();
-  const outPath = repoContextSettingsPath(repoPath);
+  const outPath = ctxAideSettingsPath(repoPath);
   if (write) {
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
     fs.writeFileSync(outPath, `${JSON.stringify(settings, null, 2)}\n`);
@@ -3712,7 +3709,7 @@ function adoptionStatus() {
   const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
   const configPath = path.join(repoPath, "docs/config/ctx-aide.profile.json");
   const config = readJsonIfExists(configPath);
-  const settingsResult = readRepoContextSettings(repoPath);
+  const settingsResult = readCtxAideSettings(repoPath);
   const toolsPolicyResult = readAgentToolsConfig(repoPath, "");
   const toolsPolicyErrors = toolsPolicyResult.exists
     ? agentToolsPolicyErrors(toolsPolicyResult, targetWorkflowIds(repoPath))
@@ -3848,7 +3845,7 @@ function writeAdoptionSettings(repoPath, options) {
   const enableScreenshotFeedbackUi = Boolean(options.enableScreenshotFeedbackUi);
   if (fs.existsSync(fullPath) && !force) {
     if (!enableScreenshotFeedbackUi) return { action: "skipped", file: relativePath, reason: "exists" };
-    const current = readRepoContextSettings(repoPath);
+    const current = readCtxAideSettings(repoPath);
     if (!current.ok) {
       return {
         action: "blocked",
@@ -3858,7 +3855,7 @@ function writeAdoptionSettings(repoPath, options) {
     }
     const settings = current.settings;
     settings.features[SCREENSHOT_REVIEW_UI_FEATURE_ID] = {
-      ...defaultRepoContextSettings().features[SCREENSHOT_REVIEW_UI_FEATURE_ID],
+      ...defaultCtxAideSettings().features[SCREENSHOT_REVIEW_UI_FEATURE_ID],
       ...(settings.features[SCREENSHOT_REVIEW_UI_FEATURE_ID] ?? {}),
       enabled: true,
     };
@@ -3866,7 +3863,7 @@ function writeAdoptionSettings(repoPath, options) {
     if (write) fs.writeFileSync(fullPath, `${JSON.stringify(settings, null, 2)}\n`);
     return { action: write ? "updated" : "planned", file: relativePath };
   }
-  const settings = defaultRepoContextSettings({
+  const settings = defaultCtxAideSettings({
     screenshotFeedbackReviewUi: {
       enabled: enableScreenshotFeedbackUi,
       updated: todayDate(),

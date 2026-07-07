@@ -2,10 +2,10 @@
 id: ticket.context.020
 status: done
 title: Add target adoption lifecycle commands
-ticket_pack: pack.repo-context-target-adoption-lifecycle
+ticket_pack: pack.ctx-aide-target-adoption-lifecycle
 milestones:
-  - milestone.repo-context-daily-use
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-daily-use
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -21,19 +21,19 @@ scope:
   routes: []
   files:
     - README.md
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories:
     - docs/tickets
     - docs/ticket-packs
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
-  task: "Use repo-context to manage target repo workflow, context, ticket creation, and implementation planning"
+  task: "Use ctx-aide to manage target repo workflow, context, ticket creation, and implementation planning"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -42,7 +42,7 @@ axioms:
 validation:
   automated:
     - Run `make validate`.
-    - Run `node tools/context/ctx.test.mjs`.
+    - Run `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
     - Run adoption bootstrap, context, ticket, and implementation-plan commands against a fixture target repo.
     - Run workflow validation-plan against the browser validation workflow.
@@ -56,17 +56,17 @@ completion:
 
 ## Outcome
 
-Make repo-context usable as the workflow manager for another repo by adding commands that bootstrap target context, create scoped context entries, generate full implementation tickets, and hydrate explicit implementation plans.
+Make ctx-aide usable as the workflow manager for another repo by adding commands that bootstrap target context, create scoped context entries, generate full implementation tickets, and hydrate explicit implementation plans.
 
 ## Context
 
-The dependency upgrade proved that `ctx dependency audit` can provide evidence, but the tool did not yet manage the full workflow and context lifecycle around ticket creation and implementation. Daily use for Wetware and Astrotechne needs a target-repo adoption layer that preserves each repo's existing ticket conventions.
+The dependency upgrade proved that `ctx-aide dependency audit` can provide evidence, but the tool did not yet manage the full workflow and context lifecycle around ticket creation and implementation. Daily use for Wetware and Astrotechne needs a target-repo adoption layer that preserves each repo's existing ticket conventions.
 
 ## Positive Rules
 
 - Preserve JSON-first command output.
 - Keep mutations behind `--write`.
-- Keep target repo context loading explicit and bounded.
+- Keep target repo-local context loading explicit and bounded.
 - Preserve Wetware and Astrotechne ticket roots instead of rewriting historical ticket systems.
 
 ## Negative Rules
@@ -84,7 +84,7 @@ The dependency upgrade proved that `ctx dependency audit` can provide evidence, 
 
 ## Frozen Decisions
 
-- Target lifecycle commands live under `ctx adoption`.
+- Target lifecycle commands live under `ctx-aide adoption`.
 - `adoption bootstrap` creates scaffolding and profile config.
 - `adoption context` creates scoped context entries with load rules.
 - `adoption ticket` creates full-fat implementation tickets in the target repo's configured ticket root.
@@ -101,11 +101,11 @@ The dependency upgrade proved that `ctx dependency audit` can provide evidence, 
 ## Scope
 
 - In:
-  - `ctx adoption bootstrap`
-  - `ctx adoption context`
-  - `ctx adoption ticket`
-  - `ctx adoption implementation-plan`
-  - `ctx workflow validation-plan`
+  - `ctx-aide adoption bootstrap`
+  - `ctx-aide adoption context`
+  - `ctx-aide adoption ticket`
+  - `ctx-aide adoption implementation-plan`
+  - `ctx-aide workflow validation-plan`
   - README and fixture tests
 - Out:
   - Full migration of Astrotechne historical tickets.
@@ -124,9 +124,9 @@ The dependency upgrade proved that `ctx dependency audit` can provide evidence, 
 
 - Automated:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Smoke:
-  - Fixture adoption flow in `ctx.test.mjs`.
+  - Fixture adoption flow in `ctx-aide.test.mjs`.
   - Browser validation-plan fixture coverage.
 - Screenshots:
   - Not required.
@@ -136,9 +136,9 @@ The dependency upgrade proved that `ctx dependency audit` can provide evidence, 
 - Status: done
 - Commit: target-adoption-lifecycle-change
 - Verification evidence:
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
   - `make validate`
-  - `node tools/context/ctx.mjs doctor --json`
+  - `node tools/ctx-aide/ctx-aide.mjs doctor --json`
   - `make smoke`
 - Follow-up tickets:
   - Add target repo ticket-pack generation.

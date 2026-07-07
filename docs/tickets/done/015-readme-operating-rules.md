@@ -2,10 +2,10 @@
 id: ticket.context.015
 status: done
 title: Document agent operating rules in README
-ticket_pack: pack.repo-context-readme-operating-rules
+ticket_pack: pack.ctx-aide-readme-operating-rules
 milestones:
-  - milestone.repo-context-docs-maintenance
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-docs-maintenance
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -29,7 +29,7 @@ context_query:
   task: "Document agent operating rules in README"
   generated_at: 2026-06-26
   context_ids:
-    - spec.repo-context-mvp
+    - spec.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit

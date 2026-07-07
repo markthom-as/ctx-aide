@@ -29,7 +29,7 @@ scope:
   flows:
     - flow.ctx-aide-dogfood
 context_query:
-  task: "choose public name for repo-context public release"
+  task: "choose public name for ctx-aide public release"
   generated_at: 2026-07-01
   context_ids:
     - flow.ctx-aide-dogfood
@@ -53,18 +53,18 @@ completion:
 
 ## Outcome
 
-Choose a public name for repo-context and document the decision so downstream public docs, examples, and GitHub metadata can use one stable name.
+Choose a public name for ctx-aide and document the decision so downstream public docs, examples, and GitHub metadata can use one stable name.
 
 ## Context
 
-`repo-context` is accurate as an internal working name, but it reads like an implementation detail. The public release needs a name that can carry the broader promise: repo-local context, markdown tickets, agent instructions, validation loops, and implementation handoff.
+`ctx-aide` is accurate as an internal working name, but it reads like an implementation detail. The public release needs a name that can carry the broader promise: repo-local context, markdown tickets, agent instructions, validation loops, and implementation handoff.
 
 `Concordat` is already an existing separate project in `/Users/jove/code/concordat`; do not reuse that name or create brand confusion between these projects.
 
 ## Positive Rules
 
 - Prefer a name that communicates durable agent workflow, repo-local context, or engineering coordination.
-- Preserve the internal ability to refer to the repository as `repo-context` until a rename is implemented.
+- Preserve the internal ability to refer to the repository as `ctx-aide` until a rename is implemented.
 - Document rejected names and the reason they were rejected.
 
 ## Negative Rules
@@ -101,7 +101,7 @@ Choose a public name for repo-context and document the decision so downstream pu
 ## Acceptance Criteria
 
 - A chosen public name is documented in canonical markdown.
-- Rejected candidates include at least `repo-context` and `Concordat` with rationale.
+- Rejected candidates include at least `ctx-aide` and `Concordat` with rationale.
 - Downstream tickets can implement public copy and launch metadata without reopening the naming question.
 
 ## Validation

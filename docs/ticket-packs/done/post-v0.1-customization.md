@@ -1,7 +1,7 @@
 ---
-id: pack.repo-context-post-v0.1
+id: pack.ctx-aide-post-v0.1
 status: done
-title: Repo Context Post-v0.1 Customization
+title: CTX Aide Post-v0.1 Customization
 milestones:
   - milestone.post-v0.1-customization
 source_specs:
@@ -18,18 +18,18 @@ parallel_groups:
     tickets:
       - ticket.context.014
 blocked_by:
-  - pack.repo-context-mvp
+  - pack.ctx-aide-mvp
 created: 2026-06-25
 completion:
   completed_at: 2026-06-26
   final_validation: []
 ---
 
-# Repo Context Post-v0.1 Customization
+# CTX Aide Post-v0.1 Customization
 
 ## Outcome
 
-Add an agent-guided customization process that lets users tune optional repo-context workflow behavior through profiles and toggles.
+Add an agent-guided customization process that lets users tune optional ctx-aide workflow behavior through profiles and toggles.
 
 ## Scope
 
@@ -50,7 +50,7 @@ Add an agent-guided customization process that lets users tune optional repo-con
 ## Execution Plan
 
 - Parallel groups: `customization-a`.
-- Sequential dependencies: start after `pack.repo-context-mvp`.
+- Sequential dependencies: start after `pack.ctx-aide-mvp`.
 - Shared-file coordination: README, skill, and CLI docs.
 - Worktree strategy: one worktree is sufficient.
 - Merge queue strategy: coordinator-owned.
@@ -65,7 +65,7 @@ Add an agent-guided customization process that lets users tune optional repo-con
 ## Pack Validation
 
 - Smoke tests:
-  - `node tools/context/ctx.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
 - Screenshots:
   - Not required.
 - Full regression checks:
@@ -75,4 +75,4 @@ Add an agent-guided customization process that lets users tune optional repo-con
 
 - Completed tickets: ticket.context.014.
 - Remaining tickets: none.
-- Final validation: `make validate`; `node tools/context/ctx.mjs pack status pack.repo-context-post-v0.1 --json`.
+- Final validation: `make validate`; `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-post-v0.1 --json`.

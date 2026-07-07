@@ -213,7 +213,7 @@ Fast first-line sentinel:
 
 Scanner rules:
 
-- If the first non-BOM line is `<!-- ctx-aide: ignore -->`, skip the file before frontmatter parsing. The old `<!-- repo-context: ignore -->` sentinel remains a compatibility alias for adopted repositories.
+- If the first non-BOM line is `<!-- ctx-aide: ignore -->`, skip the file before frontmatter parsing.
 - If YAML frontmatter contains `context_scan: false`, skip the file.
 - Excluded files must not appear in SQLite, generated manifests, FTS search, agent packs, ticket hydration, or context query results.
 - `ctx-aide lint` may report malformed markdown only when explicitly asked to include ignored files.
@@ -1210,7 +1210,7 @@ Recommended shape:
 
 Division of responsibility:
 
-- **Repo context system owns**: markdown schema, ticket template, pack template, route/component/design/feedback context, local SQLite index, generated Codex/Claude/Cursor packs.
+- **CTX Aide owns**: markdown schema, ticket template, pack template, route/component/design/feedback context, local SQLite index, generated Codex/Claude/Cursor packs.
 - **Idvisor owns**: workflow orchestration, agent assignment, queueing, event audit, capability policy, review gates, progress reports, and multi-agent execution.
 
 This gives Idvisor a concrete product workflow without making Idvisor app-specific. The plugin should be generic enough to run in any web app repo that follows the context-system conventions.

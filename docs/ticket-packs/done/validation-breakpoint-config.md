@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-validation-breakpoint-config
+id: pack.ctx-aide-validation-breakpoint-config
 status: done
 title: Validation Breakpoint Config
 milestones:
-  - milestone.repo-context-docs-maintenance
+  - milestone.ctx-aide-docs-maintenance
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.021
 run_policy:
@@ -23,7 +23,7 @@ completion:
   completed_at: 2026-06-26
   final_validation:
     - make validate
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
 ---
 
 # Validation Breakpoint Config
@@ -35,9 +35,9 @@ Add configurable browser validation breakpoints with defaults and a generated va
 ## Scope
 
 - Included:
-  - `ctx workflow validation-plan`.
+  - `ctx-aide workflow validation-plan`.
   - Default breakpoint catalog.
-  - `docs/config/repo-context.validation.json`.
+  - `docs/config/ctx-aide.validation.json`.
   - Browser workflow breakpoint metadata.
   - Future-work capture for the smart TUI.
 - Excluded:
@@ -53,7 +53,7 @@ Add configurable browser validation breakpoints with defaults and a generated va
 
 - Parallel groups: `cli-a`.
 - Sequential dependencies: `ticket.context.019`.
-- Shared-file coordination: README, browser workflow docs, and `tools/context/ctx.mjs`.
+- Shared-file coordination: README, browser workflow docs, and `tools/ctx-aide/ctx-aide.mjs`.
 - Worktree strategy: current worktree is sufficient.
 - Merge queue strategy: one local commit.
 
@@ -68,7 +68,7 @@ Add configurable browser validation breakpoints with defaults and a generated va
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
 - Screenshots:
   - Not required.
 - Full regression checks:
@@ -80,4 +80,4 @@ Add configurable browser validation breakpoints with defaults and a generated va
 - Remaining tickets: none.
 - Final validation:
   - `make smoke`
-  - `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=secret node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=secret node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`

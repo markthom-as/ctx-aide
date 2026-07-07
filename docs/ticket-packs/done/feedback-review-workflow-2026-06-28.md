@@ -3,7 +3,7 @@ id: pack.feedback-review-workflow-2026-06-28
 status: done
 title: Feedback Review Workflow
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_specs:
   - spec.feedback-review-workflow-2026-06-28
 tickets:
@@ -23,7 +23,7 @@ completion:
   completed_at: 2026-06-28
   final_validation:
     - make validate
-    - node tools/context/ctx.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json
+    - node tools/ctx-aide/ctx-aide.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json
 ---
 
 # Feedback Review Workflow
@@ -35,9 +35,9 @@ Add a repo-local feedback review loop for ticket validation artifacts and operat
 ## Scope
 
 - Included:
-  - `ctx feedback review` review packets.
-  - `ctx feedback capture` markdown feedback entries.
-  - `ctx feedback promote` acceptance-criteria and follow-up-ticket promotion.
+  - `ctx-aide feedback review` review packets.
+  - `ctx-aide feedback capture` markdown feedback entries.
+  - `ctx-aide feedback promote` acceptance-criteria and follow-up-ticket promotion.
   - Workflow docs and fixture tests.
 - Excluded:
   - Hosted review UI.
@@ -67,7 +67,7 @@ Add a repo-local feedback review loop for ticket validation artifacts and operat
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`
 - Screenshots:
   - Not required for this CLI workflow slice.
 - Full regression checks:
@@ -79,4 +79,4 @@ Add a repo-local feedback review loop for ticket validation artifacts and operat
 - Remaining tickets: none.
 - Final validation:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback review --repo . --ticket docs/tickets/done/036-feedback-review-workflow.md --json`

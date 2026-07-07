@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-astrotechne-adoption
+id: pack.ctx-aide-astrotechne-adoption
 status: done
 title: Astrotechne Adoption Profile
 milestones:
-  - milestone.repo-context-docs-maintenance
+  - milestone.ctx-aide-docs-maintenance
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.016
 run_policy:
@@ -29,7 +29,7 @@ completion:
 
 ## Outcome
 
-Document how repo-context should be introduced into Astrotechne without disrupting its existing ticket and packet workflow.
+Document how ctx-aide should be introduced into Astrotechne without disrupting its existing ticket and packet workflow.
 
 ## Scope
 
@@ -65,7 +65,7 @@ Document how repo-context should be introduced into Astrotechne without disrupti
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.mjs customize --profile astrotechne --dry-run --json`
+  - `node tools/ctx-aide/ctx-aide.mjs customize --profile astrotechne --dry-run --json`
 - Screenshots:
   - Not required.
 - Full regression checks:

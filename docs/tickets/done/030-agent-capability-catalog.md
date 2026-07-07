@@ -2,9 +2,9 @@
 id: ticket.context.030
 status: done
 title: Add agent capability catalog config
-ticket_pack: pack.repo-context-agent-capability-policy-2026-06-27
+ticket_pack: pack.ctx-aide-agent-capability-policy-2026-06-27
 milestones:
-  - milestone.repo-context-agent-capability-policy
+  - milestone.ctx-aide-agent-capability-policy
 source_spec: spec.agent-capability-policy-2026-06-27
 source_feedback: []
 implementation_agent: codex
@@ -19,26 +19,26 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories:
     - docs/config
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "add agent capability catalog and global policy config"
   generated_at: 2026-06-27
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.capability-policy-deny-wins
 validation:
   automated:
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs tools list --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs tools list --json
   smoke: []
   screenshots: []
 completion:
@@ -54,7 +54,7 @@ Add a built-in capability catalog and a repo-local config shape for global allow
 
 ## Context
 
-Agent tools and skills are supplied by the host runtime, not by target repos. Repo-context should make expected capabilities explicit without claiming they are installed or authenticated.
+Agent tools and skills are supplied by the host runtime, not by target repos. CTX Aide should make expected capabilities explicit without claiming they are installed or authenticated.
 
 ## Positive Rules
 
@@ -76,12 +76,12 @@ Agent tools and skills are supplied by the host runtime, not by target repos. Re
 
 ## Frozen Decisions
 
-- Decision: add `docs/config/repo-context.tools.json` as the default policy path.
+- Decision: add `docs/config/ctx-aide.tools.json` as the default policy path.
 - Rationale: agent capability policy is separate from workflow dependency installation.
 
 ## Implementation Rules
 
-- Required approach: add built-in catalog/default policy helpers and a `ctx tools list --json` command.
+- Required approach: add built-in catalog/default policy helpers and a `ctx-aide tools list --json` command.
 - Existing components/helpers to use: JSON parsing helpers, `argValue`, existing `printResult` command dispatch.
 - Anti-patterns to avoid: broad runtime probing, shell execution, and connector calls.
 - Stop and escalate if: implementation requires live Codex host APIs.
@@ -93,14 +93,14 @@ Agent tools and skills are supplied by the host runtime, not by target repos. Re
 
 ## Acceptance Criteria
 
-- `ctx tools list --json` returns catalog entries and effective global policy metadata.
+- `ctx-aide tools list --json` returns catalog entries and effective global policy metadata.
 - Missing config falls back to built-in defaults.
 - A valid policy file can extend defaults with `custom.*` capability ids.
 
 ## Validation
 
-- Automated: `node tools/context/ctx.test.mjs`.
-- Smoke: `node tools/context/ctx.mjs tools list --json`.
+- Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
+- Smoke: `node tools/ctx-aide/ctx-aide.mjs tools list --json`.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -112,7 +112,7 @@ Keep response size bounded by default and include a `--capability` filter if nee
 - Status: done
 - Commit: add-agent-capability-catalog
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs tools list --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs tools list --json`
 - Follow-up tickets: `ticket.context.031`, `ticket.context.032`.

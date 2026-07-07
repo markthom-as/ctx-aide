@@ -1,7 +1,7 @@
 ---
-id: spec.repo-context-mvp
+id: spec.ctx-aide-mvp
 status: draft
-title: Repo Context MVP
+title: CTX Aide MVP
 owner_agent: codex-high-effort
 source_feedback: []
 context_ids:
@@ -16,7 +16,7 @@ target_agents:
 created: 2026-06-25
 ---
 
-# Repo Context MVP
+# CTX Aide MVP
 
 ## Goal
 
@@ -25,7 +25,7 @@ Create a repo-local context system that uses markdown as the canonical source of
 ## Affected Surfaces
 
 - Routes: none for v0.1.
-- Files/directories: `README.md`, `AGENTS.md`, `docs/context`, `docs/specs`, `docs/tickets`, `docs/ticket-packs`, `docs/runs`, `tools/context`, `skills/repo-context`.
+- Files/directories: `README.md`, `AGENTS.md`, `docs/context`, `docs/specs`, `docs/tickets`, `docs/ticket-packs`, `docs/runs`, `tools/ctx-aide`, `skills/ctx-aide`.
 - Components: lightweight component catalog documentation only.
 - Flows: spec hardening, ticket hardening, ticket pack execution, context discovery, future-work capture.
 - Design-system areas: component and token catalog conventions.
@@ -57,7 +57,7 @@ The initial repository is intentionally self-hosting. Its README, templates, tic
 ## Security and Privacy Decisions
 
 - Data touched: repo-local markdown, generated indexes, and optional generated agent packs.
-- Trust boundaries: do not scan files marked with `context_scan: false` or `<!-- repo-context: ignore -->`.
+- Trust boundaries: do not scan files marked with `context_scan: false` or `<!-- ctx-aide: ignore -->`.
 - Required safeguards: avoid secrets in context files, generated packs, future-work notes, and customization config.
 
 ## Open Questions
@@ -71,11 +71,11 @@ The initial repository is intentionally self-hosting. Its README, templates, tic
 - Design: require explicit positive and negative rules for context and tickets.
 - Security: preserve scan exclusions and avoid secret-bearing generated artifacts.
 - Best practices: keep commands JSON-first and non-interactive for agents.
-- Testing: validate with `node tools/context/ctx.mjs lint --json` and `make validate`.
+- Testing: validate with `node tools/ctx-aide/ctx-aide.mjs lint --json` and `make validate`.
 - Parallelization: use ticket packs, parallel groups, worktrees, leases, stale-agent cleanup, and merge queues.
 
 ## Ticket Plan
 
 - Independent tickets: context substrate, component catalog, agent packs, discovery, and daily tooling.
 - Sequential tickets: scan/query index before hydration and impact checks.
-- Shared files that require coordination: `README.md`, templates, `tools/context/ctx.mjs`, and `skills/repo-context/SKILL.md`.
+- Shared files that require coordination: `README.md`, templates, `tools/ctx-aide/ctx-aide.mjs`, and `skills/ctx-aide/SKILL.md`.

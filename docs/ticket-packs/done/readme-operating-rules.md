@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-readme-operating-rules
+id: pack.ctx-aide-readme-operating-rules
 status: done
 title: README Agent Operating Rules
 milestones:
-  - milestone.repo-context-docs-maintenance
+  - milestone.ctx-aide-docs-maintenance
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.015
 run_policy:

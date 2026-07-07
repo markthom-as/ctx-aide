@@ -2,10 +2,10 @@
 id: ticket.context.003
 status: done
 title: Generate Codex Claude and Cursor context packs
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 milestones:
-  - milestone.repo-context-mvp
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-mvp
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -23,15 +23,15 @@ scope:
   files: []
   directories:
     - docs
-    - skills/repo-context
+    - skills/ctx-aide
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Generate Codex Claude and Cursor context packs"
   generated_at: 2026-06-25
   context_ids:
-    - pack.repo-context-mvp
+    - pack.ctx-aide-mvp
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -57,7 +57,7 @@ Generate agent-specific context packs without maintaining divergent instructions
 
 ## Context
 
-This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context MVP dogfood milestone. Use the README, templates, and repo-context skill as source context before implementation.
+This ticket is part of `pack.ctx-aide-mvp` and is scoped to the ctx-aide MVP dogfood milestone. Use the README, templates, and ctx-aide skill as source context before implementation.
 
 ## Positive Rules
 
@@ -93,9 +93,9 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 ## Scope
 
 - In:
-  - Add `ctx export-agent --agent codex`.
-  - Add `ctx export-agent --agent claude`.
-  - Add `ctx export-agent --agent cursor`.
+  - Add `ctx-aide export-agent --agent codex`.
+  - Add `ctx-aide export-agent --agent claude`.
+  - Add `ctx-aide export-agent --agent cursor`.
   - Add generated `.cursor/rules/generated/*.mdc` summaries.
 - Out:
   - Implement Idvisor plugin orchestration.
@@ -124,8 +124,8 @@ This ticket is part of `pack.repo-context-mvp` and is scoped to the repo-context
 - Status: done
 - Commit: 0147ebc
 - Verification evidence:
-  - `node tools/context/ctx.mjs export-agent --agent codex --json`
-  - `node tools/context/ctx.mjs export-agent --agent claude --json`
-  - `node tools/context/ctx.mjs export-agent --agent cursor --json`
+  - `node tools/ctx-aide/ctx-aide.mjs export-agent --agent codex --json`
+  - `node tools/ctx-aide/ctx-aide.mjs export-agent --agent claude --json`
+  - `node tools/ctx-aide/ctx-aide.mjs export-agent --agent cursor --json`
   - `make validate`
 - Follow-up tickets: none

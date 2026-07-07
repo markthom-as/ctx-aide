@@ -3,7 +3,7 @@ id: pack.pull-request-review-workflow-2026-07-05
 status: done
 title: Pull Request Review Workflow
 milestones:
-  - milestone.repo-context-pr-review
+  - milestone.ctx-aide-pr-review
 source_specs:
   - spec.pull-request-review-workflow-2026-07-05
 tickets:
@@ -22,14 +22,14 @@ created: 2026-07-05
 completion:
   completed_at: 2026-07-05
   final_validation:
-    - node tools/context/ctx.mjs lint --json blocked by pre-existing docs/context/architecture/public-name-generation-2026-07-05.md section errors
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs spec check --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json
-    - node tools/context/ctx.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
-    - node tools/context/ctx.mjs tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
-    - node tools/context/ctx.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs lint --json blocked by pre-existing docs/context/architecture/public-name-generation-2026-07-05.md section errors
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs spec check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json
+    - node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
+    - node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
 ---
 
 # Pull Request Review Workflow
@@ -62,14 +62,14 @@ Added a repo-local PR review workflow that guides agents through `git` and `gh` 
 
 ## Pack Validation
 
-- `node tools/context/ctx.mjs lint --json` is currently blocked by pre-existing section errors in `docs/context/architecture/public-name-generation-2026-07-05.md`.
-- `node tools/context/ctx.test.mjs`
-- `node tools/context/ctx.mjs spec check --json`
-- `node tools/context/ctx.mjs ticket check --json`
-- `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
-- `node tools/context/ctx.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
-- `node tools/context/ctx.mjs tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
-- `node tools/context/ctx.mjs pack check --json`
+- `node tools/ctx-aide/ctx-aide.mjs lint --json` is currently blocked by pre-existing section errors in `docs/context/architecture/public-name-generation-2026-07-05.md`.
+- `node tools/ctx-aide/ctx-aide.test.mjs`
+- `node tools/ctx-aide/ctx-aide.mjs spec check --json`
+- `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+- `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
+- `node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
+- `node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
+- `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 
 ## Completion
 

@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-target-adoption-lifecycle
+id: pack.ctx-aide-target-adoption-lifecycle
 status: done
 title: Target Adoption Lifecycle
 milestones:
-  - milestone.repo-context-daily-use
+  - milestone.ctx-aide-daily-use
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.020
 run_policy:
@@ -30,7 +30,7 @@ completion:
 
 ## Outcome
 
-Add the missing target-repo lifecycle layer so repo-context can manage context capture, ticket creation, and implementation planning for daily use.
+Add the missing target-repo lifecycle layer so ctx-aide can manage context capture, ticket creation, and implementation planning for daily use.
 
 ## Scope
 
@@ -53,7 +53,7 @@ Add the missing target-repo lifecycle layer so repo-context can manage context c
 
 - Parallel groups: `cli-a`
 - Sequential dependencies: depends on existing audit, workflow dependency, and browser view management commands.
-- Shared-file coordination: `tools/context/ctx.mjs` and `tools/context/ctx.test.mjs` only.
+- Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs` only.
 - Worktree strategy: not required.
 - Merge queue strategy: direct local commit after validation.
 
@@ -77,7 +77,7 @@ Add the missing target-repo lifecycle layer so repo-context can manage context c
 - Remaining tickets:
   - None.
 - Final validation:
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
   - `make validate`
-  - `node tools/context/ctx.mjs doctor --json`
+  - `node tools/ctx-aide/ctx-aide.mjs doctor --json`
   - `make smoke`

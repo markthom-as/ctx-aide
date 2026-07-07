@@ -2,10 +2,10 @@
 id: ticket.context.018
 status: done
 title: Add workflow dependency management
-ticket_pack: pack.repo-context-workflow-dependency-management
+ticket_pack: pack.ctx-aide-workflow-dependency-management
 milestones:
-  - milestone.repo-context-docs-maintenance
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-docs-maintenance
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -18,8 +18,8 @@ scope:
   routes: []
   files:
     - README.md
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/browser-validation.md
   directories:
     - docs/workflows
@@ -27,12 +27,12 @@ scope:
     - docs/ticket-packs
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add workflow dependency management"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -40,9 +40,9 @@ axioms:
 validation:
   automated:
     - Run `make validate`.
-    - Run the fixture-backed workflow dependency tests in `node tools/context/ctx.test.mjs`.
+    - Run the fixture-backed workflow dependency tests in `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
-    - Confirm `ctx workflow deps --write` pins `@playwright/test` exactly in a fixture package.json.
+    - Confirm `ctx-aide workflow deps --write` pins `@playwright/test` exactly in a fixture package.json.
   screenshots: []
 completion:
   commit: workflow-dependency-management-change
@@ -53,11 +53,11 @@ completion:
 
 ## Outcome
 
-Make workflow runtime dependencies explicit, checkable, and fixable through repo-context, starting with browser validation.
+Make workflow runtime dependencies explicit, checkable, and fixable through ctx-aide, starting with browser validation.
 
 ## Context
 
-Browser validation can fail locally when Playwright versions, local installs, or Codex native browser plugin availability drift. Repo-context should let a workflow declare its required runtime dependencies and should provide an agent-safe command that checks and writes package pins without relying on external plugin state.
+Browser validation can fail locally when Playwright versions, local installs, or Codex native browser plugin availability drift. CTX Aide should let a workflow declare its required runtime dependencies and should provide an agent-safe command that checks and writes package pins without relying on external plugin state.
 
 ## Positive Rules
 
@@ -82,7 +82,7 @@ Browser validation can fail locally when Playwright versions, local installs, or
 - Workflow files may declare `workflow_dependencies` and `optional_workflow_dependencies`.
 - `workflow.browser-validation` requires Node, a package-manager lockfile, and exact `@playwright/test@1.61.1`.
 - `codex-native-browser-plugin` is optional because it is supplied by the agent runtime, not the target repo.
-- `ctx workflow deps --write` may update `package.json`, but it does not run installs or write lockfiles.
+- `ctx-aide workflow deps --write` may update `package.json`, but it does not run installs or write lockfiles.
 
 ## Implementation Rules
 
@@ -94,7 +94,7 @@ Browser validation can fail locally when Playwright versions, local installs, or
 ## Scope
 
 - In:
-  - `ctx workflow deps`.
+  - `ctx-aide workflow deps`.
   - Browser-validation workflow dependency declaration.
   - Workflow validation for declared dependency ids.
   - README and tests.
@@ -105,8 +105,8 @@ Browser validation can fail locally when Playwright versions, local installs, or
 
 ## Acceptance Criteria
 
-- `ctx workflow deps` reports missing workflow dependencies as structured JSON.
-- `ctx workflow deps --write` pins `@playwright/test` exactly in `package.json` when requested.
+- `ctx-aide workflow deps` reports missing workflow dependencies as structured JSON.
+- `ctx-aide workflow deps --write` pins `@playwright/test` exactly in `package.json` when requested.
 - Browser validation docs distinguish repo-owned Playwright from optional Codex native plugin fallback.
 - Workflow dependency ids declared in markdown are validated.
 
@@ -114,7 +114,7 @@ Browser validation can fail locally when Playwright versions, local installs, or
 
 - Automated:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Smoke:
   - Fixture test covers missing pins, `--write`, and lockfile readiness.
 - Screenshots:
@@ -126,6 +126,6 @@ Browser validation can fail locally when Playwright versions, local installs, or
 - Commit: workflow-dependency-management-change
 - Verification evidence:
   - `make validate`
-  - `node tools/context/ctx.mjs workflow deps --workflow workflow.browser-validation --repo . --json` reports the expected missing browser-app package pins for this repo.
+  - `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.browser-validation --repo . --json` reports the expected missing browser-app package pins for this repo.
 - Follow-up tickets:
   - Add workflow-specific browser binary install checks if a target repo needs them.

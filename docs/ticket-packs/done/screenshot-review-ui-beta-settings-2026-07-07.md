@@ -3,7 +3,7 @@ id: pack.screenshot-review-ui-beta-settings-2026-07-07
 status: done
 title: Screenshot Review UI Beta Settings
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_specs: []
 tickets:
   - ticket.context.053
@@ -43,7 +43,7 @@ Keep screenshot review UI optional during setup and configurable through repo-lo
 
 - Add repo-local settings defaults and commands.
 - Seed the settings file during adoption bootstrap.
-- Gate `ctx feedback review-ui` unless the beta feature is enabled.
+- Gate `ctx-aide feedback review-ui` unless the beta feature is enabled.
 
 ## Run Policy
 
@@ -54,11 +54,11 @@ Keep screenshot review UI optional during setup and configurable through repo-lo
 
 ## Pack Validation
 
-- `node --check tools/context/ctx.mjs`
-- `node --check tools/context/screenshot-review-ui.mjs`
-- `node tools/context/ctx.test.mjs`
-- `node tools/context/ctx.mjs ticket check --json`
-- `node tools/context/ctx.mjs pack check --json`
+- `node --check tools/ctx-aide/ctx-aide.mjs`
+- `node --check tools/ctx-aide/screenshot-review-ui.mjs`
+- `node tools/ctx-aide/ctx-aide.test.mjs`
+- `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+- `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 
 ## Completion
 

@@ -3,7 +3,7 @@ id: pack.feedback-rule-axiom-generation-2026-06-28
 status: done
 title: Feedback Rule and Axiom Generation
 milestones:
-  - milestone.repo-context-feedback-review
+  - milestone.ctx-aide-feedback-review
 source_specs:
   - spec.feedback-rule-axiom-generation-2026-06-28
 tickets:
@@ -23,7 +23,7 @@ completion:
   completed_at: 2026-06-28
   final_validation:
     - make validate
-    - node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json
+    - node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json
 ---
 
 # Feedback Rule and Axiom Generation
@@ -35,8 +35,8 @@ Generate candidate rules and axioms from durable operator feedback wording.
 ## Scope
 
 - Included:
-  - Rule and axiom candidates in `ctx feedback plan`.
-  - Rule and axiom candidates in `ctx feedback capture`.
+  - Rule and axiom candidates in `ctx-aide feedback plan`.
+  - Rule and axiom candidates in `ctx-aide feedback capture`.
   - Rule and axiom carry-through into generated follow-up tickets.
   - Workflow docs and fixture tests.
 - Excluded:
@@ -66,7 +66,7 @@ Generate candidate rules and axioms from durable operator feedback wording.
 
 - Smoke tests:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`
 - Screenshots:
   - Not required.
 - Full regression checks:
@@ -78,4 +78,4 @@ Generate candidate rules and axioms from durable operator feedback wording.
 - Remaining tickets: none.
 - Final validation:
   - `make validate`
-  - `node tools/context/ctx.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`
+  - `node tools/ctx-aide/ctx-aide.mjs feedback plan --repo . --ticket docs/tickets/done/038-feedback-rule-axiom-generation.md --body "Never ship visual tickets without mobile and desktop screenshots." --json`

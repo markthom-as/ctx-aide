@@ -2,10 +2,10 @@
 id: ticket.context.023
 status: done
 title: Add validation runtime settings
-ticket_pack: pack.repo-context-validation-runtime-settings
+ticket_pack: pack.ctx-aide-validation-runtime-settings
 milestones:
-  - milestone.repo-context-docs-maintenance
-source_spec: spec.repo-context-mvp
+  - milestone.ctx-aide-docs-maintenance
+source_spec: spec.ctx-aide-mvp
 source_feedback: []
 implementation_agent: codex
 planning_agents:
@@ -19,10 +19,10 @@ scope:
   routes: []
   files:
     - README.md
-    - docs/config/repo-context.validation.json
+    - docs/config/ctx-aide.validation.json
     - docs/workflows/browser-validation.md
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
   directories:
     - docs/config
     - docs/workflows
@@ -30,12 +30,12 @@ scope:
     - docs/ticket-packs
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "Add validation runtime settings"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -43,9 +43,9 @@ axioms:
 validation:
   automated:
     - Run `make validate`.
-    - Run `node tools/context/ctx.test.mjs`.
+    - Run `node tools/ctx-aide/ctx-aide.test.mjs`.
   smoke:
-    - Run `ctx workflow validation-plan` and verify testing, screenshot, CI, and deploy settings in JSON output.
+    - Run `ctx-aide workflow validation-plan` and verify testing, screenshot, CI, and deploy settings in JSON output.
   screenshots: []
 completion:
   commit: validation-runtime-settings-change
@@ -60,7 +60,7 @@ Make workflow validation plans manage test runner behavior, screenshot output pa
 
 ## Context
 
-The validation workflow must be more than viewport coverage. Agents need to know which test runner to call, where screenshots should be saved, what CI must gate, and what deploy policy applies. These settings should have sensible defaults, be configurable through `docs/config/repo-context.validation.json`, and later be editable by a smart TUI without creating a second source of truth.
+The validation workflow must be more than viewport coverage. Agents need to know which test runner to call, where screenshots should be saved, what CI must gate, and what deploy policy applies. These settings should have sensible defaults, be configurable through `docs/config/ctx-aide.validation.json`, and later be editable by a smart TUI without creating a second source of truth.
 
 ## Positive Rules
 
@@ -85,14 +85,14 @@ The validation workflow must be more than viewport coverage. Agents need to know
 ## Frozen Decisions
 
 - Default test runner is Playwright via `npx playwright test`.
-- Default screenshot directory is `.repo-context/artifacts/screenshots`.
+- Default screenshot directory is `.ctx-aide/artifacts/screenshots`.
 - CI defaults to workflow dependency, view, validation-plan, and test-runner gates.
 - Deploy defaults to disabled/manual with `requires_green_ci: true` and `cost_estimate_required: true`.
-- Config overrides live under the workflow entry in `docs/config/repo-context.validation.json`.
+- Config overrides live under the workflow entry in `docs/config/ctx-aide.validation.json`.
 
 ## Implementation Rules
 
-- Required approach: extend `ctx workflow validation-plan`.
+- Required approach: extend `ctx-aide workflow validation-plan`.
 - Existing components/helpers to use: validation config parser, workflow view rows, and fixture tests.
 - Anti-patterns to avoid: side effects, deploy execution, hidden screenshot paths.
 - Stop and escalate if: runtime config needs secrets or paid infrastructure setup.
@@ -121,9 +121,9 @@ The validation workflow must be more than viewport coverage. Agents need to know
 
 - Automated:
   - `make validate`
-  - `node tools/context/ctx.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
 - Smoke:
-  - `node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
 - Screenshots:
   - Not required.
 
@@ -133,6 +133,6 @@ The validation workflow must be more than viewport coverage. Agents need to know
 - Commit: validation-runtime-settings-change
 - Verification evidence:
   - `make validate`
-  - `node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
 - Follow-up tickets:
   - Smart TUI should edit these same settings.

@@ -27,7 +27,7 @@ scope:
   flows:
     - flow.ctx-aide-dogfood
 context_query:
-  task: "audit repo-context for public release safety"
+  task: "audit ctx-aide for public release safety"
   generated_at: 2026-07-01
   context_ids:
     - flow.ctx-aide-dogfood
@@ -113,5 +113,5 @@ If no dedicated history scanner is installed, document that limitation and eithe
 
 - Status: done
 - Commit: current-change
-- Verification evidence: `gitleaks git . --no-banner --redact --report-format json --report-path /tmp/repo-context-gitleaks-report.json` scanned 57 commits and reported no leaks; `uvx detect-secrets scan $(git ls-files)` only flagged the deliberate redaction test fixture in `tools/ctx-aide/ctx-aide.test.mjs`; generated-artifact and literal scans found no live credentials; `node tools/ctx-aide/ctx-aide.mjs ticket check --json` and `node tools/ctx-aide/ctx-aide.mjs pack check --json` passed on 2026-07-05.
+- Verification evidence: `gitleaks git . --no-banner --redact --report-format json --report-path /tmp/ctx-aide-gitleaks-report.json` scanned 57 commits and reported no leaks; `uvx detect-secrets scan $(git ls-files)` only flagged the deliberate redaction test fixture in `tools/ctx-aide/ctx-aide.test.mjs`; generated-artifact and literal scans found no live credentials; `node tools/ctx-aide/ctx-aide.mjs ticket check --json` and `node tools/ctx-aide/ctx-aide.mjs pack check --json` passed on 2026-07-05.
 - Follow-up tickets: none

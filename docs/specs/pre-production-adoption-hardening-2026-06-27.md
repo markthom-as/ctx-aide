@@ -5,7 +5,7 @@ title: Pre-Production Adoption Hardening
 owner_agent: codex-high-effort
 source_feedback: []
 context_ids:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 target_agents:
   spec:
     - codex-high-effort
@@ -17,11 +17,11 @@ created: 2026-06-27
 
 ## Goal
 
-Build out repo-context's target-repo adoption workflow enough to dogfood safely before using it on production code.
+Build out ctx-aide's target-repo adoption workflow enough to dogfood safely before using it on production code.
 
 ## Affected Surfaces
 
-- Files/directories: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `README.md`, `docs/workflows/astrotechne-adoption.md`, `docs/specs`, `docs/tickets`, and `docs/ticket-packs`.
+- Files/directories: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`, `docs/workflows/astrotechne-adoption.md`, `docs/specs`, `docs/tickets`, and `docs/ticket-packs`.
 - Runtime behavior: target repo adoption bootstrap, generated pack creation, generated ticket placement, and read-only readiness reporting.
 - Target profile: Astrotechne first, while keeping the default and Wetware profiles usable.
 
@@ -33,10 +33,10 @@ Build out repo-context's target-repo adoption workflow enough to dogfood safely 
 
 ## Architecture Decisions
 
-- Decision: add `ctx adoption status` as the read-only preflight surface.
+- Decision: add `ctx-aide adoption status` as the read-only preflight surface.
 - Rationale: users need one JSON report that says whether bootstrap/config/context/pack/ticket prerequisites are present.
 - Rejected alternatives: infer readiness from chat history or require a target repo commit before inspection.
-- Decision: add `ctx adoption pack` and make `ctx adoption ticket --pack-slug` write into that pack for directory-based profiles.
+- Decision: add `ctx-aide adoption pack` and make `ctx-aide adoption ticket --pack-slug` write into that pack for directory-based profiles.
 - Rationale: Astrotechne's packet README is part of the truth surface for completed work.
 
 ## Design Decisions
@@ -48,7 +48,7 @@ Build out repo-context's target-repo adoption workflow enough to dogfood safely 
 ## Security and Privacy Decisions
 
 - Data touched: target repo markdown, local git status output, profile config, context entry metadata, and generated ticket/pack paths.
-- Trust boundaries: repo-context checkout, target repo checkout, shell commands embedded in target profile config, and generated markdown.
+- Trust boundaries: ctx-aide checkout, target repo checkout, shell commands embedded in target profile config, and generated markdown.
 - Required safeguards: read-only status by default, no paid infrastructure changes, no production validation execution, and repo-bound writes.
 
 ## Open Questions
@@ -57,7 +57,7 @@ None.
 
 ## Hardening Review
 
-- Architecture: adoption commands should preserve target-specific conventions instead of normalizing them into repo-context's own tree.
+- Architecture: adoption commands should preserve target-specific conventions instead of normalizing them into ctx-aide's own tree.
 - Design: generated markdown should be reviewable and compact.
 - Security: preflight should inspect but not mutate or run costly operations.
 - Best practices: tests should use fixture target repos for both flat and directory-pack profiles.
@@ -71,4 +71,4 @@ None.
   - `ticket.context.027`: add target adoption status preflight.
   - `ticket.context.028`: add native target adoption pack creation.
   - `ticket.context.029`: make adoption tickets pack-aware and close the pack.
-- Shared files that require coordination: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, and adoption docs.
+- Shared files that require coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, and adoption docs.

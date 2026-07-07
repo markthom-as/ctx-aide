@@ -1,8 +1,8 @@
 ---
 kind: milestone-run
-id: run.repo-context-mvp
+id: run.ctx-aide-mvp
 status: planning
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 coordinator: codex
 max_parallel_agents: 4
 stale_after_minutes: 20
@@ -18,11 +18,11 @@ created: 2026-06-26
 updated: 2026-06-26
 ---
 
-# Repo Context MVP Run
+# CTX Aide MVP Run
 
 ## Purpose
 
-Coordinate long milestone-level work for `pack.repo-context-mvp` while keeping ticket commits atomic and reviewable.
+Coordinate long milestone-level work for `pack.ctx-aide-mvp` while keeping ticket commits atomic and reviewable.
 
 ## Agent Lanes
 
@@ -38,7 +38,7 @@ Coordinate long milestone-level work for `pack.repo-context-mvp` while keeping t
 ## Merge Queue
 
 - Coordinator merges ticket commits one at a time.
-- Shared files include `README.md`, `tools/context/ctx.mjs`, generated context packs, and ticket pack metadata.
+- Shared files include `README.md`, `tools/ctx-aide/ctx-aide.mjs`, generated context packs, and ticket pack metadata.
 - Pack validation: pending until all ticket commits are merged and `make validate` passes.
 
 ## Cleanup Log

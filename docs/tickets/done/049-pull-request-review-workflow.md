@@ -4,7 +4,7 @@ status: done
 title: Add pull request review workflow
 ticket_pack: pack.pull-request-review-workflow-2026-07-05
 milestones:
-  - milestone.repo-context-pr-review
+  - milestone.ctx-aide-pr-review
 source_spec: spec.pull-request-review-workflow-2026-07-05
 source_feedback: []
 implementation_agent: codex
@@ -17,9 +17,9 @@ blocks: []
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
+    - tools/ctx-aide/ctx-aide.mjs
     - docs/workflows/pull-request-review.md
-    - docs/config/repo-context.tools.json
+    - docs/config/ctx-aide.tools.json
     - README.md
   directories:
     - docs/specs
@@ -27,26 +27,26 @@ scope:
     - docs/ticket-packs
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
     - workflow.pull-request-review
 context_query:
   task: "add pull request review workflow using gh and git"
   generated_at: 2026-07-05
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.pr-merge-requires-review-and-green-gates
 validation:
   automated:
-    - node tools/context/ctx.mjs lint --json
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json
-    - node tools/context/ctx.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
-    - node tools/context/ctx.mjs tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs lint --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json
+    - node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
+    - node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke:
     - git status --short --branch
     - gh --version
@@ -64,7 +64,7 @@ Add a first-class markdown workflow for agents to review PRs with `git` and `gh`
 
 ## Context
 
-Repo-context already validates workflow docs, workflow dependencies, and workflow-step capability policy. The missing artifact is a PR lifecycle workflow that tells agents how to move from PR inspection through comments, fixes, and merge without hiding decisions in chat.
+CTX Aide already validates workflow docs, workflow dependencies, and workflow-step capability policy. The missing artifact is a PR lifecycle workflow that tells agents how to move from PR inspection through comments, fixes, and merge without hiding decisions in chat.
 
 ## Positive Rules
 
@@ -96,7 +96,7 @@ Repo-context already validates workflow docs, workflow dependencies, and workflo
 ## Implementation Rules
 
 - Required approach: add workflow documentation, checkable command dependencies, workflow tool policy, and README examples in one scoped slice.
-- Existing components/helpers to use: workflow dependency catalog, `ctx tools policy`, `ctx tools check`, ticket and pack validation.
+- Existing components/helpers to use: workflow dependency catalog, `ctx-aide tools policy`, `ctx-aide tools check`, ticket and pack validation.
 - Anti-patterns to avoid: connector-only PR mutation, informal merge instructions, or broad GitHub launch changes.
 - Stop and escalate if: the workflow requires a live GitHub connector, repository admin policy changes, or paid infrastructure.
 
@@ -108,20 +108,20 @@ Repo-context already validates workflow docs, workflow dependencies, and workflo
 ## Acceptance Criteria
 
 - `docs/workflows/pull-request-review.md` documents PR identification, checkout, review, comments, fixes, push, re-review, and merge.
-- `ctx workflow deps --workflow workflow.pull-request-review --repo . --json` can evaluate local `git` and `gh` command availability.
-- `ctx tools check` allows `tool.shell` for PR review/fix/merge steps while inherited denied connectors remain denied.
+- `ctx-aide workflow deps --workflow workflow.pull-request-review --repo . --json` can evaluate local `git` and `gh` command availability.
+- `ctx-aide tools check` allows `tool.shell` for PR review/fix/merge steps while inherited denied connectors remain denied.
 - Ticket and pack validation accept the new workflow and closeout metadata.
 
 ## Validation
 
 - Automated:
-  - `node tools/context/ctx.mjs lint --json`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
-  - `node tools/context/ctx.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
-  - `node tools/context/ctx.mjs tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Smoke:
   - `git status --short --branch`
   - `gh --version`
@@ -133,15 +133,15 @@ Repo-context already validates workflow docs, workflow dependencies, and workflo
 - Status: done
 - Commit: current-change
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs spec check --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
-  - `node tools/context/ctx.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
-  - `node tools/context/ctx.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
-  - `node tools/context/ctx.mjs tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs spec check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs workflow deps --workflow workflow.pull-request-review --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json`
+  - `node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.pull-request-review --step pr-fix --capability tool.shell --json`
   - `git status --short --branch`
   - `gh --version`
-  - `node tools/context/ctx.mjs lint --json` blocked on pre-existing section errors in `docs/context/architecture/public-name-generation-2026-07-05.md`.
+  - `node tools/ctx-aide/ctx-aide.mjs lint --json` blocked on pre-existing section errors in `docs/context/architecture/public-name-generation-2026-07-05.md`.
 - Follow-up tickets: none.

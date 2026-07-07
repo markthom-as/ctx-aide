@@ -19,7 +19,7 @@ tags:
   - validation
 positive_rules:
   - Update markdown context in the same ticket when intentional behavior changes.
-  - Validate the repo context graph before committing ticket work.
+  - Validate the ctx-aide context graph before committing ticket work.
 negative_rules:
   - Do not treat generated indexes as canonical truth.
   - Do not implement a ticket that still requires product or architecture decisions.
@@ -29,7 +29,7 @@ load_when:
     - docs/tickets/**
     - tools/ctx-aide/**
   task_terms:
-    - repo context
+    - ctx-aide context
     - ticket pack
     - dogfood
 updated: 2026-06-26

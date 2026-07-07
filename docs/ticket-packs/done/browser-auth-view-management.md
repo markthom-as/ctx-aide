@@ -1,11 +1,11 @@
 ---
-id: pack.repo-context-browser-auth-view-management
+id: pack.ctx-aide-browser-auth-view-management
 status: done
 title: Browser Auth View Management
 milestones:
-  - milestone.repo-context-docs-maintenance
+  - milestone.ctx-aide-docs-maintenance
 source_specs:
-  - spec.repo-context-mvp
+  - spec.ctx-aide-mvp
 tickets:
   - ticket.context.019
 run_policy:
@@ -23,7 +23,7 @@ completion:
   completed_at: 2026-06-26
   final_validation:
     - make validate
-    - node tools/context/ctx.test.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
 ---
 
 # Browser Auth View Management
@@ -35,11 +35,11 @@ Add logged-out/logged-in browser view-state management and redacted credential/s
 ## Scope
 
 - Included:
-  - `ctx workflow views`.
-  - `ctx credentials check`.
-  - `ctx credentials import-browser-state`.
+  - `ctx-aide workflow views`.
+  - `ctx-aide credentials check`.
+  - `ctx-aide credentials import-browser-state`.
   - Browser workflow view and credential metadata.
-  - `.repo-context/` ignore rule.
+  - `.ctx-aide/` ignore rule.
 - Excluded:
   - Browser password-store scraping.
   - Hosted secret storage.
@@ -53,7 +53,7 @@ Add logged-out/logged-in browser view-state management and redacted credential/s
 
 - Parallel groups: `cli-a`.
 - Sequential dependencies: `ticket.context.018`.
-- Shared-file coordination: README, browser workflow docs, and `tools/context/ctx.mjs`.
+- Shared-file coordination: README, browser workflow docs, and `tools/ctx-aide/ctx-aide.mjs`.
 - Worktree strategy: current worktree is sufficient.
 - Merge queue strategy: one local commit.
 
@@ -68,8 +68,8 @@ Add logged-out/logged-in browser view-state management and redacted credential/s
 
 - Smoke tests:
   - `make validate`
-  - Env-backed `ctx workflow views` ready state.
-  - Redacted `ctx credentials import-browser-state` command.
+  - Env-backed `ctx-aide workflow views` ready state.
+  - Redacted `ctx-aide credentials import-browser-state` command.
 - Screenshots:
   - Not required.
 - Full regression checks:

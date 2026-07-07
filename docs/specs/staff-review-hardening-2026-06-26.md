@@ -5,7 +5,7 @@ title: Staff Review Hardening
 owner_agent: codex-high-effort
 source_feedback: []
 context_ids:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 target_agents:
   spec:
     - codex-high-effort
@@ -17,17 +17,17 @@ created: 2026-06-26
 
 ## Goal
 
-Harden the repo-context CLI and workflow artifacts before using the project as a serious daily planning system for larger repositories.
+Harden the ctx-aide CLI and workflow artifacts before using the project as a serious daily planning system for larger repositories.
 
 ## Affected Surfaces
 
-- Files/directories: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `README.md`, `docs/workflows`, `docs/config`, `docs/specs`, `docs/tickets`, and `docs/ticket-packs`.
+- Files/directories: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`, `docs/workflows`, `docs/config`, `docs/specs`, `docs/tickets`, and `docs/ticket-packs`.
 - Runtime behavior: local CLI commands that read, write, validate, and execute target-repo workflow steps.
 - Review model: three explicit audit passes for staff-engineering scrutiny and hostile public feedback.
 
 ## Product Decisions
 
-- Decision: repo-context remains a local, repo-owned markdown workflow system rather than a hosted service.
+- Decision: ctx-aide remains a local, repo-owned markdown workflow system rather than a hosted service.
 - Decision: generated indexes are caches; markdown specs, context entries, tickets, and packs are the canonical review surface.
 - Decision: hardening should preserve the current dependency-free Node CLI unless a safety issue clearly requires a new dependency.
 
@@ -61,14 +61,14 @@ None.
 - Pass 2, hostile public feedback: validation commands must not report success while declaring required validation views unready.
 - Pass 3, adoption dogfood: docs and workflow artifacts must make the milestone, pack, ticket, and validation path reproducible.
 - Security: do not add paid infrastructure or secret-handling expansion.
-- Testing: extend fixture tests for every behavior change and run `make validate`, `make smoke`, and focused `ctx` commands.
+- Testing: extend fixture tests for every behavior change and run `make validate`, `make smoke`, and focused `ctx-aide` commands.
 - Parallelization: tickets touch overlapping CLI/test files, so implementation should run sequentially while preserving atomic commits.
 
 ## Ticket Plan
 
-- Independent tickets: none, because all three hardening passes touch `tools/context/ctx.mjs` and `tools/context/ctx.test.mjs`.
+- Independent tickets: none, because all three hardening passes touch `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs`.
 - Sequential tickets:
   - `ticket.context.024`: harden command execution and write paths.
   - `ticket.context.025`: make validation-plan readiness truthful.
   - `ticket.context.026`: close the adoption dogfood review path.
-- Shared files that require coordination: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `README.md`, and hardening pack metadata.
+- Shared files that require coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`, and hardening pack metadata.

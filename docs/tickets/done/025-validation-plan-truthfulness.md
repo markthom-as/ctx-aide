@@ -2,9 +2,9 @@
 id: ticket.context.025
 status: done
 title: Make validation plan readiness truthful
-ticket_pack: pack.repo-context-staff-review-hardening-2026-06-26
+ticket_pack: pack.ctx-aide-staff-review-hardening-2026-06-26
 milestones:
-  - milestone.repo-context-staff-review-hardening
+  - milestone.ctx-aide-staff-review-hardening
 source_spec: spec.staff-review-hardening-2026-06-26
 source_feedback: []
 implementation_agent: codex
@@ -19,25 +19,25 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/browser-validation.md
   directories: []
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "make validation-plan readiness truthful"
   generated_at: 2026-06-26
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
 validation:
   automated:
-    - node tools/context/ctx.test.mjs
-    - BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json
   smoke: []
   screenshots: []
 completion:
@@ -98,8 +98,8 @@ A review gate that emits `ok: true` while its required validation matrix is unre
 
 ## Validation
 
-- Automated: `node tools/context/ctx.test.mjs`.
-- Smoke: `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`.
+- Automated: `node tools/ctx-aide/ctx-aide.test.mjs`.
+- Smoke: `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -111,9 +111,9 @@ This ticket intentionally makes a stricter gate; any caller that wants planning-
 - Status: done
 - Commit: validation-plan-truthfulness-hardening
 - Verification evidence:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/context/ctx.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `BROWSER_TEST_EMAIL=agent@example.test BROWSER_TEST_PASSWORD=redacted node tools/ctx-aide/ctx-aide.mjs workflow validation-plan --workflow workflow.browser-validation --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Follow-up tickets: none.

@@ -22,7 +22,7 @@ ctx-aide-scan:
 	node tools/ctx-aide/ctx-aide.mjs scan --json
 
 ctx-aide-query-smoke:
-	node tools/ctx-aide/ctx-aide.mjs query --path tools/ctx-aide/ctx-aide.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json
+	node tools/ctx-aide/ctx-aide.mjs query --path tools/ctx-aide/ctx-aide.mjs --task "ctx-aide dogfood rule polarity" --agent codex --budget 1200 --json
 
 future-check:
 	node tools/ctx-aide/ctx-aide.mjs future check --json
