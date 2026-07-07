@@ -11,7 +11,7 @@ files:
 components:
   - component.ContextEntryCard
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - context
   - catalog
@@ -34,7 +34,7 @@ updated: 2026-06-26
 
 ## Purpose
 
-Provide a local route concept for previewing repo-context entries, component catalog records, and rule polarity in a web app.
+Provide a local route concept for previewing ctx-aide entries, component catalog records, and rule polarity in a web app.
 
 ## Current Decisions
 

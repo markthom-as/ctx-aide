@@ -1,15 +1,15 @@
 ---
-id: flow.repo-context-dogfood
+id: flow.ctx-aide-dogfood
 kind: flow
 context_scan: true
 status: active
-title: Repo Context Dogfood Flow
+title: CTX Aide Dogfood Flow
 routes:
   - /context-lab
 files:
   - README.md
   - AGENTS.md
-  - tools/context/ctx.mjs
+  - tools/ctx-aide/ctx-aide.mjs
 components:
   - component.ContextEntryCard
 flows: []
@@ -27,7 +27,7 @@ load_when:
   path_matches:
     - docs/context/**
     - docs/tickets/**
-    - tools/context/**
+    - tools/ctx-aide/**
   task_terms:
     - repo context
     - ticket pack
@@ -35,7 +35,7 @@ load_when:
 updated: 2026-06-26
 ---
 
-# Repo Context Dogfood Flow
+# CTX Aide Dogfood Flow
 
 ## Purpose
 
@@ -59,5 +59,5 @@ Use this repository as the first fixture for the repo-local context, ticket, pac
 
 ## Implementation Rules
 
-- Use this flow for repo-context implementation tickets.
+- Use this flow for ctx-aide implementation tickets.
 - Prefer small commits that close a single ticket or a clearly bounded slice.

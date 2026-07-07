@@ -38,14 +38,14 @@ axioms:
   - axiom.ticket-done-requires-commit
 validation:
   automated:
-    - node tools/context/ctx.mjs spec check --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs spec check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
     - make validate
   smoke:
-    - ctx --help
-    - ctx setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
-    - ctx setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
+    - ctx-aide --help
+    - ctx-aide setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
+    - ctx-aide setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
   screenshots: []
 completion:
   commit: pending
@@ -56,7 +56,7 @@ completion:
 
 ## Outcome
 
-Close the onboarding pack with outside-reader documentation and verified smoke output for installing `ctx` and setting up Astrotechne repos.
+Close the onboarding pack with outside-reader documentation and verified smoke output for installing `ctx-aide` and setting up Astrotechne repos.
 
 ## Context
 
@@ -81,7 +81,7 @@ The implementation tickets add packaging, setup, and profile behavior. This tick
 
 ## Frozen Decisions
 
-- Decision: README should present `ctx setup` as the first adoption command.
+- Decision: README should present `ctx-aide setup` as the first adoption command.
 - Rationale: this matches the desired user-friendly process.
 - Decision: Astrotechne workflow docs should keep advanced low-level commands after the happy path.
 - Rationale: the low-level commands remain useful for agents and troubleshooting.
@@ -102,7 +102,7 @@ The implementation tickets add packaging, setup, and profile behavior. This tick
 
 - README has a concise install-and-setup section.
 - Astrotechne adoption workflow starts with the new setup path.
-- Smoke commands prove the installed or linked `ctx` command can run setup for web and engine targets in no-input JSON mode.
+- Smoke commands prove the installed or linked `ctx-aide` command can run setup for web and engine targets in no-input JSON mode.
 - Pack completion metadata lists final validation evidence.
 
 ## Validation

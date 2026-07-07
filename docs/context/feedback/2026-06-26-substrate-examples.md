@@ -11,11 +11,11 @@ applies_to:
   files:
     - docs/context/schema/context-entry.schema.json
     - docs/context/schema/feedback-entry.schema.json
-    - tools/context/ctx.mjs
+    - tools/ctx-aide/ctx-aide.mjs
   components:
     - component.ContextEntryCard
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 tags:
   - context
   - validation

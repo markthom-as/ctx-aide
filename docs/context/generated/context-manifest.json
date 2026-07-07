@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_by": "tools/context/ctx.mjs scan",
+  "generated_by": "tools/ctx-aide/ctx-aide.mjs scan",
   "source": "markdown",
   "entry_count": 10,
   "entries": [
@@ -18,7 +18,7 @@
       ],
       "components": [],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "public-release",
@@ -67,7 +67,7 @@
       ],
       "components": [],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "public-release",
@@ -76,12 +76,11 @@
       ],
       "positive_rules": [
         "Use CTX Aide as the public display name for the public-release pack.",
-        "Use ctx-aide as the package-facing name if a future publishing ticket proceeds.",
-        "Preserve repo-context as the internal repository and command name until a dedicated rename ticket exists."
+        "Use ctx-aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace."
       ],
       "negative_rules": [
         "Do not reuse Concordat for this project.",
-        "Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision.",
+        "Do not publish, reserve a package, choose a license, or mutate an external remote as part of the name decision.",
         "Do not use Repo Charter as the public display name."
       ],
       "severity": null,
@@ -99,11 +98,10 @@
           "public name",
           "public release",
           "CTX Aide",
-          "ctx-aide",
-          "repo-context"
+          "ctx-aide"
         ]
       },
-      "updated": "2026-07-05"
+      "updated": "2026-07-07"
     },
     {
       "id": "architecture.public-name-generation-2026-07-05",
@@ -115,12 +113,12 @@
       "routes": [],
       "files": [
         "README.md",
-        "tools/context/ctx.mjs",
+        "tools/ctx-aide/ctx-aide.mjs",
         "docs/specs/public-release-2026-07-01.md"
       ],
       "components": [],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "public-release",
@@ -133,7 +131,7 @@
       ],
       "negative_rules": [
         "Do not reopen rejected names without a fresh collision and positioning review.",
-        "Do not rename commands, remotes, package names, or generated artifact paths from this brief alone."
+        "Do not publish, reserve a package, choose a license, or mutate an external remote from this brief alone."
       ],
       "severity": null,
       "source": null,
@@ -153,7 +151,7 @@
           "brand"
         ]
       },
-      "updated": "2026-07-05"
+      "updated": "2026-07-07"
     },
     {
       "id": "architecture.public-release-safety-audit-2026-07-05",
@@ -166,12 +164,12 @@
       "files": [
         "README.md",
         ".gitignore",
-        "tools/context/ctx.mjs",
-        "tools/context/ctx.test.mjs"
+        "tools/ctx-aide/ctx-aide.mjs",
+        "tools/ctx-aide/ctx-aide.test.mjs"
       ],
       "components": [],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "public-release",
@@ -222,7 +220,7 @@
       ],
       "components": [],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "public-release",
@@ -274,7 +272,7 @@
       ],
       "components": [],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "context",
@@ -305,12 +303,12 @@
       "updated": "2026-06-26"
     },
     {
-      "id": "design.repo-context-tokens",
+      "id": "design.ctx-aide-tokens",
       "kind": "design",
       "status": "active",
-      "title": "Repo Context Design Tokens",
-      "markdown_path": "docs/context/design/repo-context-design-tokens.md",
-      "summary": "Define lightweight visual conventions for rendering repo-context catalog entries in a target web app.",
+      "title": "CTX Aide Design Tokens",
+      "markdown_path": "docs/context/design/ctx-aide-design-tokens.md",
+      "summary": "Define lightweight visual conventions for rendering ctx-aide catalog entries in a target web app.",
       "routes": [
         "/context-lab"
       ],
@@ -321,7 +319,7 @@
         "component.ContextEntryCard"
       ],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "design",
@@ -366,13 +364,13 @@
       "files": [
         "docs/context/schema/context-entry.schema.json",
         "docs/context/schema/feedback-entry.schema.json",
-        "tools/context/ctx.mjs"
+        "tools/ctx-aide/ctx-aide.mjs"
       ],
       "components": [
         "component.ContextEntryCard"
       ],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "context",
@@ -392,11 +390,11 @@
       "updated": "2026-06-26"
     },
     {
-      "id": "flow.repo-context-dogfood",
+      "id": "flow.ctx-aide-dogfood",
       "kind": "flow",
       "status": "active",
-      "title": "Repo Context Dogfood Flow",
-      "markdown_path": "docs/context/flows/repo-context-dogfood.md",
+      "title": "CTX Aide Dogfood Flow",
+      "markdown_path": "docs/context/flows/ctx-aide-dogfood.md",
       "summary": "Use this repository as the first fixture for the repo-local context, ticket, pack, validation, and agent skill workflow.",
       "routes": [
         "/context-lab"
@@ -404,7 +402,7 @@
       "files": [
         "README.md",
         "AGENTS.md",
-        "tools/context/ctx.mjs"
+        "tools/ctx-aide/ctx-aide.mjs"
       ],
       "components": [
         "component.ContextEntryCard"
@@ -432,7 +430,7 @@
         "path_matches": [
           "docs/context/**",
           "docs/tickets/**",
-          "tools/context/**"
+          "tools/ctx-aide/**"
         ],
         "task_terms": [
           "repo context",
@@ -448,7 +446,7 @@
       "status": "proposed",
       "title": "Context Lab Route",
       "markdown_path": "docs/context/routes/context-lab.md",
-      "summary": "Provide a local route concept for previewing repo-context entries, component catalog records, and rule polarity in a web app.",
+      "summary": "Provide a local route concept for previewing ctx-aide entries, component catalog records, and rule polarity in a web app.",
       "routes": [
         "/context-lab"
       ],
@@ -459,7 +457,7 @@
         "component.ContextEntryCard"
       ],
       "flows": [
-        "flow.repo-context-dogfood"
+        "flow.ctx-aide-dogfood"
       ],
       "tags": [
         "context",

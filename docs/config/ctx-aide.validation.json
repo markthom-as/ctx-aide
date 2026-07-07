@@ -26,7 +26,7 @@
         "video": "retain-on-failure"
       },
       "screenshots": {
-        "output_dir": ".repo-context/artifacts/screenshots",
+        "output_dir": ".ctx-aide/artifacts/screenshots",
         "filename_template": "{workflow}/{view}/{breakpoint}.png",
         "save_on": "failure-and-request"
       },
@@ -39,7 +39,7 @@
           "test-runner"
         ],
         "artifact_paths": [
-          ".repo-context/artifacts/screenshots",
+          ".ctx-aide/artifacts/screenshots",
           "playwright-report",
           "test-results"
         ],
@@ -59,6 +59,6 @@
   },
   "tui": {
     "planned": true,
-    "writes_config_file": "docs/config/repo-context.validation.json"
+    "writes_config_file": "docs/config/ctx-aide.validation.json"
   }
 }

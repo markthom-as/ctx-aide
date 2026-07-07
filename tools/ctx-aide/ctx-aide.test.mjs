@@ -12,8 +12,8 @@ import {
 } from "./screenshot-review-ui.mjs";
 
 const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
-const ctx = path.join(repoRoot, "tools/context/ctx.mjs");
-const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "repo-context-"));
+const ctxAide = path.join(repoRoot, "tools/ctx-aide/ctx-aide.mjs");
+const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "ctx-aide-"));
 
 function commandExists(binary) {
   try {
@@ -32,7 +32,7 @@ function write(file, text) {
 
 function run(args, options = {}) {
   try {
-    return JSON.parse(execFileSync(process.execPath, [ctx, ...args, "--json"], {
+    return JSON.parse(execFileSync(process.execPath, [ctxAide, ...args, "--json"], {
       cwd: fixture,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
@@ -44,15 +44,15 @@ function run(args, options = {}) {
   }
 }
 
-const helpOutput = execFileSync(process.execPath, [ctx, "--help"], {
+const helpOutput = execFileSync(process.execPath, [ctxAide, "--help"], {
   cwd: fixture,
   encoding: "utf8",
   stdio: ["ignore", "pipe", "pipe"],
 });
-assert.equal(helpOutput.includes("ctx lint --json"), true);
+assert.equal(helpOutput.includes("ctx-aide lint --json"), true);
 const jsonHelp = run(["--help"]);
 assert.equal(jsonHelp.ok, true);
-assert.equal(jsonHelp.usage.includes("ctx adoption status --repo <target-repo> --profile auto --json"), true);
+assert.equal(jsonHelp.usage.includes("ctx-aide adoption status --repo <target-repo> --profile auto --json"), true);
 
 write("docs/context/routes/context-lab.md", `---
 id: route.context-lab
@@ -67,7 +67,7 @@ files:
 components:
   - component.ContextEntryCard
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - context
 positive_rules:
@@ -105,7 +105,7 @@ Preview context entries.
 - Query this entry for context lab work.
 `);
 
-write("docs/context/routes/ignored.md", `<!-- repo-context: ignore -->
+write("docs/context/routes/ignored.md", `<!-- ctx-aide: ignore -->
 
 # Ignored
 `);
@@ -148,7 +148,7 @@ assert.equal(init.ok, true);
 assert.equal(fs.existsSync(path.join(fixture, "docs/tickets/templates/canonical-ticket.md")), true);
 assert.equal(fs.existsSync(path.join(fixture, "AGENTS.md")), true);
 assert.equal(fs.existsSync(path.join(fixture, "CLAUDE.md")), true);
-assert.equal(fs.existsSync(path.join(fixture, ".cursor/rules/repo-context.mdc")), true);
+assert.equal(fs.existsSync(path.join(fixture, ".cursor/rules/ctx-aide.mdc")), true);
 
 const secondInit = run(["init"], { allowFailure: true });
 assert.equal(secondInit.ok, false);
@@ -166,7 +166,7 @@ assert.equal(fs.existsSync(path.join(fixture, codexPack.out)), true);
 
 const cursorPack = run(["export-agent", "--agent", "cursor"]);
 assert.equal(cursorPack.ok, true);
-assert.equal(cursorPack.out, ".cursor/rules/generated/repo-context.mdc");
+assert.equal(cursorPack.out, ".cursor/rules/generated/ctx-aide.mdc");
 assert.equal(fs.existsSync(path.join(fixture, cursorPack.out)), true);
 
 const componentList = run(["components", "list"]);
@@ -176,7 +176,7 @@ assert.equal(componentList.count, 0);
 write("src/feature.ts", "export const first = 1;\n\nexport const second = 2;\n");
 write("node_modules/pkg/index.js", "module.exports = 1;\n");
 write("docs/context/generated/generated.js", "const generated = true;\n");
-write("docs/config/repo-context.loc.json", `${JSON.stringify({
+write("docs/config/ctx-aide.loc.json", `${JSON.stringify({
   config_version: 1,
   targets: {
     source: {
@@ -207,10 +207,10 @@ assert.equal(defaultToolsList.config.exists, false);
 assert.equal(defaultToolsList.catalog.capabilities.some((capability) => capability.id === "tool.semble"), true);
 assert.equal(defaultToolsList.policy.global.deny.includes("app.gmail"), true);
 
-write("docs/config/repo-context.tools.json", `${JSON.stringify({
+write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx", "custom.internal-linter"],
+    allow: ["tool.ctx-aide", "custom.internal-linter"],
     deny: ["app.gmail"],
   },
   capabilities: {
@@ -227,7 +227,7 @@ assert.equal(configuredToolsList.ok, true);
 assert.equal(configuredToolsList.config.exists, true);
 assert.equal(configuredToolsList.catalog.count, 1);
 assert.equal(configuredToolsList.catalog.capabilities[0].purpose, "Run a repo-local lint wrapper.");
-assert.deepEqual(configuredToolsList.policy.global.allow, ["custom.internal-linter", "tool.ctx"]);
+assert.deepEqual(configuredToolsList.policy.global.allow, ["custom.internal-linter", "tool.ctx-aide"]);
 const customCapabilityCheck = run(["tools", "check", "--capability", "custom.internal-linter"]);
 assert.equal(customCapabilityCheck.ok, true);
 assert.equal(customCapabilityCheck.decision.allowed, true);
@@ -240,7 +240,7 @@ assert.equal(noBackendDiscovery.ok, true);
 assert.equal(noBackendDiscovery.out, "docs/context/generated/discovery.none.json");
 assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/discovery.none.json")), true);
 
-const blockedOutsideOut = run(["export-agent", "--agent", "codex", "--out", path.join(os.tmpdir(), "repo-context-outside-agent.md")], { allowFailure: true });
+const blockedOutsideOut = run(["export-agent", "--agent", "codex", "--out", path.join(os.tmpdir(), "ctx-aide-outside-agent.md")], { allowFailure: true });
 assert.equal(blockedOutsideOut.ok, false);
 assert.equal(blockedOutsideOut.errors[0].message.includes("escapes repo"), true);
 
@@ -287,10 +287,10 @@ updated: 2026-06-26
 
 # Browser Validation Workflow
 `);
-write("docs/config/repo-context.tools.json", `${JSON.stringify({
+write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx", "tool.playwright"],
+    allow: ["tool.ctx-aide", "tool.playwright"],
     deny: ["app.gmail"],
   },
   workflows: {
@@ -344,11 +344,11 @@ const denyWinsTool = run([
 ], { allowFailure: true });
 assert.equal(denyWinsTool.ok, false);
 assert.equal(denyWinsTool.decision.deny_layers.includes("global"), true);
-write("docs/config/repo-context.tools.json", `${JSON.stringify({
+write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx", "tool.unknown"],
-    deny: ["tool.ctx"],
+    allow: ["tool.ctx-aide", "tool.unknown"],
+    deny: ["tool.ctx-aide"],
   },
   workflows: {
     "workflow.missing": {
@@ -359,12 +359,12 @@ write("docs/config/repo-context.tools.json", `${JSON.stringify({
 const invalidToolsPolicyLint = run(["lint"], { allowFailure: true });
 assert.equal(invalidToolsPolicyLint.ok, false);
 assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("unknown capability")), true);
-assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("cannot both allow and deny tool.ctx")), true);
+assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("cannot both allow and deny tool.ctx-aide")), true);
 assert.equal(invalidToolsPolicyLint.errors.some((error) => error.message.includes("unknown workflow policy: workflow.missing")), true);
-write("docs/config/repo-context.tools.json", `${JSON.stringify({
+write("docs/config/ctx-aide.tools.json", `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx", "tool.playwright"],
+    allow: ["tool.ctx-aide", "tool.playwright"],
     deny: ["app.gmail"],
   },
   workflows: {
@@ -504,7 +504,7 @@ const importedState = run([
 assert.equal(importedState.ok, true);
 assert.equal(importedState.storage_state.cookies, 1);
 assert.equal(JSON.stringify(importedState).includes("secret-cookie"), false);
-assert.equal(fs.existsSync(path.join(fixture, ".repo-context/browser/browser-test-user.storage-state.json")), true);
+assert.equal(fs.existsSync(path.join(fixture, ".ctx-aide/browser/browser-test-user.storage-state.json")), true);
 
 const readyViewCredentials = run(["workflow", "views", "--workflow", "workflow.browser-validation", "--repo", "."]);
 assert.equal(readyViewCredentials.ok, true);
@@ -515,12 +515,12 @@ assert.equal(defaultValidationPlan.workflows[0].breakpoints.length, 4);
 assert.equal(defaultValidationPlan.workflows[0].matrix.length, 8);
 assert.equal(defaultValidationPlan.workflows[0].matrix.some((item) => item.id === "logged-in:desktop"), true);
 assert.equal(defaultValidationPlan.workflows[0].testing.runner, "playwright");
-assert.equal(defaultValidationPlan.workflows[0].screenshots.output_dir, ".repo-context/artifacts/screenshots");
+assert.equal(defaultValidationPlan.workflows[0].screenshots.output_dir, ".ctx-aide/artifacts/screenshots");
 assert.equal(defaultValidationPlan.workflows[0].ci.block_deploy_on_failure, true);
 assert.equal(defaultValidationPlan.workflows[0].deploy.cost_estimate_required, true);
-assert.equal(defaultValidationPlan.workflows[0].matrix.find((item) => item.id === "logged-out:mobile").screenshot_path, ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png");
+assert.equal(defaultValidationPlan.workflows[0].matrix.find((item) => item.id === "logged-out:mobile").screenshot_path, ".ctx-aide/artifacts/screenshots/browser-validation/logged-out/mobile.png");
 
-write("docs/config/repo-context.validation.json", `${JSON.stringify({
+write("docs/config/ctx-aide.validation.json", `${JSON.stringify({
   config_version: 1,
   workflows: {
     "workflow.browser-validation": {
@@ -541,7 +541,7 @@ write("docs/config/repo-context.validation.json", `${JSON.stringify({
         enabled: true,
         provider: "vercel",
         settings_file: "vercel.json",
-        postdeploy_smoke_commands: ["ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json"],
+        postdeploy_smoke_commands: ["ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo . --json"],
       },
     },
   },
@@ -559,7 +559,7 @@ assert.equal(configuredValidationPlan.workflows[0].deploy.provider, "vercel");
 assert.equal(configuredValidationPlan.workflows[0].deploy.cost_estimate_required, true);
 assert.equal(configuredValidationPlan.workflows[0].matrix[0].screenshot_path, "artifacts/screens/logged-out-mobile.png");
 
-write("docs/config/repo-context.validation.json", `${JSON.stringify({
+write("docs/config/ctx-aide.validation.json", `${JSON.stringify({
   config_version: 1,
   workflows: {
     "workflow.browser-validation": {
@@ -583,11 +583,11 @@ fs.writeFileSync(path.join(adoptedRepo, "pnpm-lock.yaml"), "lockfileVersion: '9.
 const adoptionDryRun = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware"]);
 assert.equal(adoptionDryRun.ok, true);
 assert.equal(adoptionDryRun.write, false);
-assert.equal(adoptionDryRun.changes.some((change) => change.file === "docs/config/repo-context.tools.json" && change.action === "planned"), true);
-assert.equal(adoptionDryRun.changes.some((change) => change.file === "docs/config/repo-context.settings.json" && change.action === "planned"), true);
-assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), false);
-assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.settings.json")), false);
-assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json")), false);
+assert.equal(adoptionDryRun.changes.some((change) => change.file === "docs/config/ctx-aide.tools.json" && change.action === "planned"), true);
+assert.equal(adoptionDryRun.changes.some((change) => change.file === "docs/config/ctx-aide.settings.json" && change.action === "planned"), true);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/ctx-aide.profile.json")), false);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/ctx-aide.settings.json")), false);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/ctx-aide.tools.json")), false);
 
 const unbootstrappedAdoptionStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"], { allowFailure: true });
 assert.equal(unbootstrappedAdoptionStatus.ok, false);
@@ -595,17 +595,17 @@ assert.equal(unbootstrappedAdoptionStatus.profile.profile, "wetware");
 assert.equal(unbootstrappedAdoptionStatus.context.count, 0);
 assert.equal(unbootstrappedAdoptionStatus.settings.exists, false);
 assert.equal(unbootstrappedAdoptionStatus.tools_policy.exists, false);
-assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.profile.json")), true);
-assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.settings.json")), true);
-assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("repo-context.tools.json")), true);
+assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("ctx-aide.profile.json")), true);
+assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("ctx-aide.settings.json")), true);
+assert.equal(unbootstrappedAdoptionStatus.blockers.some((blocker) => blocker.includes("ctx-aide.tools.json")), true);
 
 const adoptionBootstrap = run(["adoption", "bootstrap", "--repo", adoptedRepo, "--profile", "wetware", "--write"]);
 assert.equal(adoptionBootstrap.ok, true);
 assert.equal(adoptionBootstrap.profile.profile, "wetware");
-assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.profile.json")), true);
-assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.settings.json")), true);
-assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json")), true);
-const bootstrappedSettingsText = fs.readFileSync(path.join(adoptedRepo, "docs/config/repo-context.settings.json"), "utf8");
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/ctx-aide.profile.json")), true);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/ctx-aide.settings.json")), true);
+assert.equal(fs.existsSync(path.join(adoptedRepo, "docs/config/ctx-aide.tools.json")), true);
+const bootstrappedSettingsText = fs.readFileSync(path.join(adoptedRepo, "docs/config/ctx-aide.settings.json"), "utf8");
 assert.equal(bootstrappedSettingsText.includes('"screenshot_feedback_review_ui"'), true);
 assert.equal(bootstrappedSettingsText.includes('"enabled": false'), true);
 
@@ -623,7 +623,7 @@ const enabledBootstrap = run([
   "--write",
 ]);
 assert.equal(enabledBootstrap.ok, true);
-const enabledBootstrapSettings = JSON.parse(fs.readFileSync(path.join(enabledBootstrapRepo, "docs/config/repo-context.settings.json"), "utf8"));
+const enabledBootstrapSettings = JSON.parse(fs.readFileSync(path.join(enabledBootstrapRepo, "docs/config/ctx-aide.settings.json"), "utf8"));
 assert.equal(enabledBootstrapSettings.features.screenshot_feedback_review_ui.enabled, true);
 
 const adoptedContext = run([
@@ -663,11 +663,11 @@ assert.equal(bootstrappedAdoptionStatus.context.count, 1);
 assert.equal(bootstrappedAdoptionStatus.blockers.length, 0);
 assert.equal(bootstrappedAdoptionStatus.warnings.some((warning) => warning.includes("generated context manifest")), true);
 
-fs.writeFileSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json"), `${JSON.stringify({
+fs.writeFileSync(path.join(adoptedRepo, "docs/config/ctx-aide.tools.json"), `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx"],
-    deny: ["tool.ctx"],
+    allow: ["tool.ctx-aide"],
+    deny: ["tool.ctx-aide"],
   },
 }, null, 2)}\n`);
 const invalidTargetToolsPolicyStatus = run(["adoption", "status", "--repo", adoptedRepo, "--profile", "wetware"], { allowFailure: true });
@@ -684,10 +684,10 @@ updated: 2026-06-27
 
 # Target Implementation Workflow
 `);
-fs.writeFileSync(path.join(adoptedRepo, "docs/config/repo-context.tools.json"), `${JSON.stringify({
+fs.writeFileSync(path.join(adoptedRepo, "docs/config/ctx-aide.tools.json"), `${JSON.stringify({
   config_version: 1,
   global: {
-    allow: ["tool.ctx", "tool.semble"],
+    allow: ["tool.ctx-aide", "tool.semble"],
     deny: ["app.gmail"],
   },
   workflows: {
@@ -771,7 +771,7 @@ const adoptedTicket = run([
   "--file",
   "package.json,pnpm-lock.yaml",
   "--validation",
-  "ctx dependency audit --repo . --command 'pnpm audit --prod' --json",
+  "ctx-aide dependency audit --repo . --command 'pnpm audit --prod' --json",
   "--capability-workflow",
   "workflow.target-implementation",
   "--capability-step",
@@ -806,7 +806,7 @@ assert.equal(adoptedPlan.capability_policy.required.find((item) => item.capabili
 assert.equal(adoptedPlan.capability_policy.required.find((item) => item.capability === "app.gmail").allowed, false);
 assert.equal(adoptedPlan.capability_policy.check_commands.some((command) => command.includes("--capability tool.semble")), true);
 
-const screenshotPath = path.join(adoptedRepo, ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png");
+const screenshotPath = path.join(adoptedRepo, ".ctx-aide/artifacts/screenshots/browser-validation/logged-out/mobile.png");
 fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
 const pngHeader = Buffer.alloc(24);
 pngHeader[1] = 0x50;
@@ -823,7 +823,7 @@ const feedbackReview = run([
   "--ticket",
   adoptedTicket.ticket.file,
   "--screenshot",
-  ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png",
+  ".ctx-aide/artifacts/screenshots/browser-validation/logged-out/mobile.png",
   "--url",
   "http://localhost:3000/settings",
 ]);
@@ -840,7 +840,7 @@ const disabledReviewUi = run([
   "--repo",
   adoptedRepo,
   "--screenshot-dir",
-  ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+  ".ctx-aide/artifacts/screenshots/browser-validation/logged-out",
   "--plan-only",
 ], { allowFailure: true });
 assert.equal(disabledReviewUi.ok, false);
@@ -854,7 +854,7 @@ const betaOverrideReviewUi = run([
   "--repo",
   adoptedRepo,
   "--screenshot-dir",
-  ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+  ".ctx-aide/artifacts/screenshots/browser-validation/logged-out",
   "--plan-only",
   "--allow-beta",
 ]);
@@ -887,7 +887,7 @@ const enabledReviewUi = run([
   "--repo",
   adoptedRepo,
   "--screenshot-dir",
-  ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+  ".ctx-aide/artifacts/screenshots/browser-validation/logged-out",
   "--plan-only",
 ]);
 assert.equal(enabledReviewUi.ok, true);
@@ -943,7 +943,7 @@ const capturedFeedback = run([
   "--file",
   "app/settings/page.tsx",
   "--screenshot",
-  ".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png",
+  ".ctx-aide/artifacts/screenshots/browser-validation/logged-out/mobile.png",
   "--url",
   "http://localhost:3000/settings",
   "--write",
@@ -1037,7 +1037,7 @@ assert.equal(ruleFollowUpText.includes("Never ship visual tickets"), true);
 
 const reviewUiState = buildScreenshotReviewState({
   repoPath: adoptedRepo,
-  screenshotDir: ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+  screenshotDir: ".ctx-aide/artifacts/screenshots/browser-validation/logged-out",
 });
 assert.equal(reviewUiState.items.length, 1);
 savePostedFeedback(reviewUiState, {
@@ -1081,7 +1081,7 @@ assert.equal(generatedTicketText.includes("source_feedback: []"), true);
 assert.equal(generatedTicketText.includes("Screenshot Feedback"), false);
 assert.equal(generatedTicketText.includes("Mobile spacing is too tight"), true);
 assert.equal(generatedTicketText.includes("validation:"), true);
-assert.equal(generatedTicketText.includes(".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png"), true);
+assert.equal(generatedTicketText.includes(".ctx-aide/artifacts/screenshots/browser-validation/logged-out/mobile.png"), true);
 
 const targetRepoToolsCheck = run([
   "tools",
@@ -1110,7 +1110,7 @@ source_docs:
 
 ## Verification
 
-- \`ctx dependency audit --repo . --command "pnpm audit --prod" --json\`
+- \`ctx-aide dependency audit --repo . --command "pnpm audit --prod" --json\`
 `);
 const legacyPlan = run([
   "adoption",
@@ -1381,4 +1381,4 @@ if (commandExists("rg")) {
 }
 
 fs.rmSync(fixture, { recursive: true, force: true });
-process.stdout.write("ctx tests passed\n");
+process.stdout.write("ctx-aide tests passed\n");

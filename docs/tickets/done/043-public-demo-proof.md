@@ -2,9 +2,9 @@
 id: ticket.context.043
 status: done
 title: Create public demo proof
-ticket_pack: pack.repo-context-public-release-2026-07-01
+ticket_pack: pack.ctx-aide-public-release-2026-07-01
 milestones:
-  - milestone.repo-context-public-release
+  - milestone.ctx-aide-public-release
 source_spec: spec.public-release-2026-07-01
 source_feedback: []
 implementation_agent: codex
@@ -25,20 +25,20 @@ scope:
     - examples
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "create public demo proof for repo-context release"
   generated_at: 2026-07-01
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.public-demo-is-runnable
 validation:
   automated:
-    - node tools/context/ctx.mjs scan --json
-    - node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
+    - node tools/ctx-aide/ctx-aide.mjs scan --json
+    - node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json
     - make smoke
   smoke: []
   screenshots: []
@@ -83,7 +83,7 @@ A public repo needs proof beyond README copy. The demo should be safe, lightweig
 ## Implementation Rules
 
 - Required approach: create or update a demo/walkthrough using public-safe fixtures and run the relevant `ctx` validation commands.
-- Existing components/helpers to use: existing templates, `ctx scan`, `ctx pack status`, and `make smoke`.
+- Existing components/helpers to use: existing templates, `ctx-aide scan`, `ctx-aide pack status`, and `make smoke`.
 - Anti-patterns to avoid: a demo that depends on private repositories or missing credentials.
 - Stop and escalate if: meaningful proof requires exposing private repo content.
 

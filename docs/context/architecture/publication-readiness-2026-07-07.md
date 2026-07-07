@@ -10,7 +10,7 @@ files:
   - package-lock.json
   - docs/ticket-packs/active/public-release-2026-07-01.md
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - public-release
   - npm
@@ -47,8 +47,8 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 ## Current Decisions
 
 - Public display name: `CTX Aide`.
-- CLI command: `ctx`.
-- Source repository namespace: `repo-context`.
+- CLI command: `ctx-aide`.
+- Source repository namespace: `ctx-aide`.
 - Intended npm package name: `ctx-aide`.
 - Package status: local package metadata is prepared, but `private: true` remains the safety gate.
 - Cargo status: no Rust crate exists in this repository. crates.io publication is blocked until a Cargo package shape is designed and implemented.
@@ -77,10 +77,9 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 
 Last checked on 2026-07-07:
 
-- `npm view repo-context name version description --json` returned an unrelated `repo-context@1.0.0`, so the repo name should not be used as the npm package name.
 - `npm view ctx-aide name version description --json` returned npm 404, which indicates no public package was visible to this environment at check time.
+- `npm view ctx name version description --json` returned an unrelated `ctx@0.3.0`, so the package does not keep a legacy `ctx` bin.
 - `cargo search ctx-aide --limit 5` returned no matches.
-- `cargo search repo-context --limit 5` returned related but non-identical crates, including `rusty-repo-context-manager`.
 
 Registry state can change. Recheck immediately before any publishing ticket claims name availability.
 
@@ -90,7 +89,7 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 - `package.json` uses the intended npm package name `ctx-aide`.
 - The npm package payload is constrained with an explicit `files` allowlist instead of relying on `.gitignore` fallback.
 - `npm pack --dry-run --json` is the packaging proof surface for the current Node CLI.
-- Existing `ctx` checks cover docs, tickets, packs, future-work, LOC policy, skill validation, and local smoke behavior.
+- Existing `ctx-aide` checks cover docs, tickets, packs, future-work, LOC policy, skill validation, and local smoke behavior.
 
 ## What Is Not Ready
 
@@ -105,6 +104,7 @@ Before posting publicly or publishing packages, rerun and record these registry 
 
 ```sh
 npm view ctx-aide name version description --json
+npm view ctx name version description --json
 cargo search ctx-aide --limit 5
 ```
 
@@ -112,10 +112,10 @@ Then rerun the green validation gates:
 
 ```sh
 npm pack --dry-run --json
-node tools/context/ctx.mjs scan --json
-node tools/context/ctx.mjs spec check --json
-node tools/context/ctx.mjs ticket check --json
-node tools/context/ctx.mjs pack check --json
+node tools/ctx-aide/ctx-aide.mjs scan --json
+node tools/ctx-aide/ctx-aide.mjs spec check --json
+node tools/ctx-aide/ctx-aide.mjs ticket check --json
+node tools/ctx-aide/ctx-aide.mjs pack check --json
 make validate
 make smoke
 ```

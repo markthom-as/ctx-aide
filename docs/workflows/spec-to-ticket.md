@@ -43,16 +43,16 @@ Turn rough implementation intent into hardened, atomic tickets that can be execu
 
 ## Feedback Review
 
-- Use `ctx feedback review` to produce a review packet with ticket status, URL, scoped files, changed files, screenshot path, screenshot byte size, and image dimensions.
-- Use `ctx feedback capture --write` to save operator notes under `docs/context/feedback/`.
-- Use `ctx feedback promote --mode acceptance-criteria --write` when the feedback should tighten the current ticket.
-- Use `ctx feedback promote --mode follow-up-ticket --write` when the feedback is separate work.
+- Use `ctx-aide feedback review` to produce a review packet with ticket status, URL, scoped files, changed files, screenshot path, screenshot byte size, and image dimensions.
+- Use `ctx-aide feedback capture --write` to save operator notes under `docs/context/feedback/`.
+- Use `ctx-aide feedback promote --mode acceptance-criteria --write` when the feedback should tighten the current ticket.
+- Use `ctx-aide feedback promote --mode follow-up-ticket --write` when the feedback is separate work.
 - Answer clarifying questions before treating promoted feedback as implementation-ready.
 
 ## Validation
 
-- Run `node tools/context/ctx.mjs spec check --json` after spec edits.
-- Run `node tools/context/ctx.mjs ticket check --json` after ticket edits.
-- Run `node tools/context/ctx.mjs pack check --json` after pack edits.
-- Run `node tools/context/ctx.mjs feedback review --ticket <ticket> --json` for artifact-backed ticket closeout.
+- Run `node tools/ctx-aide/ctx-aide.mjs spec check --json` after spec edits.
+- Run `node tools/ctx-aide/ctx-aide.mjs ticket check --json` after ticket edits.
+- Run `node tools/ctx-aide/ctx-aide.mjs pack check --json` after pack edits.
+- Run `node tools/ctx-aide/ctx-aide.mjs feedback review --ticket <ticket> --json` for artifact-backed ticket closeout.
 - Run `make validate` before committing workflow changes.

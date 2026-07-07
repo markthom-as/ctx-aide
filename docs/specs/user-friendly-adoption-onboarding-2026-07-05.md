@@ -17,29 +17,29 @@ created: 2026-07-05
 
 ## Goal
 
-Make repo-context adoption feel like a normal developer tool: install the `ctx` CLI, run one setup command, review the planned changes, and end with a bootstrapped target repo plus clear next commands.
+Make CTX Aide adoption feel like a normal developer tool: install or link the `ctx-aide` CLI, run one setup command, review the planned changes, and end with a bootstrapped target repo plus clear next commands.
 
 ## Affected Surfaces
 
-- Files/directories: `package.json`, `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `README.md`, `docs/workflows/astrotechne-adoption.md`, `docs/specs`, `docs/tickets`, and `docs/ticket-packs`.
+- Files/directories: `package.json`, `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`, `docs/workflows/astrotechne-adoption.md`, `docs/specs`, `docs/tickets`, and `docs/ticket-packs`.
 - Components: CLI command routing, target adoption profiles, bootstrap/status/setup output, install documentation, fixture tests.
 - Flows: install CLI, run setup, dry-run target adoption, write bootstrap files, seed first context entries, create first pack, verify adoption status.
 - Design-system areas: none.
 
 ## Existing Context
 
-- `ctx adoption status`, `ctx adoption bootstrap`, `ctx adoption context`, `ctx adoption pack`, `ctx adoption ticket`, and `ctx adoption implementation-plan` already exist as low-level non-interactive primitives.
+- `ctx-aide adoption status`, `ctx-aide adoption bootstrap`, `ctx-aide adoption context`, `ctx-aide adoption pack`, `ctx-aide adoption ticket`, and `ctx-aide adoption implementation-plan` already exist as low-level non-interactive primitives.
 - `docs/workflows/astrotechne-adoption.md` documents the desired Astrotechne overlay approach and says production-code use should start with adoption status and bootstrap.
 - The current `astrotechne` profile fits `/Users/jove/code/astrotechne.com` but misclassifies `/Users/jove/code/astrotechne-engine`, which has `docs/tickets` and Rust-first validation.
-- There is no `package.json`, so users currently run the tool through `node tools/context/ctx.mjs` instead of installing `ctx`.
+- Local package metadata now exists, so users can install or link the tool as `ctx-aide` instead of running `node tools/ctx-aide/ctx-aide.mjs` directly.
 
 ## Product Decisions
 
-- Decision: the primary happy path should be `ctx setup --repo <target> --profile auto`.
+- Decision: the primary happy path should be `ctx-aide setup --repo <target> --profile auto`.
 - Rationale: setup is the user-facing word; the existing `adoption` subcommands remain lower-level building blocks for agents and advanced users.
 - Regression risk: hiding the lower-level commands can make automation less explicit; mitigate by keeping setup output structured and listing the exact underlying commands it ran or would run.
 
-- Decision: `ctx setup` must support both guided TTY mode and deterministic agent mode.
+- Decision: `ctx-aide setup` must support both guided TTY mode and deterministic agent mode.
 - Rationale: humans benefit from prompts and summaries, while agents need non-interactive JSON.
 - Regression risk: prompts can break automation; mitigate with `--json`, `--no-input`, `--yes`, and tests with stdin detached.
 
@@ -96,6 +96,6 @@ None for the MVP. Registry publishing, public package scope, and remote install 
   - `ticket.context.045`: create installable local CLI packaging.
   - `ticket.context.047`: split Astrotechne web and engine adoption profiles.
 - Sequential tickets:
-  - `ticket.context.046`: add guided `ctx setup` onboarding after packaging and profile behavior are available.
+  - `ticket.context.046`: add guided `ctx-aide setup` onboarding after packaging and profile behavior are available.
   - `ticket.context.048`: document and smoke the install-to-setup path after the implementation tickets land.
-- Shared files that require coordination: `tools/context/ctx.mjs`, `tools/context/ctx.test.mjs`, `README.md`, and `docs/workflows/astrotechne-adoption.md`.
+- Shared files that require coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`, and `docs/workflows/astrotechne-adoption.md`.

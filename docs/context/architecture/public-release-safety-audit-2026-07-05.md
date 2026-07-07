@@ -7,10 +7,10 @@ title: Public Release Safety Audit
 files:
   - README.md
   - .gitignore
-  - tools/context/ctx.mjs
-  - tools/context/ctx.test.mjs
+  - tools/ctx-aide/ctx-aide.mjs
+  - tools/ctx-aide/ctx-aide.test.mjs
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - public-release
   - safety
@@ -63,16 +63,16 @@ rg -n -i --hidden --glob '!.git/**' "(api_key|secret|token|password|private key|
 git log --all --name-only --pretty=format: | sort -u
 uvx detect-secrets scan $(git ls-files)
 strings docs/context/generated/context.sqlite | rg -n -i "(/Users|api_key|secret|token|password|private key|OPENAI_API_KEY|ANTHROPIC_API_KEY|DATABASE_URL|refresh_token|access_token)"
-gitleaks git . --no-banner --redact --report-format json --report-path /tmp/repo-context-gitleaks-report.json
+gitleaks git . --no-banner --redact --report-format json --report-path /tmp/ctx-aide-gitleaks-report.json
 find . -maxdepth 3 -type f \( -name 'package.json' -o -name '*lock*' -o -name 'LICENSE*' -o -name 'COPYING*' -o -name 'NOTICE*' \) -print
-node tools/context/ctx.mjs ticket check --json
-node tools/context/ctx.mjs pack check --json
+node tools/ctx-aide/ctx-aide.mjs ticket check --json
+node tools/ctx-aide/ctx-aide.mjs pack check --json
 ```
 
 ## Findings
 
-- `gitleaks` 8.30.1 scanned 57 commits, about 729 KB, and reported no leaks. The JSON report at `/tmp/repo-context-gitleaks-report.json` was `[]`.
-- `detect-secrets` scanned tracked files and reported one unverified `Secret Keyword` in `tools/context/ctx.test.mjs`. Manual review confirmed it is a deliberate fixture value used to assert credential redaction behavior.
+- `gitleaks` 8.30.1 scanned 57 commits, about 729 KB, and reported no leaks. The JSON report at `/tmp/ctx-aide-gitleaks-report.json` was `[]`.
+- `detect-secrets` scanned tracked files and reported one unverified `Secret Keyword` in `tools/ctx-aide/ctx-aide.test.mjs`. Manual review confirmed it is a deliberate fixture value used to assert credential redaction behavior.
 - Literal `rg` hits were documentation, rule text, environment-variable names, test fixture strings, and `design token` vocabulary. No live credential value was found in tracked files.
 - Generated agent-pack markdown under `docs/context/generated/` only mirrors public-safe context markdown.
 - `docs/context/generated/context.sqlite` is ignored by `.gitignore`. A strings scan matched `design token` vocabulary, not private paths or credential material.
@@ -85,6 +85,6 @@ The safety audit clears `ticket.context.041` for the current repository state. B
 
 ## Implementation Rules
 
-- Treat `tools/context/ctx.test.mjs` fixture secrets as test data only when they are redaction assertions, not credential material.
-- Keep `.repo-context/` and generated SQLite files out of public artifacts unless a later ticket introduces a sanitized export format.
+- Treat `tools/ctx-aide/ctx-aide.test.mjs` fixture secrets as test data only when they are redaction assertions, not credential material.
+- Keep `.ctx-aide/` and generated SQLite files out of public artifacts unless a later ticket introduces a sanitized export format.
 - Update this audit note if future scans identify new findings or accepted launch risks.

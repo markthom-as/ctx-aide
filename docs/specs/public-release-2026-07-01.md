@@ -5,7 +5,7 @@ title: Public Release Preparation
 owner_agent: codex-high-effort
 source_feedback: []
 context_ids:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 target_agents:
   spec:
     - codex-high-effort
@@ -17,7 +17,7 @@ created: 2026-07-01
 
 ## Goal
 
-Prepare repo-context, under a better public name, for a credible public GitHub release as evidence of practical agentic developer-productivity work.
+Prepare CTX Aide, with the `ctx-aide` repo and tooling namespace, for a credible public GitHub release as evidence of practical agentic developer-productivity work.
 
 ## Affected Surfaces
 
@@ -28,7 +28,7 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 
 ## Existing Context
 
-- `flow.repo-context-dogfood`: repo-context should prove its own workflow through specs, packs, tickets, and validation.
+- `flow.ctx-aide-dogfood`: CTX Aide should prove its own workflow through specs, packs, tickets, and validation.
 - Existing public positioning work identified this repo as the strongest next public artifact for AI developer productivity, repo-local context, agent instructions, and validation workflows.
 - `/Users/jove/code/concordat` is an existing separate project name and should not be reused for this release.
 
@@ -38,9 +38,9 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 - Rationale: a half-prepared public repo weakens the portfolio signal and increases risk of leaking private workflow traces or confusing readers.
 - Regression risk: delaying visibility can slow application support; mitigate by keeping the release pack atomic and parallelizable.
 
-- Decision: `CTX Aide` is the public display name for this release, while `repo-context` and `ctx` remain the internal repository and command names until a dedicated rename ticket exists.
-- Rationale: `repo-context` describes a mechanism, while `CTX Aide` describes the repo-local helper that gives coding agents context, tickets, decisions, validation, and handoff rules.
-- Regression risk: renaming can break command references and docs; mitigate with an explicit naming ticket before downstream copy changes.
+- Decision: `CTX Aide` is the public display name and `ctx-aide` is the repository directory, CLI command, local skill, config-prefix, generated-rule, and package-facing namespace.
+- Rationale: one namespace removes stale split-brain naming before outside review, while CTX Aide still describes the repo-local helper that gives coding agents context, tickets, decisions, validation, and handoff rules.
+- Regression risk: renaming can break command references and docs; mitigate with a dedicated rename ticket, compatibility handling for old ignore sentinels, and full validation before publication.
 
 - Decision: the public story should emphasize practical engineering workflow leverage, not AI hype.
 - Rationale: the target audience is engineering leaders and platform/dev productivity teams evaluating whether the system would help real repositories.
@@ -78,7 +78,7 @@ None at spec level. `ticket.context.040` resolved the public display name as `CT
 - Design: the README and examples must be scannable for an outside engineer who has never seen the user's workflow.
 - Security: do not make any repository public until history scanning and private-data review complete.
 - Best practices: include license, validation commands, examples, and GitHub metadata before launch.
-- Testing: run `ctx` markdown checks, `make validate`, `make smoke`, and release-specific scans where tools are available.
+- Testing: run `ctx-aide` markdown checks, `make validate`, `make smoke`, and release-specific scans where tools are available.
 - Parallelization: naming and safety audit can start in parallel; docs and demo depend on naming; launch depends on all prior tickets.
 
 ## Ticket Plan

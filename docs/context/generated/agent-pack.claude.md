@@ -1,4 +1,4 @@
-# Repo Context Pack: claude
+# CTX Aide Pack: claude
 
 Generated from markdown source. Do not edit generated packs by hand.
 
@@ -25,11 +25,10 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
 - Summary: Record the public display name that downstream README, demo, and launch-gate work should use.
 - Positive rules:
   - Use CTX Aide as the public display name for the public-release pack.
-  - Use ctx-aide as the package-facing name if a future publishing ticket proceeds.
-  - Preserve repo-context as the internal repository and command name until a dedicated rename ticket exists.
+  - Use ctx-aide as the repo, CLI, package-facing, config-prefix, generated-rule, and local skill namespace.
 - Negative rules:
   - Do not reuse Concordat for this project.
-  - Do not rename commands, remotes, package names, or generated artifact paths as part of the public name decision.
+  - Do not publish, reserve a package, choose a license, or mutate an external remote as part of the name decision.
   - Do not use Repo Charter as the public display name.
 
 ## architecture.public-name-generation-2026-07-05
@@ -43,7 +42,7 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
   - Prefer names that fit the actual repo-local workflow surface instead of generic AI branding.
 - Negative rules:
   - Do not reopen rejected names without a fresh collision and positioning review.
-  - Do not rename commands, remotes, package names, or generated artifact paths from this brief alone.
+  - Do not publish, reserve a package, choose a license, or mutate an external remote from this brief alone.
 
 ## architecture.public-release-safety-audit-2026-07-05
 
@@ -84,12 +83,12 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
   - Do not collapse negative rules into generic notes.
   - Do not use this component to edit canonical markdown directly.
 
-## design.repo-context-tokens
+## design.ctx-aide-tokens
 
 - Kind: design
 - Status: active
-- Source: docs/context/design/repo-context-design-tokens.md
-- Summary: Define lightweight visual conventions for rendering repo-context catalog entries in a target web app.
+- Source: docs/context/design/ctx-aide-design-tokens.md
+- Summary: Define lightweight visual conventions for rendering ctx-aide catalog entries in a target web app.
 - Positive rules:
   - Prefer restrained metadata labels for context id, kind, status, and source path.
   - Use separate visual groups for positive rules and negative rules.
@@ -104,11 +103,11 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
 - Source: docs/context/feedback/2026-06-26-substrate-examples.md
 - Summary: The context substrate is not daily-usable if it only contains empty directories. It needs schema files and representative entries that validators can inspect.
 
-## flow.repo-context-dogfood
+## flow.ctx-aide-dogfood
 
 - Kind: flow
 - Status: active
-- Source: docs/context/flows/repo-context-dogfood.md
+- Source: docs/context/flows/ctx-aide-dogfood.md
 - Summary: Use this repository as the first fixture for the repo-local context, ticket, pack, validation, and agent skill workflow.
 - Positive rules:
   - Update markdown context in the same ticket when intentional behavior changes.
@@ -122,7 +121,7 @@ Prioritize product-flow, UI, design, copy, and critique context. Load full files
 - Kind: route
 - Status: proposed
 - Source: docs/context/routes/context-lab.md
-- Summary: Provide a local route concept for previewing repo-context entries, component catalog records, and rule polarity in a web app.
+- Summary: Provide a local route concept for previewing ctx-aide entries, component catalog records, and rule polarity in a web app.
 - Positive rules:
   - Render context entries from markdown-derived registry data.
   - Keep positive and negative rules visually distinct.

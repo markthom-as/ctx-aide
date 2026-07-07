@@ -18,8 +18,8 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - docs/workflows/astrotechne-adoption.md
   directories: []
   components: []
@@ -35,10 +35,10 @@ axioms:
   - axiom.ticket-done-requires-commit
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
-    - node tools/context/ctx.mjs adoption status --repo /Users/jove/code/astrotechne-engine --profile auto --json
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json
+    - node tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne-engine --profile auto --json
   smoke: []
   screenshots: []
 completion:

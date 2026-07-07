@@ -4,7 +4,7 @@ CTX Aide is a local-first workflow system for coding agents. It keeps context, s
 
 At its core, this repo is a repo-native operating system for coding-agent work: markdown context, specs, tickets, validation, and handoff rules that let agents implement safely from durable repo truth instead of chat history.
 
-The current repository and CLI namespace are still `repo-context` and `ctx`. `CTX Aide` is the public display name chosen for this release. The npm package metadata now uses `ctx-aide` as the package-facing name, but the package remains intentionally private until owner, license, and publish decisions are explicit.
+The repository directory, CLI namespace, local skill, config filenames, and package-facing name are now `ctx-aide`. The package remains intentionally private until owner, license, and publish decisions are explicit.
 
 No paid infrastructure is required. Markdown is canonical, generated agent packs are lightweight artifacts, and SQLite indexes are local rebuildable caches.
 
@@ -22,7 +22,7 @@ Coding agents are strongest when they can work from stable project truth instead
 - Specs freeze product, design, architecture, security, and validation decisions before implementation.
 - Tickets make the implementation slice small enough to review, validate, and commit cleanly.
 - Ticket packs describe dependencies, parallel groups, and run policy for multi-ticket work.
-- The `ctx` CLI checks that the markdown contract stays coherent.
+- The `ctx-aide` CLI checks that the markdown contract stays coherent.
 
 ## What It Does
 
@@ -30,7 +30,7 @@ Coding agents are strongest when they can work from stable project truth instead
 - Turns specs into atomic markdown tickets with frozen decisions, scope, validation, and commit expectations.
 - Groups tickets into ticket packs with dependencies, parallel groups, run policy, and completion evidence.
 - Generates agent-facing context packs for Codex, Claude, and Cursor without depending on one vendor's memory format.
-- Provides local `ctx` checks for scanning, querying, linting, ticket validation, pack validation, future-work validation, adoption preflight, workflow validation, and tool-policy checks.
+- Provides local `ctx-aide` checks for scanning, querying, linting, ticket validation, pack validation, future-work validation, adoption preflight, workflow validation, and tool-policy checks.
 
 ## What It Is Not
 
@@ -45,9 +45,9 @@ Coding agents are strongest when they can work from stable project truth instead
 Run the core checks from a fresh checkout with Node.js 20+, Python 3, `make`, and Semble available on `PATH` or through `uvx`:
 
 ```sh
-node tools/context/ctx.mjs scan --json
-node tools/context/ctx.mjs query --path README.md --task "understand CTX Aide public release" --agent codex --budget 1200 --json
-node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
+node tools/ctx-aide/ctx-aide.mjs scan --json
+node tools/ctx-aide/ctx-aide.mjs query --path README.md --task "understand CTX Aide public release" --agent codex --budget 1200 --json
+node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json
 make validate
 ```
 
@@ -56,15 +56,15 @@ make validate
 To install the local CLI without publishing a package:
 
 ```sh
-npm install -g /path/to/repo-context
-ctx --help
+npm install -g /path/to/ctx-aide
+ctx-aide --help
 ```
 
-For active development on this checkout, link the same local `ctx` command:
+For active development on this checkout, link the same local `ctx-aide` command:
 
 ```sh
 npm link
-ctx --help
+ctx-aide --help
 ```
 
 These commands install from a local path only. Registry publishing, package scope, and remote install instructions are gated by the public-release launch decisions.
@@ -79,9 +79,9 @@ make smoke
 
 Repo-local configuration lives under `docs/config/`:
 
-- `repo-context.tools.json`: allowed and denied agent tools, skills, and connectors by workflow and step.
-- `repo-context.validation.json`: browser/test/CI/deploy validation policy. Deploy is disabled by default and keeps `cost_estimate_required: true`.
-- `repo-context.loc.json`: source-volume targets for broad repo health and focused complexity checks.
+- `ctx-aide.tools.json`: allowed and denied agent tools, skills, and connectors by workflow and step.
+- `ctx-aide.validation.json`: browser/test/CI/deploy validation policy. Deploy is disabled by default and keeps `cost_estimate_required: true`.
+- `ctx-aide.loc.json`: source-volume targets for broad repo health and focused complexity checks.
 - `customization.md`: the profile model for future workflow customization.
 
 Target repos bootstrapped by CTX Aide get their own config files. The source repo remains a template and validation provider; target repo markdown remains the target's source of truth.
@@ -98,7 +98,7 @@ Target repos bootstrapped by CTX Aide get their own config files. The source rep
 ## Proof Surfaces
 
 - `AGENTS.md`: the repo-local operating contract for agents.
-- `tools/context/ctx.mjs`: the implemented local CLI.
+- `tools/ctx-aide/ctx-aide.mjs`: the implemented local CLI.
 - `examples/public-release-demo/README.md`: a runnable public-safe walkthrough of scan, query, ticket, pack, and smoke checks.
 - `docs/specs/public-release-2026-07-01.md`: the current public-release spec.
 - `docs/ticket-packs/active/public-release-2026-07-01.md`: the active public-release ticket pack.
@@ -137,7 +137,7 @@ repo/
   CLAUDE.md
   .cursor/
     rules/
-      repo-context.mdc
+      ctx-aide.mdc
       generated/
   docs/
     context/
@@ -183,9 +183,8 @@ repo/
       promoted/
       superseded/
   tools/
-    context/
-      ctx.mjs
-      package.json
+    ctx-aide/
+      ctx-aide.mjs
 ```
 
 The repo should commit markdown context and generated lightweight agent packs. The SQLite database should usually be ignored or regenerated, unless the team wants deterministic local bootstrap without Node install.
@@ -207,17 +206,17 @@ context_scan: false
 Fast first-line sentinel:
 
 ```markdown
-<!-- repo-context: ignore -->
+<!-- ctx-aide: ignore -->
 
 # Scratch Notes
 ```
 
 Scanner rules:
 
-- If the first non-BOM line is `<!-- repo-context: ignore -->`, skip the file before frontmatter parsing.
+- If the first non-BOM line is `<!-- ctx-aide: ignore -->`, skip the file before frontmatter parsing. The old `<!-- repo-context: ignore -->` sentinel remains a compatibility alias for adopted repositories.
 - If YAML frontmatter contains `context_scan: false`, skip the file.
 - Excluded files must not appear in SQLite, generated manifests, FTS search, agent packs, ticket hydration, or context query results.
-- `ctx lint` may report malformed markdown only when explicitly asked to include ignored files.
+- `ctx-aide lint` may report malformed markdown only when explicitly asked to include ignored files.
 - Ignored files should still remain normal repo files; this is not a gitignore substitute.
 
 ## Operating Model
@@ -255,16 +254,16 @@ The implementation agent contract is strict: if a ticket contains an unresolved 
 
 ## Staff Review Hardening Gates
 
-Before treating a milestone as ready for staff-engineering review, run the repo-context flow as a visible pack, not as chat-only analysis.
+Before treating a milestone as ready for staff-engineering review, run the ctx-aide flow as a visible pack, not as chat-only analysis.
 
 Minimum gates:
 
 ```sh
-node tools/context/ctx.mjs scan --json
-node tools/context/ctx.mjs ticket check --json
-node tools/context/ctx.mjs pack check --json
-node tools/context/ctx.mjs doctor --json
-node tools/context/ctx.mjs loc check --json
+node tools/ctx-aide/ctx-aide.mjs scan --json
+node tools/ctx-aide/ctx-aide.mjs ticket check --json
+node tools/ctx-aide/ctx-aide.mjs pack check --json
+node tools/ctx-aide/ctx-aide.mjs doctor --json
+node tools/ctx-aide/ctx-aide.mjs loc check --json
 make validate
 make smoke
 ```
@@ -273,32 +272,32 @@ Security and truthfulness rules:
 
 - Dependency audit commands run without shell evaluation by default; pass `--shell` only for commands that require shell syntax.
 - Generated output writes stay inside the active repo or target repo by default; pass `--allow-outside-repo` only when the destination is intentionally outside that boundary.
-- `ctx workflow validation-plan` is a readiness gate. It returns the full matrix even when blocked, but top-level `ok` is false when a required view lacks credentials or browser storage state.
+- `ctx-aide workflow validation-plan` is a readiness gate. It returns the full matrix even when blocked, but top-level `ok` is false when a required view lacks credentials or browser storage state.
 - Browser validation plans must keep deploy cost policy explicit; deploy-enabled configs must keep `cost_estimate_required: true`.
 
 ## LOC Volume Tracking
 
-Repo-context can measure and enforce source-volume targets without leaving the local repo. Configure path-scoped targets in `docs/config/repo-context.loc.json`, then use `ctx loc` for measurement and `ctx loc check` as a validation gate.
+CTX Aide can measure and enforce source-volume targets without leaving the local repo. Configure path-scoped targets in `docs/config/ctx-aide.loc.json`, then use `ctx-aide loc` for measurement and `ctx-aide loc check` as a validation gate.
 
 ```sh
-node tools/context/ctx.mjs loc --repo . --json
-node tools/context/ctx.mjs loc check --repo . --target-id repo-context-source --json
-node tools/context/ctx.mjs loc check --repo . --path tools/context --max-lines 25000 --json
+node tools/ctx-aide/ctx-aide.mjs loc --repo . --json
+node tools/ctx-aide/ctx-aide.mjs loc check --repo . --target-id ctx-aide-source --json
+node tools/ctx-aide/ctx-aide.mjs loc check --repo . --path tools/ctx-aide --max-lines 25000 --json
 ```
 
 The default scan excludes generated context packs, VCS directories, dependency folders, and common build outputs. Targets can compare `nonblank_lines` or `total_lines` across the whole repo or selected path prefixes.
 
 ## Agent Capability Policy
 
-Repo-context can describe the agent tools, connectors, and skills a repo expects agents to use. This is repo-local policy, not live host-runtime enforcement: it tells agents what is allowed before they choose a tool, but it does not authenticate connectors or prove that a Codex/Claude session actually has the tool loaded.
+CTX Aide can describe the agent tools, connectors, and skills a repo expects agents to use. This is repo-local policy, not live host-runtime enforcement: it tells agents what is allowed before they choose a tool, but it does not authenticate connectors or prove that a Codex/Claude session actually has the tool loaded.
 
-Use `docs/config/repo-context.tools.json` for global and workflow-step allow/deny rules:
+Use `docs/config/ctx-aide.tools.json` for global and workflow-step allow/deny rules:
 
 ```json
 {
   "config_version": 1,
   "global": {
-    "allow": ["tool.ctx", "tool.semble", "tool.shell", "skill.repo-context"],
+    "allow": ["tool.ctx-aide", "tool.semble", "tool.shell", "skill.ctx-aide"],
     "deny": ["app.gmail", "app.google-drive", "tool.computer-use"]
   },
   "workflows": {
@@ -327,39 +326,39 @@ Policy rules:
 
 - Deny wins over allow at every layer.
 - Allowlists are restrictive when at least one allow entry applies after global, workflow, and step policy are combined.
-- Unknown capability ids fail `ctx lint` unless they use the `custom.*` namespace.
-- `ctx lint` and `ctx doctor` validate malformed JSON, same-layer allow/deny overlaps, unknown workflow ids, and invalid capability references.
+- Unknown capability ids fail `ctx-aide lint` unless they use the `custom.*` namespace.
+- `ctx-aide lint` and `ctx-aide doctor` validate malformed JSON, same-layer allow/deny overlaps, unknown workflow ids, and invalid capability references.
 
 Useful commands:
 
 ```sh
-node tools/context/ctx.mjs tools list --json
-node tools/context/ctx.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
-node tools/context/ctx.mjs tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
+node tools/ctx-aide/ctx-aide.mjs tools list --json
+node tools/ctx-aide/ctx-aide.mjs tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
+node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json
 ```
 
 ## Target Adoption Preflight
 
-Before using repo-context on a production repository, inspect the target state without mutating it:
+Before using ctx-aide on a production repository, inspect the target state without mutating it:
 
 ```sh
-node /path/to/repo-context/tools/context/ctx.mjs adoption status --repo /path/to/target --profile auto --json
-node /path/to/repo-context/tools/context/ctx.mjs adoption bootstrap --repo /path/to/target --profile auto --json
-node /path/to/repo-context/tools/context/ctx.mjs adoption pack --repo /path/to/target --title "<pack>" --slug <pack-slug> --json
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption status --repo /path/to/target --profile auto --json
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption bootstrap --repo /path/to/target --profile auto --json
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption pack --repo /path/to/target --title "<pack>" --slug <pack-slug> --json
 ```
 
-`adoption bootstrap --write` seeds both `docs/config/repo-context.profile.json` and `docs/config/repo-context.tools.json` in the target repo. `adoption status` treats a missing or invalid tools policy as a blocker, but it remains read-only and does not probe live connector auth.
+`adoption bootstrap --write` seeds both `docs/config/ctx-aide.profile.json` and `docs/config/ctx-aide.tools.json` in the target repo. `adoption status` treats a missing or invalid tools policy as a blocker, but it remains read-only and does not probe live connector auth.
 
 For directory-pack repositories such as Astrotechne, create tickets with the pack slug so generated work stays inside the packet:
 
 ```sh
-node /path/to/repo-context/tools/context/ctx.mjs adoption ticket --repo /path/to/target --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --write --json
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption ticket --repo /path/to/target --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --write --json
 ```
 
 Generated tickets can also pin capability policy context:
 
 ```sh
-node /path/to/repo-context/tools/context/ctx.mjs adoption ticket \
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption ticket \
   --repo /path/to/target \
   --pack <pack-id> \
   --pack-slug <pack-slug> \
@@ -376,15 +375,15 @@ node /path/to/repo-context/tools/context/ctx.mjs adoption ticket \
 Before implementation, load the plan and follow the returned `capability_policy` envelope:
 
 ```sh
-node /path/to/repo-context/tools/context/ctx.mjs adoption implementation-plan --repo /path/to/target --ticket <ticket.md> --json
-node /path/to/repo-context/tools/context/ctx.mjs tools check --repo /path/to/target --workflow <workflow-id> --step <step-id> --capability <capability-id> --json
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption implementation-plan --repo /path/to/target --ticket <ticket.md> --json
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs tools check --repo /path/to/target --workflow <workflow-id> --step <step-id> --capability <capability-id> --json
 ```
 
-`implementation-plan` shows effective allow/deny policy and required capability decisions, but it does not fail only because a required capability is denied. Use `ctx tools check` as the failing guard before choosing a high-risk tool or connector.
+`implementation-plan` shows effective allow/deny policy and required capability decisions, but it does not fail only because a required capability is denied. Use `ctx-aide tools check` as the failing guard before choosing a high-risk tool or connector.
 
 ## Agent Operating Rules
 
-Repo-context should preserve the daily operating rules that make agent work reviewable and parallelizable.
+CTX Aide should preserve the daily operating rules that make agent work reviewable and parallelizable.
 
 - Plan work for parallel execution where practical. Use ticket packs, parallel groups, subagents, and worktrees when the work can be isolated cleanly.
 - Use markdown specs, tickets, and ticket packs for implementation planning. A completed ticket should have one clean commit, completion metadata, and validation evidence.
@@ -460,13 +459,13 @@ Future work statuses:
 Useful command surface:
 
 ```bash
-ctx future capture --title "..." --source user --json
-ctx future list --status captured --json
-ctx future promote <future-id> --to spec --json
-node tools/context/ctx.mjs future check --json
+ctx-aide future capture --title "..." --source user --json
+ctx-aide future list --status captured --json
+ctx-aide future promote <future-id> --to spec --json
+node tools/ctx-aide/ctx-aide.mjs future check --json
 ```
 
-For now, `node tools/context/ctx.mjs future check --json` validates future-work files. Capture and promote are documented future commands.
+For now, `node tools/ctx-aide/ctx-aide.mjs future check --json` validates future-work files. Capture and promote are documented future commands.
 
 ## Spec Format
 
@@ -507,7 +506,7 @@ State the user-visible or operator-visible outcome.
 
 ## Existing Context
 
-Generated by `ctx query` and manually refined by the spec agent.
+Generated by `ctx-aide query` and manually refined by the spec agent.
 
 ## Product Decisions
 
@@ -649,7 +648,7 @@ Rule polarity:
 
 - `positive_rules` describe what agents should prefer, reuse, preserve, or do.
 - `negative_rules` describe what agents must avoid, not create, not change, or escalate before doing.
-- Agent packs, ticket hydration, and `ctx query` must preserve rule polarity instead of flattening everything into generic guidance.
+- Agent packs, ticket hydration, and `ctx-aide query` must preserve rule polarity instead of flattening everything into generic guidance.
 - Negative rules should be treated as constraints. If a ticket appears to require violating one, the implementation agent should stop and escalate unless the ticket explicitly supersedes the rule.
 - Positive rules should be ranked as guidance and reuse preference, not as unconditional requirements.
 
@@ -661,15 +660,15 @@ Rules should be programmatically enforceable whenever practical. Use "axiom" for
 axioms:
   - id: axiom.markdown-source-of-truth
     statement: Markdown files are the canonical authoring surface; SQLite is generated.
-    check: ctx lint --assert markdown-source-of-truth --json
+    check: ctx-aide lint --assert markdown-source-of-truth --json
     severity: error
   - id: axiom.ticket-done-requires-commit
     statement: A done ticket must include commit hash and verification evidence.
-    check: ctx ticket check --assert done-has-evidence --json
+    check: ctx-aide ticket check --assert done-has-evidence --json
     severity: error
   - id: axiom.negative-rules-preserved
     statement: Negative rules must remain separate in query, hydration, and agent-pack output.
-    check: ctx lint --assert rule-polarity --json
+    check: ctx-aide lint --assert rule-polarity --json
     severity: error
 ```
 
@@ -726,7 +725,7 @@ Future chart-step refactors may reintroduce CTA-first language.
 
 ## SQLite Index
 
-SQLite exists to make lookup fast and deterministic for agents. It should be generated from markdown by `ctx scan`.
+SQLite exists to make lookup fast and deterministic for agents. It should be generated from markdown by `ctx-aide scan`.
 
 Minimum tables:
 
@@ -789,7 +788,7 @@ create virtual table context_fts using fts5(
 
 ## Agent Loading Algorithm
 
-`ctx query` should rank context in this order:
+`ctx-aide query` should rank context in this order:
 
 1. Exact path or route matches.
 2. Directory ancestors from most specific to least specific.
@@ -806,7 +805,7 @@ The CLI should return both concise summaries and file pointers so the agent can 
 Example:
 
 ```bash
-ctx query \
+ctx-aide query \
   --path app/reports/generate/page.tsx \
   --task "fix chart selection regression" \
   --agent codex \
@@ -819,44 +818,44 @@ ctx query \
 The CLI should be non-interactive and agent-native.
 
 ```bash
-node tools/context/ctx.mjs lint --json
-node tools/context/ctx.mjs doctor --json
-node tools/context/ctx.mjs discover --backend semble --task "save report chart selection" --repo . --json
-ctx init --json
-ctx scan --json
-ctx query --path <path> --task <text> --agent codex --budget 6000 --json
-ctx feedback add --scope route:/reports/generate --title "..." --status proposed --json
-ctx feedback resolve <feedback-id> --ticket <ticket-id> --json
-ctx spec create --from-description <file-or-stdin> --json
-ctx spec questions docs/specs/SPEC.md --json
-ctx spec harden docs/specs/SPEC.md --lenses architecture,design,security,best-practices,testing --json
-ctx spec tickets docs/specs/SPEC.md --out docs/tickets/draft --json
-ctx pack create --from-spec docs/specs/SPEC.md --json
-ctx pack check --json
-ctx pack status <pack-id> --json
-ctx ticket create --from-feedback <feedback-id> --json
-ctx ticket hydrate docs/tickets/draft/TICKET.md --agent codex --json
-ctx ticket harden docs/tickets/draft/TICKET.md --json
-ctx components list --json
-ctx components get component.Button --json
-ctx impact --path components/ui/button.tsx --json
-ctx dependency audit --repo . --command "pnpm audit --prod" --out docs/context/generated/dependency-audit.json --json
-ctx workflow deps --workflow workflow.browser-validation --repo . --json
-ctx workflow deps --workflow workflow.browser-validation --repo . --write --json
-ctx workflow views --workflow workflow.browser-validation --repo . --json
-ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json
-ctx workflow deps --workflow workflow.pull-request-review --repo . --json
-ctx tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
-ctx pr preflight --repo . --pr 123 --json
-ctx credentials check --profile browser-test-user --repo . --json
-ctx credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json
-ctx adoption bootstrap --repo /path/to/app --profile wetware --write --json
-ctx adoption context --repo /path/to/app --kind flow --title "Dependency Audit Clearance" --path package.json --task "dependency audit" --write --json
-ctx adoption ticket --repo /path/to/app --title "Clear Dependency Audit" --task "dependency audit" --context flow.dependency-audit-clearance --write --json
-ctx adoption implementation-plan --repo /path/to/app --ticket docs/tickets/clear-dependency-audit.md --json
-ctx export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json
-ctx export-agent --agent claude --out docs/context/generated/agent-pack.claude.md --json
-ctx export-agent --agent cursor --out .cursor/rules/generated/repo-context.mdc --json
+node tools/ctx-aide/ctx-aide.mjs lint --json
+node tools/ctx-aide/ctx-aide.mjs doctor --json
+node tools/ctx-aide/ctx-aide.mjs discover --backend semble --task "save report chart selection" --repo . --json
+ctx-aide init --json
+ctx-aide scan --json
+ctx-aide query --path <path> --task <text> --agent codex --budget 6000 --json
+ctx-aide feedback add --scope route:/reports/generate --title "..." --status proposed --json
+ctx-aide feedback resolve <feedback-id> --ticket <ticket-id> --json
+ctx-aide spec create --from-description <file-or-stdin> --json
+ctx-aide spec questions docs/specs/SPEC.md --json
+ctx-aide spec harden docs/specs/SPEC.md --lenses architecture,design,security,best-practices,testing --json
+ctx-aide spec tickets docs/specs/SPEC.md --out docs/tickets/draft --json
+ctx-aide pack create --from-spec docs/specs/SPEC.md --json
+ctx-aide pack check --json
+ctx-aide pack status <pack-id> --json
+ctx-aide ticket create --from-feedback <feedback-id> --json
+ctx-aide ticket hydrate docs/tickets/draft/TICKET.md --agent codex --json
+ctx-aide ticket harden docs/tickets/draft/TICKET.md --json
+ctx-aide components list --json
+ctx-aide components get component.Button --json
+ctx-aide impact --path components/ui/button.tsx --json
+ctx-aide dependency audit --repo . --command "pnpm audit --prod" --out docs/context/generated/dependency-audit.json --json
+ctx-aide workflow deps --workflow workflow.browser-validation --repo . --json
+ctx-aide workflow deps --workflow workflow.browser-validation --repo . --write --json
+ctx-aide workflow views --workflow workflow.browser-validation --repo . --json
+ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo . --json
+ctx-aide workflow deps --workflow workflow.pull-request-review --repo . --json
+ctx-aide tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
+ctx-aide pr preflight --repo . --pr 123 --json
+ctx-aide credentials check --profile browser-test-user --repo . --json
+ctx-aide credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json
+ctx-aide adoption bootstrap --repo /path/to/app --profile wetware --write --json
+ctx-aide adoption context --repo /path/to/app --kind flow --title "Dependency Audit Clearance" --path package.json --task "dependency audit" --write --json
+ctx-aide adoption ticket --repo /path/to/app --title "Clear Dependency Audit" --task "dependency audit" --context flow.dependency-audit-clearance --write --json
+ctx-aide adoption implementation-plan --repo /path/to/app --ticket docs/tickets/clear-dependency-audit.md --json
+ctx-aide export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json
+ctx-aide export-agent --agent claude --out docs/context/generated/agent-pack.claude.md --json
+ctx-aide export-agent --agent cursor --out .cursor/rules/generated/ctx-aide.mdc --json
 ```
 
 Output rules:
@@ -874,20 +873,20 @@ Ticket hydration returns a bounded context snapshot for a ticket's scoped paths,
 
 ### Adoption Lifecycle Commands
 
-Use the `adoption` commands when repo-context is managing another repo's daily workflow without replacing that repo's existing ticket system.
+Use the `adoption` commands when ctx-aide is managing another repo's daily workflow without replacing that repo's existing ticket system.
 
 ```bash
-node /path/to/repo-context/tools/context/ctx.mjs adoption bootstrap \
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption bootstrap \
   --repo /path/to/app \
   --profile wetware \
   --write \
   --json
 ```
 
-`adoption bootstrap` creates only repo-local scaffolding: `docs/context`, `docs/config/repo-context.profile.json`, specs, ticket packs, workflows, and the detected or configured ticket root. It does not overwrite existing files unless `--force` is passed. Without `--write`, it returns the planned changes.
+`adoption bootstrap` creates only repo-local scaffolding: `docs/context`, `docs/config/ctx-aide.profile.json`, specs, ticket packs, workflows, and the detected or configured ticket root. It does not overwrite existing files unless `--force` is passed. Without `--write`, it returns the planned changes.
 
 ```bash
-node /path/to/repo-context/tools/context/ctx.mjs adoption context \
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption context \
   --repo /path/to/app \
   --kind flow \
   --title "Dependency Audit Clearance" \
@@ -903,7 +902,7 @@ node /path/to/repo-context/tools/context/ctx.mjs adoption context \
 `adoption context` writes a scoped context entry that can be loaded later by id, matching path, or matching task terms. Positive and negative rules stay separate.
 
 ```bash
-node /path/to/repo-context/tools/context/ctx.mjs adoption ticket \
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption ticket \
   --repo /path/to/app \
   --profile wetware \
   --title "Clear Dependency Audit" \
@@ -911,7 +910,7 @@ node /path/to/repo-context/tools/context/ctx.mjs adoption ticket \
   --work-type dependency-upgrade \
   --context flow.dependency-audit-clearance \
   --file package.json,pnpm-lock.yaml \
-  --validation "ctx dependency audit --repo . --command 'pnpm audit --prod' --json" \
+  --validation "ctx-aide dependency audit --repo . --command 'pnpm audit --prod' --json" \
   --write \
   --json
 ```
@@ -919,7 +918,7 @@ node /path/to/repo-context/tools/context/ctx.mjs adoption ticket \
 `adoption ticket` creates a full-fat implementation ticket in the target repo's configured ticket root. The ticket explicitly tells implementers to run an implementation plan before coding.
 
 ```bash
-node /path/to/repo-context/tools/context/ctx.mjs adoption implementation-plan \
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption implementation-plan \
   --repo /path/to/app \
   --ticket docs/tickets/clear-dependency-audit.md \
   --json
@@ -929,18 +928,18 @@ node /path/to/repo-context/tools/context/ctx.mjs adoption implementation-plan \
 
 Built-in profiles:
 
-- `default`: use `docs/tickets`, detected package manager, and repo-context-style tickets.
+- `default`: use `docs/tickets`, detected package manager, and ctx-aide-style tickets.
 - `wetware`: preserve flat `docs/tickets` markdown and pnpm validation conventions.
 - `astrotechne`: preserve `docs/domain-redesign/tickets`, use `npm run tickets:status`, `npx biome check`, and `npm run build` as default validation guidance.
 
 ### Dependency Audit Gate
 
-Dependency work needs a stricter closeout than ordinary implementation work. A ticket that updates dependency manifests may complete code changes while the production audit is still red. Repo-context treats those as different states.
+Dependency work needs a stricter closeout than ordinary implementation work. A ticket that updates dependency manifests may complete code changes while the production audit is still red. CTX Aide treats those as different states.
 
-Use `ctx dependency audit` to capture bounded, parseable evidence:
+Use `ctx-aide dependency audit` to capture bounded, parseable evidence:
 
 ```bash
-node tools/context/ctx.mjs dependency audit \
+node tools/ctx-aide/ctx-aide.mjs dependency audit \
   --repo /path/to/app \
   --command "pnpm audit --prod" \
   --out docs/context/generated/dependency-audit.json \
@@ -961,7 +960,7 @@ completion:
   dependency_audit_checked_at: null
 ```
 
-When a `work_type: dependency-upgrade` or `work_type: dependency-sweep` ticket is marked `done`, `ctx ticket check` requires:
+When a `work_type: dependency-upgrade` or `work_type: dependency-sweep` ticket is marked `done`, `ctx-aide ticket check` requires:
 
 - `completion.dependency_audit: cleared`
 - `completion.dependency_audit_command`
@@ -971,12 +970,12 @@ This prevents agents from marking "dependency sweep findings implemented" as equ
 
 ### Workflow Dependency Management
 
-Workflow dependencies are declared in markdown workflow files under `docs/workflows/`. Repo-context can check a target repo for required workflow dependencies and, when package pins are known, write exact package pins into `package.json`.
+Workflow dependencies are declared in markdown workflow files under `docs/workflows/`. CTX Aide can check a target repo for required workflow dependencies and, when package pins are known, write exact package pins into `package.json`.
 
 Browser validation uses `workflow.browser-validation`:
 
 ```bash
-node tools/context/ctx.mjs workflow deps \
+node tools/ctx-aide/ctx-aide.mjs workflow deps \
   --workflow workflow.browser-validation \
   --repo /path/to/app \
   --json
@@ -985,7 +984,7 @@ node tools/context/ctx.mjs workflow deps \
 If the repo is missing the pinned Playwright dependency, run:
 
 ```bash
-node tools/context/ctx.mjs workflow deps \
+node tools/ctx-aide/ctx-aide.mjs workflow deps \
   --workflow workflow.browser-validation \
   --repo /path/to/app \
   --write \
@@ -999,12 +998,12 @@ Codex native browser plugins are treated as optional external runtime tools. The
 Pull request review uses `workflow.pull-request-review`:
 
 ```bash
-node tools/context/ctx.mjs workflow deps \
+node tools/ctx-aide/ctx-aide.mjs workflow deps \
   --workflow workflow.pull-request-review \
   --repo /path/to/app \
   --json
 
-node tools/context/ctx.mjs tools check \
+node tools/ctx-aide/ctx-aide.mjs tools check \
   --workflow workflow.pull-request-review \
   --step pr-review \
   --capability tool.shell \
@@ -1016,7 +1015,7 @@ This workflow is command-line first: agents inspect local state with `git`, insp
 Run PR preflight before comments, pushes, or merges:
 
 ```bash
-node tools/context/ctx.mjs pr preflight \
+node tools/ctx-aide/ctx-aide.mjs pr preflight \
   --repo /path/to/app \
   --pr 123 \
   --json
@@ -1036,13 +1035,13 @@ Browser validation has default breakpoints and runtime behavior so target repos 
 Generate the view-by-breakpoint matrix with:
 
 ```bash
-node tools/context/ctx.mjs workflow validation-plan \
+node tools/ctx-aide/ctx-aide.mjs workflow validation-plan \
   --workflow workflow.browser-validation \
   --repo /path/to/app \
   --json
 ```
 
-Target repos can override the matrix, test runner, screenshot location, CI gates, and deploy policy in `docs/config/repo-context.validation.json`:
+Target repos can override the matrix, test runner, screenshot location, CI gates, and deploy policy in `docs/config/ctx-aide.validation.json`:
 
 ```json
 {
@@ -1062,13 +1061,13 @@ Target repos can override the matrix, test runner, screenshot location, CI gates
         "retries": { "local": 0, "ci": 2 }
       },
       "screenshots": {
-        "output_dir": ".repo-context/artifacts/screenshots",
+        "output_dir": ".ctx-aide/artifacts/screenshots",
         "filename_template": "{workflow}/{view}/{breakpoint}.png"
       },
       "ci": {
         "provider": "auto",
         "required_gates": ["workflow-deps", "workflow-views", "workflow-validation-plan", "test-runner"],
-        "artifact_paths": [".repo-context/artifacts/screenshots", "playwright-report", "test-results"],
+        "artifact_paths": [".ctx-aide/artifacts/screenshots", "playwright-report", "test-results"],
         "block_deploy_on_failure": true
       },
       "deploy": {
@@ -1094,7 +1093,7 @@ Browser workflows need to distinguish signed-out and signed-in validation. `work
 Check view readiness with:
 
 ```bash
-node tools/context/ctx.mjs workflow views \
+node tools/ctx-aide/ctx-aide.mjs workflow views \
   --workflow workflow.browser-validation \
   --repo /path/to/app \
   --json
@@ -1103,7 +1102,7 @@ node tools/context/ctx.mjs workflow views \
 Check a credential profile without printing secret values:
 
 ```bash
-node tools/context/ctx.mjs credentials check \
+node tools/ctx-aide/ctx-aide.mjs credentials check \
   --profile browser-test-user \
   --repo /path/to/app \
   --json
@@ -1112,13 +1111,13 @@ node tools/context/ctx.mjs credentials check \
 The default `browser-test-user` profile can be satisfied by:
 
 - `BROWSER_TEST_EMAIL` and `BROWSER_TEST_PASSWORD` in the environment.
-- `.repo-context/credentials/browser-test-user.env` in the target repo.
-- `.repo-context/browser/browser-test-user.storage-state.json` in the target repo.
+- `.ctx-aide/credentials/browser-test-user.env` in the target repo.
+- `.ctx-aide/browser/browser-test-user.storage-state.json` in the target repo.
 
 To copy an authenticated browser session into the target repo, first export a Playwright-compatible storage-state JSON file from the browser/tooling session, then import it:
 
 ```bash
-node tools/context/ctx.mjs credentials import-browser-state \
+node tools/ctx-aide/ctx-aide.mjs credentials import-browser-state \
   --profile browser-test-user \
   --from /path/to/storage-state.json \
   --repo /path/to/app \
@@ -1126,7 +1125,7 @@ node tools/context/ctx.mjs credentials import-browser-state \
   --json
 ```
 
-The import command validates the JSON shape and copies it to the profile's storage-state path. Output is redacted and only includes counts and paths. Repo-context does not scrape browser password stores. Target repos should keep `.repo-context/` untracked because storage-state files can contain live session cookies.
+The import command validates the JSON shape and copies it to the profile's storage-state path. Output is redacted and only includes counts and paths. CTX Aide does not scrape browser password stores. Target repos should keep `.ctx-aide/` untracked because storage-state files can contain live session cookies.
 
 ## Daily Commands
 
@@ -1135,26 +1134,26 @@ Use these commands while shaping or implementing tickets:
 ```bash
 make validate
 make smoke
-make ctx-scan
-make ctx-query-smoke
-make ctx-doctor
+make ctx-aide-scan
+make ctx-aide-query-smoke
+make ctx-aide-doctor
 make install-skill
 ```
 
-`make validate` is the default pre-commit check. `make smoke` adds scan, query, and doctor checks. `make install-skill` installs the local Codex skill into `~/.codex/skills/repo-context` after validating it.
+`make validate` is the default pre-commit check. `make smoke` adds scan, query, and doctor checks. `make install-skill` installs the local Codex skill into `~/.codex/skills/ctx-aide` after validating it.
 
 ### Semble Discovery
 
 Use Semble as the default semantic code-discovery backend when target files are unknown. Keep discovery bounded and feed the results into context queries, ticket hydration, and implementation notes.
 
 ```bash
-node tools/context/ctx.mjs discover --backend semble --task "fix chart selection flow" --repo . --json
-node tools/context/ctx.mjs discover --backend ripgrep --task "ChartStep" --repo . --json
-node tools/context/ctx.mjs discover --backend none --task "known path only" --repo . --json
-node tools/context/ctx.mjs discover --backend semble --task "auth flow" --repo . --out docs/context/generated/discovery.auth.json --json
+node tools/ctx-aide/ctx-aide.mjs discover --backend semble --task "fix chart selection flow" --repo . --json
+node tools/ctx-aide/ctx-aide.mjs discover --backend ripgrep --task "ChartStep" --repo . --json
+node tools/ctx-aide/ctx-aide.mjs discover --backend none --task "known path only" --repo . --json
+node tools/ctx-aide/ctx-aide.mjs discover --backend semble --task "auth flow" --repo . --out docs/context/generated/discovery.auth.json --json
 ```
 
-Discovery output should be bounded and should feed `ctx query` and ticket hydration. It should store the query, backend, file path, line, and short reason, not large code excerpts. Semble is not product truth; agents must inspect files before editing.
+Discovery output should be bounded and should feed `ctx-aide query` and ticket hydration. It should store the query, backend, file path, line, and short reason, not large code excerpts. Semble is not product truth; agents must inspect files before editing.
 
 ## Agent Integration
 
@@ -1163,12 +1162,12 @@ Discovery output should be bounded and should feed `ctx query` and ticket hydrat
 `AGENTS.md` should contain a short bootstrap block:
 
 ```markdown
-## Repo Context
+## CTX Aide
 
 Before creating or implementing tickets, run:
 
-`ctx scan --json`
-`ctx query --path <changed-or-target-file> --task "<task>" --agent codex --budget 6000 --json`
+`ctx-aide scan --json`
+`ctx-aide query --path <changed-or-target-file> --task "<task>" --agent codex --budget 6000 --json`
 
 Use returned context ids to hydrate tickets and implementation notes. If context conflicts with code, inspect code and update the markdown context in the same ticket when the new behavior is intentional.
 ```
@@ -1188,7 +1187,7 @@ Claude should be treated as a high-effort planning and audit partner, especially
 Cursor should receive generated `.mdc` rules:
 
 ```text
-.cursor/rules/generated/repo-context.mdc
+.cursor/rules/generated/ctx-aide.mdc
 .cursor/rules/generated/components.mdc
 .cursor/rules/generated/feedback.mdc
 ```
@@ -1197,14 +1196,14 @@ Cursor rules should be stable summaries, not the whole database. The CLI remains
 
 ## Idvisor Plugin Fit
 
-This system is a strong fit for an Idvisor plugin or workflow pack, but it should not start by moving all repo-context truth into Idvisor. The repo should remain the source of truth for markdown specs, tickets, ticket packs, feedback, context entries, and component catalog entries. Idvisor should orchestrate, index, validate, dispatch, and audit the workflow.
+This system is a strong fit for an Idvisor plugin or workflow pack, but it should not start by moving all ctx-aide truth into Idvisor. The repo should remain the source of truth for markdown specs, tickets, ticket packs, feedback, context entries, and component catalog entries. Idvisor should orchestrate, index, validate, dispatch, and audit the workflow.
 
 Recommended shape:
 
 - Keep `docs/context/`, `docs/specs/`, `docs/tickets/`, and `docs/ticket-packs/` in the target app repo.
-- Provide an Idvisor plugin that registers a repo-context workflow template: describe, spec, questions, hardening, ticket generation, ticket hardening, implementation, validation, progress report.
+- Provide an Idvisor plugin that registers a ctx-aide workflow template: describe, spec, questions, hardening, ticket generation, ticket hardening, implementation, validation, progress report.
 - Let Idvisor track workflow runs, gates, review passes, queue items, feedback records, and progress reports through its existing SQLite-first event/runtime model.
-- Expose `ctx` as a governed local tool or MCP capability rather than rewriting the CLI inside Idvisor on day one.
+- Expose `ctx-aide` as a governed local tool or MCP capability rather than rewriting the CLI inside Idvisor on day one.
 - Use Idvisor's Codex and Claude harnesses to assign high-effort planning/review steps and Codex implementation steps.
 - Use Idvisor workflow gates to prevent implementation before spec and ticket hardening pass.
 - Use Idvisor progress reports to summarize pack status, completed commits, validation evidence, and blocked tickets.
@@ -1219,16 +1218,16 @@ This gives Idvisor a concrete product workflow without making Idvisor app-specif
 Possible plugin command surface:
 
 ```bash
-idv repo-context init --repo <path> --json
-idv repo-context scan --repo <path> --json
-idv repo-context spec start --repo <path> --description <file> --json
-idv repo-context spec harden --repo <path> --spec <spec-id> --agents codex,claude --json
-idv repo-context pack create --repo <path> --spec <spec-id> --json
-idv repo-context pack status --repo <path> --pack <pack-id> --json
-idv repo-context dispatch --repo <path> --pack <pack-id> --parallel --json
+idv ctx-aide init --repo <path> --json
+idv ctx-aide scan --repo <path> --json
+idv ctx-aide spec start --repo <path> --description <file> --json
+idv ctx-aide spec harden --repo <path> --spec <spec-id> --agents codex,claude --json
+idv ctx-aide pack create --repo <path> --spec <spec-id> --json
+idv ctx-aide pack status --repo <path> --pack <pack-id> --json
+idv ctx-aide dispatch --repo <path> --pack <pack-id> --parallel --json
 ```
 
-The first implementation should probably be thin: Idvisor calls `ctx` and records events. Later, if the pattern proves stable, shared schema/types can move into an Idvisor crate or plugin SDK.
+The first implementation should probably be thin: Idvisor calls `ctx-aide` and records events. Later, if the pattern proves stable, shared schema/types can move into an Idvisor crate or plugin SDK.
 
 Idvisor-specific gates:
 
@@ -1427,29 +1426,29 @@ Milestone runs should be local, resumable, and cheap to inspect. For a pure mark
 
 ```markdown
 ---
-id: run.2026-06-25.repo-context-mvp.001
+id: run.2026-06-25.ctx-aide-mvp.001
 kind: milestone-run
 status: active
-ticket_pack: pack.repo-context-mvp
+ticket_pack: pack.ctx-aide-mvp
 started_at: 2026-06-25T09:00:00-06:00
 updated_at: 2026-06-25T10:15:00-06:00
 coordinator: codex-high-effort
 max_parallel_agents: 4
 stale_after_minutes: 20
-worktree_root: ../.worktrees/repo-context-mvp
+worktree_root: ../.worktrees/ctx-aide-mvp
 agents:
   - agent_id: codex-a
     status: active
     ticket: ticket.context.002
-    worktree: ../.worktrees/repo-context-mvp/codex-a
-    branch: ctx/ticket-context-002
+    worktree: ../.worktrees/ctx-aide-mvp/codex-a
+    branch: ctx-aide/ticket-context-002
     lease_expires_at: 2026-06-25T10:35:00-06:00
     last_heartbeat_at: 2026-06-25T10:15:00-06:00
   - agent_id: codex-b
     status: stale
     ticket: ticket.context.004
-    worktree: ../.worktrees/repo-context-mvp/codex-b
-    branch: ctx/ticket-context-004
+    worktree: ../.worktrees/ctx-aide-mvp/codex-b
+    branch: ctx-aide/ticket-context-004
     lease_expires_at: 2026-06-25T09:50:00-06:00
     last_heartbeat_at: 2026-06-25T09:30:00-06:00
 merge_queue:
@@ -1458,7 +1457,7 @@ blocked_tickets: []
 completed_tickets: []
 ---
 
-# Repo Context MVP Run
+# CTX Aide MVP Run
 
 ## Current State
 
@@ -1517,33 +1516,33 @@ Long-run orchestration rules:
 Useful command surface:
 
 ```bash
-ctx run start --pack <pack-id> --max-parallel 4 --json
-ctx run status <run-id> --json
-ctx run assign <run-id> --ticket <ticket-id> --agent codex --json
-ctx run heartbeat <run-id> --agent <agent-id> --ticket <ticket-id> --json
-ctx run stale <run-id> --json
-ctx run recover <run-id> --agent <agent-id> --json
-ctx run requeue <run-id> --ticket <ticket-id> --reason "..." --json
-ctx run merge-next <run-id> --json
-ctx run validate <run-id> --json
-ctx run finish <run-id> --json
+ctx-aide run start --pack <pack-id> --max-parallel 4 --json
+ctx-aide run status <run-id> --json
+ctx-aide run assign <run-id> --ticket <ticket-id> --agent codex --json
+ctx-aide run heartbeat <run-id> --agent <agent-id> --ticket <ticket-id> --json
+ctx-aide run stale <run-id> --json
+ctx-aide run recover <run-id> --agent <agent-id> --json
+ctx-aide run requeue <run-id> --ticket <ticket-id> --reason "..." --json
+ctx-aide run merge-next <run-id> --json
+ctx-aide run validate <run-id> --json
+ctx-aide run finish <run-id> --json
 ```
 
 Idvisor is the stronger long-run backend once available because it can own heartbeats, queues, leases, events, and dead-agent cleanup as runtime truth. The repo-local markdown form is still useful as an exportable progress artifact and a fallback when Idvisor is not running.
 
 ### Future Customization
 
-Post-v0.1, repo-context should support an agent-driven customization flow. The default workflow should remain conservative and usable without setup, but users should be able to tune optional behavior through a guided skill flow and eventually a CLI dry run.
+Post-v0.1, ctx-aide should support an agent-driven customization flow. The default workflow should remain conservative and usable without setup, but users should be able to tune optional behavior through a guided skill flow and eventually a CLI dry run.
 
 Example future command surface:
 
 ```bash
-ctx customize --profile minimal --dry-run --json
-ctx customize --profile web-app --dry-run --json
-ctx customize --profile ui-heavy --dry-run --json
-ctx customize --profile astrotechne --dry-run --json
-ctx customize --profile idvisor-orchestrated --dry-run --json
-ctx customize --profile strict --dry-run --json
+ctx-aide customize --profile minimal --dry-run --json
+ctx-aide customize --profile web-app --dry-run --json
+ctx-aide customize --profile ui-heavy --dry-run --json
+ctx-aide customize --profile astrotechne --dry-run --json
+ctx-aide customize --profile idvisor-orchestrated --dry-run --json
+ctx-aide customize --profile strict --dry-run --json
 ```
 
 Candidate toggles:
@@ -1568,7 +1567,7 @@ Customization rules:
 
 ### Astrotechne Adoption Profile
 
-Astrotechne should use repo-context as an overlay first, not as a replacement for its existing ticket system.
+Astrotechne should use ctx-aide as an overlay first, not as a replacement for its existing ticket system.
 
 Observed Astrotechne conventions to preserve:
 
@@ -1581,12 +1580,12 @@ Observed Astrotechne conventions to preserve:
 
 Recommended rollout:
 
-1. Add repo-context directories and generated agent packs without moving historical Astrotechne tickets.
+1. Add ctx-aide directories and generated agent packs without moving historical Astrotechne tickets.
 2. Add high-value context entries for the surfaces that most often regress: public copy, chart workspace, report generation, Labs, billing/entitlements, engine-bound timing reports, deploy/runbooks, and design-system primitives.
-3. Configure the `astrotechne` profile so `ctx` preserves the existing ticket root, status vocabulary, and `npm run tickets:status` gate.
+3. Configure the `astrotechne` profile so `ctx-aide` preserves the existing ticket root, status vocabulary, and `npm run tickets:status` gate.
 4. Use Semble discovery to connect new context entries to existing files and packet README examples.
-5. For new work, write repo-context-style specs and hydrated implementation tickets, but let them cite Astrotechne packet READMEs and existing ticket examples as source documents.
-6. For legacy tickets, index them as references unless they are explicitly promoted into new repo-context tickets.
+5. For new work, write ctx-aide-style specs and hydrated implementation tickets, but let them cite Astrotechne packet READMEs and existing ticket examples as source documents.
+6. For legacy tickets, index them as references unless they are explicitly promoted into new ctx-aide tickets.
 7. Keep completion truth strict: implementation tickets need validation evidence, screenshots when UI changes, and one clean commit per completed ticket.
 
 The first Astrotechne pass should be a read-only bootstrap plus context capture. It should not rewrite the historical ticket tree or normalize 1,000+ older markdown files just to satisfy the new schema.
@@ -1622,7 +1621,7 @@ context_query:
 
 ## Context
 
-Generated by `ctx ticket hydrate`.
+Generated by `ctx-aide ticket hydrate`.
 
 ## Positive Rules
 
@@ -1714,7 +1713,7 @@ One concrete outcome this ticket delivers.
 
 ## Context
 
-Generated by `ctx ticket hydrate`; include only the context needed to implement this ticket.
+Generated by `ctx-aide ticket hydrate`; include only the context needed to implement this ticket.
 
 ## Positive Rules
 
@@ -1776,13 +1775,13 @@ Notes for the implementation agent, not new decisions.
 Spec-to-ticket loop:
 
 1. Capture feedback or description as markdown.
-2. Run `ctx scan --json`.
+2. Run `ctx-aide scan --json`.
 3. Create a draft spec.
-4. Run `ctx spec questions` and ask only implementation-changing questions.
+4. Run `ctx-aide spec questions` and ask only implementation-changing questions.
 5. Update the spec with answers and decisions.
-6. Run `ctx spec harden`.
+6. Run `ctx-aide spec harden`.
 7. Create atomic tickets from the hardened spec.
-8. Run `ctx ticket harden` on each ticket.
+8. Run `ctx-aide ticket harden` on each ticket.
 9. Assign tickets to a ticket pack and parallel group.
 10. Mark tickets ready only when Codex can implement without making design decisions.
 
@@ -1792,12 +1791,12 @@ Implementation loop:
 2. Implement the smallest coherent change.
 3. Update context if intentional behavior changed.
 4. Run ticket-defined tests, screenshots, and smoke checks.
-5. Run `ctx lint --json` and project tests.
+5. Run `ctx-aide lint --json` and project tests.
 6. Commit the ticket cleanly.
 
 ## Lint Rules
 
-`ctx lint` should catch:
+`ctx-aide lint` should catch:
 
 - Context entries with missing ids, kind, status, or title.
 - Referenced files that do not exist.
@@ -1823,18 +1822,18 @@ The system reduces regressions by making the local product/design contract query
 Recommended checks in CI:
 
 ```bash
-ctx scan --check --json
-node tools/context/ctx.mjs lint --json
-node tools/context/ctx.mjs ticket check --json
-node tools/context/ctx.mjs pack check --json
-node tools/context/ctx.mjs future check --json
-ctx spec check --json
+ctx-aide scan --check --json
+node tools/ctx-aide/ctx-aide.mjs lint --json
+node tools/ctx-aide/ctx-aide.mjs ticket check --json
+node tools/ctx-aide/ctx-aide.mjs pack check --json
+node tools/ctx-aide/ctx-aide.mjs future check --json
+ctx-aide spec check --json
 ```
 
 Later additions:
 
-- `ctx impact --path <file>` to show affected routes, components, flows, and feedback.
-- `ctx changed-context --base main --json` for PR review.
+- `ctx-aide impact --path <file>` to show affected routes, components, flows, and feedback.
+- `ctx-aide changed-context --base main --json` for PR review.
 - Visual snapshots for component catalog examples.
 - Pull request template section listing relevant context ids.
 - Worktree assignment helpers for parallel ticket execution.

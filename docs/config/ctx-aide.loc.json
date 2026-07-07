@@ -1,7 +1,7 @@
 {
   "config_version": 1,
   "targets": {
-    "repo-context-source": {
+    "ctx-aide-source": {
       "paths": [
         "docs",
         "scripts",
@@ -12,9 +12,9 @@
       "min_lines": 1000,
       "max_lines": 50000
     },
-    "ctx-cli": {
+    "ctx-aide-cli": {
       "paths": [
-        "tools/context"
+        "tools/ctx-aide"
       ],
       "line_kind": "nonblank_lines",
       "max_lines": 25000

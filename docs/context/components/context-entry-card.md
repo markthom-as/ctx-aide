@@ -10,7 +10,7 @@ files:
   - components/context/ContextEntryCard.tsx
 components: []
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - context
   - component-catalog

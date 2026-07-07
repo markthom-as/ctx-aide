@@ -5,7 +5,7 @@ import path from "node:path";
 const REVIEW_STATUSES = ["unreviewed", "approved", "needs_ticket", "needs_followup", "wont_fix"];
 const SEVERITIES = ["P0", "P1", "P2", "P3"];
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp"]);
-const DEFAULT_SCREENSHOT_DIR = ".repo-context/artifacts/screenshots";
+const DEFAULT_SCREENSHOT_DIR = ".ctx-aide/artifacts/screenshots";
 const DEFAULT_ASTRO_RUN_ROOT = "output/playwright/prod-total-coverage";
 export const SCREENSHOT_REVIEW_UI_FEATURE_ID = "screenshot_feedback_review_ui";
 const FEATURE_ALIASES = new Map([
@@ -77,14 +77,14 @@ function readJsonFile(filePath) {
 }
 
 export function repoContextSettingsPath(repoPath) {
-  return path.join(repoPath, "docs/config/repo-context.settings.json");
+  return path.join(repoPath, "docs/config/ctx-aide.settings.json");
 }
 
 export function defaultRepoContextSettings(overrides = {}) {
   const screenshotFeature = overrides.screenshotFeedbackReviewUi ?? {};
   return {
     config_version: 1,
-    generated_by: "repo-context settings",
+    generated_by: "ctx-aide settings",
     features: {
       [SCREENSHOT_REVIEW_UI_FEATURE_ID]: {
         enabled: Boolean(screenshotFeature.enabled),
@@ -538,7 +538,7 @@ export function buildScreenshotReviewState(options = {}) {
 
 function defaultFeedbackFile(state) {
   return {
-    version: "repo-context.screenshot-feedback.v1",
+    version: "ctx-aide.screenshot-feedback.v1",
     sourceDir: repoDisplayPath(state.repoPath, state.sourceDir),
     updatedAt: new Date().toISOString(),
     entries: {},
@@ -549,7 +549,7 @@ export function readFeedback(state) {
   if (!fs.existsSync(state.feedbackPath)) return defaultFeedbackFile(state);
   const parsed = readJsonFile(state.feedbackPath);
   return {
-    version: "repo-context.screenshot-feedback.v1",
+    version: "ctx-aide.screenshot-feedback.v1",
     sourceDir: typeof parsed.sourceDir === "string" ? parsed.sourceDir : repoDisplayPath(state.repoPath, state.sourceDir),
     updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : new Date().toISOString(),
     entries: parsed.entries && typeof parsed.entries === "object" ? parsed.entries : {},
@@ -1128,15 +1128,15 @@ export function screenshotReviewUiCommand(args, options = {}) {
       ok: true,
       scope: "feedback review-ui",
       usage: [
-        "ctx settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
-        "ctx feedback review-ui --repo . [--screenshot-dir .repo-context/artifacts/screenshots] [--port 0]",
-        "ctx feedback review-ui --repo . --run-dir output/playwright/prod-total-coverage/<run> --port 0",
-        "ctx feedback review-ui --repo . --summary output/run/summary.json --port 0",
-        "ctx feedback review-ui --repo . --plan-only --json",
-        "ctx feedback review-ui --repo . --write-drafts --json",
+        "ctx-aide settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
+        "ctx-aide feedback review-ui --repo . [--screenshot-dir .ctx-aide/artifacts/screenshots] [--port 0]",
+        "ctx-aide feedback review-ui --repo . --run-dir output/playwright/prod-total-coverage/<run> --port 0",
+        "ctx-aide feedback review-ui --repo . --summary output/run/summary.json --port 0",
+        "ctx-aide feedback review-ui --repo . --plan-only --json",
+        "ctx-aide feedback review-ui --repo . --write-drafts --json",
       ],
       notes: [
-        "Beta feature: disabled by default in docs/config/repo-context.settings.json.",
+        "Beta feature: disabled by default in docs/config/ctx-aide.settings.json.",
         "Starts a local-only UI on 127.0.0.1.",
         "Ticket markdown is written only after draft confirmation in the UI.",
         "Generated tickets default to docs/tickets/needs-questions.",
@@ -1176,12 +1176,12 @@ export function screenshotReviewUiCommand(args, options = {}) {
         settings_path: repoDisplayPath(repoPath, settingsResult.path),
       },
       blockers: [
-        "screenshot feedback review UI is an optional beta feature and is disabled in repo-context settings",
+        "screenshot feedback review UI is an optional beta feature and is disabled in ctx-aide settings",
       ],
       next_commands: [
-        "ctx adoption bootstrap --repo . --enable-screenshot-feedback-ui --write --json",
-        "ctx settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
-        "ctx feedback review-ui --repo . --allow-beta --json",
+        "ctx-aide adoption bootstrap --repo . --enable-screenshot-feedback-ui --write --json",
+        "ctx-aide settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
+        "ctx-aide feedback review-ui --repo . --allow-beta --json",
       ],
       errors: [
         {

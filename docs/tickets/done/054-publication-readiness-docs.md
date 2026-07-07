@@ -2,9 +2,9 @@
 id: ticket.context.054
 status: done
 title: Harden publication readiness docs
-ticket_pack: pack.repo-context-public-release-2026-07-01
+ticket_pack: pack.ctx-aide-public-release-2026-07-01
 milestones:
-  - milestone.repo-context-public-release
+  - milestone.ctx-aide-public-release
 source_spec: spec.public-release-2026-07-01
 source_feedback: []
 implementation_agent: codex
@@ -30,12 +30,12 @@ scope:
     - docs/ticket-packs/active
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "harden CTX Aide public docs and package readiness for Hacker News level criticism and npm/Cargo publication review"
   generated_at: 2026-07-07
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -45,14 +45,14 @@ validation:
   automated:
     - npm install --package-lock-only --ignore-scripts
     - npm pack --dry-run --json
-    - node --check tools/context/ctx.mjs
-    - node --check tools/context/screenshot-review-ui.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs scan --json
-    - node tools/context/ctx.mjs spec check --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
-    - node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node --check tools/ctx-aide/screenshot-review-ui.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs scan --json
+    - node tools/ctx-aide/ctx-aide.mjs spec check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json
     - make validate
     - make smoke
   smoke: []
@@ -70,7 +70,7 @@ Make the public README and package metadata more credible under outside criticis
 
 ## Context
 
-The project already had public-release README, demo, and safety-audit tickets. This follow-on slice responds to publication-readiness criticism: the README needed clearer purpose/why/setup/config/non-goal framing, and `npm pack --dry-run` showed the package would rely on `.gitignore` fallback while using the taken `repo-context` npm name.
+The project already had public-release README, demo, and safety-audit tickets. This follow-on slice responds to publication-readiness criticism: the README needed clearer purpose/why/setup/config/non-goal framing, and `npm pack --dry-run` showed the package would rely on `.gitignore` fallback while using the taken `ctx-aide` npm name.
 
 ## Positive Rules
 
@@ -95,14 +95,14 @@ The project already had public-release README, demo, and safety-audit tickets. T
 ## Frozen Decisions
 
 - Decision: rename the local package metadata to `ctx-aide`, but keep `private: true`.
-- Rationale: `repo-context` is taken on npm by an unrelated package, while `ctx-aide` is the existing package-facing public name.
+- Rationale: `ctx-aide` is the selected machine-facing name, while package publication still requires owner, license, registry, and launch decisions.
 - Decision: document Cargo publication as blocked instead of adding a Rust crate in this slice.
 - Rationale: publishing to crates.io requires a separate crate-shape decision, not just README copy.
 
 ## Implementation Rules
 
 - Required approach: update README top-level public explanation, add a context-scanned publication readiness note, constrain npm package payload with `files`, update package lock metadata, and keep the public-release pack truthful.
-- Existing components/helpers to use: `ctx` checks, `npm pack --dry-run`, npm registry checks, Cargo search, and the public-release pack.
+- Existing components/helpers to use: `ctx-aide` checks, `npm pack --dry-run`, npm registry checks, Cargo search, and the public-release pack.
 - Anti-patterns to avoid: overclaiming publish readiness, packaging the entire ticket history by accident, or hiding unresolved license/Cargo blockers.
 - Stop and escalate if: publication requires legal, registry-owner, or crate-architecture decisions.
 
@@ -128,7 +128,7 @@ The project already had public-release README, demo, and safety-audit tickets. T
 
 The registry observations were checked on 2026-07-07 and can change. A publishing ticket must repeat them immediately before claiming availability or publishing.
 
-Registry observation evidence for this slice: `npm view ctx-aide name version description --json` returned npm 404, `npm view repo-context name version description --json` returned an unrelated `repo-context@1.0.0`, `cargo search ctx-aide --limit 5` returned no matches, and `cargo search repo-context --limit 5` returned related but non-identical crates.
+Registry observation evidence for this slice: `npm view ctx-aide name version description --json` returned npm 404, `npm view ctx name version description --json` returned an unrelated `ctx@0.3.0`, and `cargo search ctx-aide --limit 5` returned no matches.
 
 ## Completion
 

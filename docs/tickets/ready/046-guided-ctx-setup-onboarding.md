@@ -1,7 +1,7 @@
 ---
 id: ticket.context.046
 status: ready
-title: Add guided ctx setup onboarding
+title: Add guided ctx-aide setup onboarding
 ticket_pack: pack.user-friendly-adoption-onboarding-2026-07-05
 milestones:
   - milestone.user-friendly-adoption-onboarding
@@ -20,15 +20,15 @@ blocks:
 scope:
   routes: []
   files:
-    - tools/context/ctx.mjs
-    - tools/context/ctx.test.mjs
+    - tools/ctx-aide/ctx-aide.mjs
+    - tools/ctx-aide/ctx-aide.test.mjs
     - README.md
   directories: []
   components: []
   flows:
     - workflow.astrotechne-adoption
 context_query:
-  task: "add guided ctx setup onboarding command"
+  task: "add guided ctx-aide setup onboarding command"
   generated_at: 2026-07-05
   context_ids:
     - workflow.astrotechne-adoption
@@ -38,22 +38,22 @@ axioms:
   - axiom.explicit-context-loading
 validation:
   automated:
-    - node --check tools/context/ctx.mjs
-    - node tools/context/ctx.test.mjs
-    - node tools/context/ctx.mjs setup --repo <fixture> --profile auto --no-input --json
+    - node --check tools/ctx-aide/ctx-aide.mjs
+    - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs setup --repo <fixture> --profile auto --no-input --json
   smoke:
-    - node tools/context/ctx.mjs setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
+    - node tools/ctx-aide/ctx-aide.mjs setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
   screenshots: []
 completion:
   commit: pending
   completed_at: null
 ---
 
-# Add Guided Ctx Setup Onboarding
+# Add Guided ctx-aide Setup Onboarding
 
 ## Outcome
 
-Add `ctx setup` as the user-friendly adoption command that detects target state, previews or writes bootstrap changes, and returns next steps.
+Add `ctx-aide setup` as the user-friendly adoption command that detects target state, previews or writes bootstrap changes, and returns next steps.
 
 ## Context
 
@@ -79,8 +79,8 @@ Existing adoption primitives are usable but require several commands. Users shou
 
 ## Frozen Decisions
 
-- Decision: top-level command is `ctx setup`.
-- Rationale: setup is easier for first-time users than `ctx adoption bootstrap`.
+- Decision: top-level command is `ctx-aide setup`.
+- Rationale: setup is easier for first-time users than `ctx-aide adoption bootstrap`.
 - Decision: `--no-input --json` is the required agent mode.
 - Rationale: agents and automations need deterministic behavior.
 - Decision: setup should return the exact low-level commands it ran or recommends.
@@ -95,13 +95,13 @@ Existing adoption primitives are usable but require several commands. Users shou
 
 ## Scope
 
-- In: `ctx setup --repo <target> --profile auto`, `--write`, `--yes`, `--no-input`, `--json`, readable human output, and structured next commands.
+- In: `ctx-aide setup --repo <target> --profile auto`, `--write`, `--yes`, `--no-input`, `--json`, readable human output, and structured next commands.
 - Out: full TUI, package registry publish, target code edits, and automatic test/build execution in target repos.
 
 ## Acceptance Criteria
 
-- `ctx setup --repo <fixture> --profile auto --no-input --json` exits nonzero when setup would require confirmation and reports planned changes.
-- `ctx setup --repo <fixture> --profile auto --write --no-input --json` bootstraps the fixture and is idempotent on rerun.
+- `ctx-aide setup --repo <fixture> --profile auto --no-input --json` exits nonzero when setup would require confirmation and reports planned changes.
+- `ctx-aide setup --repo <fixture> --profile auto --write --no-input --json` bootstraps the fixture and is idempotent on rerun.
 - TTY mode summarizes detected profile, dirty worktree warnings, planned writes, and next commands.
 - JSON mode includes `ok`, `profile`, `status_before`, `changes`, `warnings`, `next_commands`, and `errors`.
 - Detached stdin never hangs.

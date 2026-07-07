@@ -27,12 +27,12 @@ Provide a copy-paste command path for agents running `workflow.pull-request-revi
 
 ```bash
 cd <repo>
-ctx workflow deps --workflow workflow.pull-request-review --repo . --json
-ctx tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
+ctx-aide workflow deps --workflow workflow.pull-request-review --repo . --json
+ctx-aide tools check --workflow workflow.pull-request-review --step pr-review --capability tool.shell --json
 git status --short --branch
 gh auth status
 gh pr view <pr> --json number,title,author,headRefName,baseRefName,url,isDraft,reviewDecision,mergeStateStatus,statusCheckRollup
-ctx pr preflight --repo . --pr <pr> --json
+ctx-aide pr preflight --repo . --pr <pr> --json
 ```
 
 Stop before checkout if `git status --short --branch` shows unrelated local changes that could be staged, overwritten, or confused with PR changes.
@@ -61,7 +61,7 @@ semble search "<behavior under review>" .
 gh pr diff <pr> --patch
 ```
 
-Run the repository's ticket, pack, README, or CI-equivalent validation commands before final feedback. For repo-context itself, use the narrow checks listed on the relevant ticket plus `node tools/context/ctx.test.mjs` when CLI behavior changes.
+Run the repository's ticket, pack, README, or CI-equivalent validation commands before final feedback. For ctx-aide itself, use the narrow checks listed on the relevant ticket plus `node tools/ctx-aide/ctx-aide.test.mjs` when CLI behavior changes.
 
 ## Comment
 
@@ -120,7 +120,7 @@ If status checks are pending or failing, stop unless the ticket records an accep
 Run preflight again before merge:
 
 ```bash
-ctx pr preflight --repo . --pr <pr> --json
+ctx-aide pr preflight --repo . --pr <pr> --json
 ```
 
 ## Merge

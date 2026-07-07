@@ -2,9 +2,9 @@
 id: ticket.context.040
 status: done
 title: Choose and document public name
-ticket_pack: pack.repo-context-public-release-2026-07-01
+ticket_pack: pack.ctx-aide-public-release-2026-07-01
 milestones:
-  - milestone.repo-context-public-release
+  - milestone.ctx-aide-public-release
 source_spec: spec.public-release-2026-07-01
 source_feedback: []
 implementation_agent: codex
@@ -27,21 +27,21 @@ scope:
     - docs/context
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "choose public name for repo-context public release"
   generated_at: 2026-07-01
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.public-name-precedes-public-copy
 validation:
   automated:
-    - node tools/context/ctx.mjs spec check --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs spec check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke: []
   screenshots: []
 completion:
@@ -89,7 +89,7 @@ Choose a public name for repo-context and document the decision so downstream pu
 ## Implementation Rules
 
 - Required approach: create or update a repo-local markdown decision note under `docs/context` or the public-release spec with the chosen name, candidate shortlist, rejected names, and rename implications.
-- Existing components/helpers to use: spec/pack/ticket metadata and `ctx` checks.
+- Existing components/helpers to use: spec/pack/ticket metadata and `ctx-aide` checks.
 - Anti-patterns to avoid: choosing a name only because it sounds good without checking collision risk.
 - Stop and escalate if: the name decision requires legal/trademark review or the user wants a personal brand direction.
 
@@ -106,7 +106,7 @@ Choose a public name for repo-context and document the decision so downstream pu
 
 ## Validation
 
-- Automated: frontmatter `ctx` checks listed above.
+- Automated: frontmatter `ctx-aide` checks listed above.
 - Smoke: no runtime smoke required.
 - Screenshots: none.
 
@@ -118,5 +118,5 @@ Possible name criteria: short, searchable, not over-AI-branded, credible for dev
 
 - Status: done
 - Commit: this commit (`Select CTX Aide public name`)
-- Verification evidence: documented `CTX Aide` as the public display name and `ctx-aide` as the package-facing name in `docs/context/architecture/public-name-decision-2026-07-05.md`; refreshed collision notes for npm, PyPI, crates.io, GitHub, and web-search adjacency on 2026-07-05; `node tools/context/ctx.mjs scan --json`, `node tools/context/ctx.mjs spec check --json`, `node tools/context/ctx.mjs ticket check --json`, and `node tools/context/ctx.mjs pack check --json` passed on 2026-07-05.
+- Verification evidence: documented `CTX Aide` as the public display name and `ctx-aide` as the package-facing name in `docs/context/architecture/public-name-decision-2026-07-05.md`; refreshed collision notes for npm, PyPI, crates.io, GitHub, and web-search adjacency on 2026-07-05; `node tools/ctx-aide/ctx-aide.mjs scan --json`, `node tools/ctx-aide/ctx-aide.mjs spec check --json`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, and `node tools/ctx-aide/ctx-aide.mjs pack check --json` passed on 2026-07-05.
 - Follow-up tickets: none

@@ -5,7 +5,7 @@
   "description": "Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.",
   "type": "module",
   "bin": {
-    "ctx": "./tools/context/ctx.mjs"
+    "ctx-aide": "./tools/ctx-aide/ctx-aide.mjs"
   },
   "files": [
     "AGENTS.md",
@@ -22,8 +22,8 @@
     "docs/tickets/templates/*.md",
     "docs/workflows/*.md",
     "examples/public-release-demo/README.md",
-    "skills/repo-context/**",
-    "tools/context/*.mjs"
+    "skills/ctx-aide/**",
+    "tools/ctx-aide/*.mjs"
   ],
   "keywords": [
     "ai-agents",
@@ -36,7 +36,7 @@
     "validation"
   ],
   "scripts": {
-    "test": "node tools/context/ctx.test.mjs",
+    "test": "node tools/ctx-aide/ctx-aide.test.mjs",
     "validate": "make validate",
     "smoke": "make smoke"
   },

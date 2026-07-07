@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://repo-context.local/schema/context-entry.schema.json",
-  "title": "Repo Context Entry",
+  "$id": "https://ctx-aide.local/schema/context-entry.schema.json",
+  "title": "CTX Aide Entry",
   "type": "object",
   "required": [
     "id",

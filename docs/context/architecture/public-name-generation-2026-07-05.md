@@ -6,10 +6,10 @@ status: active
 title: Public Name Generation Brief
 files:
   - README.md
-  - tools/context/ctx.mjs
+  - tools/ctx-aide/ctx-aide.mjs
   - docs/specs/public-release-2026-07-01.md
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - public-release
   - naming
@@ -19,7 +19,7 @@ positive_rules:
   - Prefer names that fit the actual repo-local workflow surface instead of generic AI branding.
 negative_rules:
   - Do not reopen rejected names without a fresh collision and positioning review.
-  - Do not rename commands, remotes, package names, or generated artifact paths from this brief alone.
+  - Do not publish, reserve a package, choose a license, or mutate an external remote from this brief alone.
 load_when:
   path_matches:
     - README.md
@@ -30,7 +30,7 @@ load_when:
     - naming
     - shortlist
     - brand
-updated: 2026-07-05
+updated: 2026-07-07
 ---
 
 # Public Name Generation Brief
@@ -39,7 +39,7 @@ updated: 2026-07-05
 
 Document the repo's actual feature and workflow surface, then use that inventory to generate and record public-name candidates.
 
-The resulting public-name decision selected **CTX Aide** as the public display name and `ctx-aide` as the package-facing name if a future publishing ticket proceeds. It exists because the first selected name, `Repo Charter`, felt too formal and needed to be replaced after a more grounded naming pass.
+The resulting public-name decision selected **CTX Aide** as the public display name and `ctx-aide` as the machine-facing namespace. It exists because the first selected name, `Repo Charter`, felt too formal and needed to be replaced after a more grounded naming pass.
 
 ## Product Shape
 
@@ -50,27 +50,26 @@ The public name should make sense for a developer tool, not a hosted platform, P
 ## Current Decisions
 
 - CTX Aide is the selected public display name.
-- `ctx-aide` is the selected package-facing name if a future publishing ticket proceeds.
-- `repo-context` remains the current repository name.
-- `ctx` remains the current command namespace until a dedicated rename ticket exists.
+- `ctx-aide` is the selected repository, command, package-facing, config-prefix, generated-rule, and local skill namespace.
+- Publication remains blocked until owner, license, registry, GitHub, and Cargo crate-shape decisions are explicit.
 
 ## Positive Rules
 
 - Use CTX Aide when public copy needs the product name.
-- Use `ctx-aide` only for future package-facing references and blocked publishing plans.
+- Use `ctx-aide` for machine-facing references: command, path, package metadata, config filenames, generated rules, and local skill names.
 - Keep the repo-local context, ticket, validation, and handoff workflow as the naming anchor.
 
 ## Negative Rules
 
 - Do not revive Repo Charter as the public name.
 - Do not use package-facing names in install instructions until owner, license, and registry publishing decisions are explicit.
-- Do not rename commands, remotes, package names, or generated artifact paths from this brief alone.
+- Do not publish packages, mutate remotes, reserve names, or choose a license from this brief alone.
 
 ## Implementation Rules
 
 - Treat this brief as rationale for the canonical public-name decision.
 - Update `docs/context/architecture/public-name-decision-2026-07-05.md` before changing README, launch metadata, or public examples.
-- Run `ctx scan`, `ctx spec check`, `ctx ticket check`, and `ctx pack check` after changing public-name context.
+- Run `ctx-aide scan`, `ctx-aide spec check`, `ctx-aide ticket check`, and `ctx-aide pack check` after changing public-name context.
 
 ## Feature Inventory
 
@@ -117,7 +116,7 @@ The public name should make sense for a developer tool, not a hosted platform, P
 - Short enough to remember and say in conversation.
 - More developer-tool than governance concept.
 - Local-first, repo-native, and workflow-oriented.
-- Compatible with a CLI that can stay named `ctx`.
+- Compatible with a CLI that can stay named `ctx-aide`.
 - Broad enough to cover context, specs, tickets, validation, adoption, and handoff.
 - Not over-AI-branded; avoid names that sound like a chatbot, agent runtime, hosted SaaS, compliance framework, or PM product.
 - Avoid names that lean on `charter`, `pact`, `accord`, `protocol`, `agent`, or `AI`.
@@ -337,11 +336,11 @@ These candidates are generated from the current intent sentence:
 
 These candidates came from the assistant/helper direction after the user asked for a word around "minion / assistant / etc." The strongest semantic lane was aide, scribe, clerk, page, or helper rather than minion.
 
-- `CTX Aide`: selected. It keeps the existing `ctx` identity and frames the product as a practical context aide for coding agents.
+- `CTX Aide`: selected. It keeps the existing `ctx-aide` identity and frames the product as a practical context aide for coding agents.
 - `ctx-aide`: selected as the future package-facing name if publishing proceeds.
 - `Context Aide`: viable expanded form, but `CTX Aide` is shorter and better aligned with the existing CLI.
 - `Aide`: rejected as too broad and too crowded.
-- `Scriba`: strong markdown/scribe meaning, but less pragmatic and less tied to `ctx`.
+- `Scriba`: strong markdown/scribe meaning, but less pragmatic and less tied to `ctx-aide`.
 - `Agent Notes`: clear but too generic.
 - `Agent Runbook`: semantically good but too occupied in same-category package and GitHub surfaces.
 - `Agent Aide`: clear but broader and more AI-assistant sounding than the repo's context substrate.

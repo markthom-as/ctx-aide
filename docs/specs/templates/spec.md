@@ -1,4 +1,4 @@
-<!-- repo-context: ignore -->
+<!-- ctx-aide: ignore -->
 
 ---
 id: spec.YYYY-MM-DD.slug

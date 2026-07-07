@@ -1,15 +1,15 @@
 ---
-id: config.repo-context-customization
+id: config.ctx-aide-customization
 status: draft
-title: Repo Context Customization
+title: CTX Aide Customization
 updated: 2026-06-26
 ---
 
-# Repo Context Customization
+# CTX Aide Customization
 
 ## Purpose
 
-Document the post-v0.1 profile model for tuning repo-context workflows without weakening required validation gates.
+Document the post-v0.1 profile model for tuning ctx-aide workflows without weakening required validation gates.
 
 ## Profiles
 
@@ -30,18 +30,18 @@ These axioms cannot be disabled by profile selection:
 ## Command
 
 ```bash
-node tools/context/ctx.mjs customize --profile strict --dry-run --json
-node tools/context/ctx.mjs customize --profile web-app --write --out docs/config/repo-context.profile.json --json
+node tools/ctx-aide/ctx-aide.mjs customize --profile strict --dry-run --json
+node tools/ctx-aide/ctx-aide.mjs customize --profile web-app --write --out docs/config/ctx-aide.profile.json --json
 ```
 
 ## LOC Volume Targets
 
-Use `docs/config/repo-context.loc.json` to track source volume for a repo or selected paths. `ctx loc` reports totals and target status without failing; `ctx loc check` enforces configured or inline targets.
+Use `docs/config/ctx-aide.loc.json` to track source volume for a repo or selected paths. `ctx-aide loc` reports totals and target status without failing; `ctx-aide loc check` enforces configured or inline targets.
 
 ```bash
-node tools/context/ctx.mjs loc --repo . --json
-node tools/context/ctx.mjs loc check --repo . --target-id repo-context-source --json
-node tools/context/ctx.mjs loc check --repo . --path tools/context --max-lines 25000 --json
+node tools/ctx-aide/ctx-aide.mjs loc --repo . --json
+node tools/ctx-aide/ctx-aide.mjs loc check --repo . --target-id ctx-aide-source --json
+node tools/ctx-aide/ctx-aide.mjs loc check --repo . --path tools/ctx-aide --max-lines 25000 --json
 ```
 
 ## Rules

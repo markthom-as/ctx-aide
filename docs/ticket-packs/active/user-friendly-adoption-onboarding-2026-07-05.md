@@ -40,7 +40,7 @@ completion:
 
 ## Outcome
 
-Deliver a normal developer onboarding path for repo-context: install `ctx`, run one setup command, bootstrap a target repo safely, and get clear next commands for first context/pack/ticket work.
+Deliver a normal developer onboarding path for ctx-aide: install `ctx-aide`, run one setup command, bootstrap a target repo safely, and get clear next commands for first context/pack/ticket work.
 
 ## Scope
 
@@ -58,7 +58,7 @@ Deliver a normal developer onboarding path for repo-context: install `ctx`, run 
 
 - Parallel groups: `packaging` and `profiles` can run in parallel.
 - Sequential dependencies: `ticket.context.046` depends on `ticket.context.045` and `ticket.context.047`; `ticket.context.048` depends on all implementation tickets.
-- Shared-file coordination: `tools/context/ctx.mjs` and `tools/context/ctx.test.mjs` need sequential merges if multiple agents run.
+- Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs` need sequential merges if multiple agents run.
 - Worktree strategy: current worktree is acceptable for serial work; use separate worktrees for parallel `packaging` and `profiles` slices.
 - Merge queue strategy: one clean commit per ticket, then a final docs/proof commit.
 
@@ -72,16 +72,16 @@ Deliver a normal developer onboarding path for repo-context: install `ctx`, run 
 ## Pack Validation
 
 - Smoke tests:
-  - `node tools/context/ctx.mjs setup --repo <fixture> --profile auto --no-input --json`
-  - `ctx setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json`
-  - `ctx setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json`
+  - `node tools/ctx-aide/ctx-aide.mjs setup --repo <fixture> --profile auto --no-input --json`
+  - `ctx-aide setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json`
+  - `ctx-aide setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json`
 - Screenshots: not required.
 - Full regression checks:
-  - `node --check tools/context/ctx.mjs`
-  - `node tools/context/ctx.test.mjs`
-  - `node tools/context/ctx.mjs spec check --json`
-  - `node tools/context/ctx.mjs ticket check --json`
-  - `node tools/context/ctx.mjs pack check --json`
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs spec check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
   - `make validate`
 
 ## Completion

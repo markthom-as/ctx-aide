@@ -1,9 +1,9 @@
 ---
-id: design.repo-context-tokens
+id: design.ctx-aide-tokens
 kind: design
 context_scan: true
 status: active
-title: Repo Context Design Tokens
+title: CTX Aide Design Tokens
 routes:
   - /context-lab
 files:
@@ -11,7 +11,7 @@ files:
 components:
   - component.ContextEntryCard
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - design
   - tokens
@@ -32,11 +32,11 @@ load_when:
 updated: 2026-06-26
 ---
 
-# Repo Context Design Tokens
+# CTX Aide Design Tokens
 
 ## Purpose
 
-Define lightweight visual conventions for rendering repo-context catalog entries in a target web app.
+Define lightweight visual conventions for rendering ctx-aide catalog entries in a target web app.
 
 ## Current Decisions
 

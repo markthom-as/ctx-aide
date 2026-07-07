@@ -2,9 +2,9 @@
 id: ticket.context.041
 status: done
 title: Complete public-release safety audit
-ticket_pack: pack.repo-context-public-release-2026-07-01
+ticket_pack: pack.ctx-aide-public-release-2026-07-01
 milestones:
-  - milestone.repo-context-public-release
+  - milestone.ctx-aide-public-release
 source_spec: spec.public-release-2026-07-01
 source_feedback: []
 implementation_agent: codex
@@ -25,12 +25,12 @@ scope:
     - tools
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "audit repo-context for public release safety"
   generated_at: 2026-07-01
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
@@ -39,8 +39,8 @@ validation:
   automated:
     - rg -n "(api_key|secret|token|password|private key|OPENAI_API_KEY|ANTHROPIC_API_KEY|DATABASE_URL|refresh_token|access_token)" .
     - git log --all --name-only --pretty=format: | sort -u
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke: []
   screenshots: []
 completion:
@@ -84,7 +84,7 @@ The public-release pack must not rely on a shallow working-tree scan. This proje
 ## Implementation Rules
 
 - Required approach: run available secret/history scans, inspect generated artifacts, review license/dependency surfaces, and write a concise audit note with commands and findings.
-- Existing components/helpers to use: `ctx` checks, `rg`, `git log`, and any installed secret scanners.
+- Existing components/helpers to use: `ctx-aide` checks, `rg`, `git log`, and any installed secret scanners.
 - Anti-patterns to avoid: relying only on a current working-tree grep.
 - Stop and escalate if: real credentials, client/private data, or sensitive personal workflow traces are discovered in current files or history.
 
@@ -113,5 +113,5 @@ If no dedicated history scanner is installed, document that limitation and eithe
 
 - Status: done
 - Commit: current-change
-- Verification evidence: `gitleaks git . --no-banner --redact --report-format json --report-path /tmp/repo-context-gitleaks-report.json` scanned 57 commits and reported no leaks; `uvx detect-secrets scan $(git ls-files)` only flagged the deliberate redaction test fixture in `tools/context/ctx.test.mjs`; generated-artifact and literal scans found no live credentials; `node tools/context/ctx.mjs ticket check --json` and `node tools/context/ctx.mjs pack check --json` passed on 2026-07-05.
+- Verification evidence: `gitleaks git . --no-banner --redact --report-format json --report-path /tmp/repo-context-gitleaks-report.json` scanned 57 commits and reported no leaks; `uvx detect-secrets scan $(git ls-files)` only flagged the deliberate redaction test fixture in `tools/ctx-aide/ctx-aide.test.mjs`; generated-artifact and literal scans found no live credentials; `node tools/ctx-aide/ctx-aide.mjs ticket check --json` and `node tools/ctx-aide/ctx-aide.mjs pack check --json` passed on 2026-07-05.
 - Follow-up tickets: none

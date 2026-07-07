@@ -1,9 +1,9 @@
 ---
-name: repo-context
-description: Plan, harden, and execute repo-local product context workflows for coding agents. Use when creating or updating markdown specs, ticket packs, atomic implementation tickets, Codex/Claude/Cursor agent context, component/design context, feedback records, or a repo-local ctx CLI/tooling flow.
+name: ctx-aide
+description: Plan, harden, and execute repo-local product context workflows for coding agents. Use when creating or updating markdown specs, ticket packs, atomic implementation tickets, Codex/Claude/Cursor agent context, component/design context, feedback records, or a repo-local ctx-aide CLI/tooling flow.
 ---
 
-# Repo Context
+# CTX Aide
 
 Use this skill to turn rough product or implementation intent into a hardened repo-local markdown workflow that Codex can implement without making product, design, architecture, or security decisions.
 
@@ -12,7 +12,7 @@ Use this skill to turn rough product or implementation intent into a hardened re
 - Markdown is source of truth.
 - SQLite indexes and generated agent packs are rebuildable artifacts.
 - Markdown is loaded progressively; detailed files should not enter agent context unless selected by scope/query or explicitly requested.
-- Files with first-line `<!-- repo-context: ignore -->` or frontmatter `context_scan: false` must be excluded from scans and generated agent context.
+- Files with first-line `<!-- ctx-aide: ignore -->` or frontmatter `context_scan: false` must be excluded from scans and generated agent context.
 - Preserve rule polarity: positive rules describe what to prefer or preserve; negative rules describe what to avoid or escalate before doing.
 - Prefer enforceable axioms over prose-only rules whenever a deterministic check can prove the rule.
 - Specs come before tickets.
@@ -122,17 +122,17 @@ If this skill is installed outside this repo, copy the bundled assets from `asse
 
 ## CLI Behavior
 
-If a `ctx` CLI exists in the target repo, prefer it:
+If a `ctx-aide` CLI exists in the target repo, prefer it:
 
 ```sh
-node tools/context/ctx.mjs lint --json
-node tools/context/ctx.mjs future check --json
-node tools/context/ctx.mjs discover --backend semble --task "<task>" --repo . --json
-ctx scan --json
-ctx query --path <path> --task "<task>" --agent codex --budget 6000 --json
-ctx spec harden docs/specs/SPEC.md --json
-ctx ticket harden docs/tickets/draft/TICKET.md --json
-ctx pack check --json
+node tools/ctx-aide/ctx-aide.mjs lint --json
+node tools/ctx-aide/ctx-aide.mjs future check --json
+node tools/ctx-aide/ctx-aide.mjs discover --backend semble --task "<task>" --repo . --json
+ctx-aide scan --json
+ctx-aide query --path <path> --task "<task>" --agent codex --budget 6000 --json
+ctx-aide spec harden docs/specs/SPEC.md --json
+ctx-aide ticket harden docs/tickets/draft/TICKET.md --json
+ctx-aide pack check --json
 ```
 
 If the CLI does not exist yet, do the same checks manually from markdown and note that automated context checks were not available.

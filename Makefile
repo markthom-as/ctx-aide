@@ -1,37 +1,37 @@
-.PHONY: validate smoke ctx-doctor ctx-lint ctx-test ctx-loc-check ctx-scan ctx-query-smoke future-check skill-validate install-skill
+.PHONY: validate smoke ctx-aide-doctor ctx-aide-lint ctx-aide-test ctx-aide-loc-check ctx-aide-scan ctx-aide-query-smoke future-check skill-validate install-skill
 
 CODEX_SKILLS_DIR ?= $(HOME)/.codex/skills
 
-validate: ctx-lint ctx-test ctx-loc-check future-check skill-validate
+validate: ctx-aide-lint ctx-aide-test ctx-aide-loc-check future-check skill-validate
 
-smoke: validate ctx-scan ctx-query-smoke ctx-doctor
+smoke: validate ctx-aide-scan ctx-aide-query-smoke ctx-aide-doctor
 
-ctx-doctor:
-	node tools/context/ctx.mjs doctor --json
+ctx-aide-doctor:
+	node tools/ctx-aide/ctx-aide.mjs doctor --json
 
-ctx-lint:
-	node tools/context/ctx.mjs lint --json
+ctx-aide-lint:
+	node tools/ctx-aide/ctx-aide.mjs lint --json
 
-ctx-test:
-	node tools/context/ctx.test.mjs
+ctx-aide-test:
+	node tools/ctx-aide/ctx-aide.test.mjs
 
-ctx-loc-check:
-	node tools/context/ctx.mjs loc check --json
+ctx-aide-loc-check:
+	node tools/ctx-aide/ctx-aide.mjs loc check --json
 
-ctx-scan:
-	node tools/context/ctx.mjs scan --json
+ctx-aide-scan:
+	node tools/ctx-aide/ctx-aide.mjs scan --json
 
-ctx-query-smoke:
-	node tools/context/ctx.mjs query --path tools/context/ctx.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json
+ctx-aide-query-smoke:
+	node tools/ctx-aide/ctx-aide.mjs query --path tools/ctx-aide/ctx-aide.mjs --task "repo context dogfood rule polarity" --agent codex --budget 1200 --json
 
 future-check:
-	node tools/context/ctx.mjs future check --json
+	node tools/ctx-aide/ctx-aide.mjs future check --json
 
 skill-validate:
-	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py skills/repo-context
+	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py skills/ctx-aide
 
 install-skill: skill-validate
 	mkdir -p "$(CODEX_SKILLS_DIR)"
-	rm -rf "$(CODEX_SKILLS_DIR)/repo-context"
-	cp -R skills/repo-context "$(CODEX_SKILLS_DIR)/repo-context"
-	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py "$(CODEX_SKILLS_DIR)/repo-context"
+	rm -rf "$(CODEX_SKILLS_DIR)/ctx-aide"
+	cp -R skills/ctx-aide "$(CODEX_SKILLS_DIR)/ctx-aide"
+	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py "$(CODEX_SKILLS_DIR)/ctx-aide"

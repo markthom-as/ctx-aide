@@ -29,15 +29,15 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 
 ## Stages
 
-1. Check workflow dependencies with `ctx workflow deps --workflow workflow.browser-validation --repo <repo> --json`.
+1. Check workflow dependencies with `ctx-aide workflow deps --workflow workflow.browser-validation --repo <repo> --json`.
 2. If required package pins are missing, run the same command with `--write` to update `package.json`.
 3. Install dependencies with the target repo's package manager so the lockfile records the exact resolved tree.
 4. Run the workflow's browser smoke or screenshot validation command from the repo, not from an agent plugin.
-5. Check the view-state matrix with `ctx workflow views --workflow workflow.browser-validation --repo <repo> --json`.
-6. Generate the breakpoint validation matrix with `ctx workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`; this command fails when any required view is not ready, while still returning the matrix and blockers.
+5. Check the view-state matrix with `ctx-aide workflow views --workflow workflow.browser-validation --repo <repo> --json`.
+6. Generate the breakpoint validation matrix with `ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`; this command fails when any required view is not ready, while still returning the matrix and blockers.
 7. For logged-in validation, satisfy the `browser-test-user` profile through environment variables, an untracked env file, or an imported browser storage-state file.
 8. Record the dependency check, view-state check, breakpoint matrix, test runner, screenshot output path, CI gates, deploy policy, install command, and browser validation evidence on the ticket.
-9. For visual review, pass the screenshot paths into `ctx feedback review` so the operator sees URL, scoped files, changed files, artifact size, and image dimensions before capturing feedback.
+9. For visual review, pass the screenshot paths into `ctx-aide feedback review` so the operator sees URL, scoped files, changed files, artifact size, and image dimensions before capturing feedback.
 
 ## Readiness Gates
 
@@ -47,7 +47,7 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 - A missing or stale lockfile blocks completion until the package manager install has refreshed it.
 - Logged-out and logged-in views must both be represented when a feature has different auth states.
 - Logged-in validation must not print credential values in stdout, logs, tickets, or generated context.
-- Breakpoint validation must use sensible defaults when no config file exists, and target repos may override breakpoints in `docs/config/repo-context.validation.json`.
+- Breakpoint validation must use sensible defaults when no config file exists, and target repos may override breakpoints in `docs/config/ctx-aide.validation.json`.
 - Test runner behavior, screenshot save location, CI gates, and deploy policy must be included in the validation plan.
 - Validation-plan `ok` must be false when required views lack credentials or storage state.
 - Deploy settings must keep `cost_estimate_required: true` whenever deploy is enabled.
@@ -55,41 +55,41 @@ Run browser validation from repo-owned, pinned dependencies so local agents, CI 
 
 ## Dependency Policy
 
-- `node` must be available because repo-context and most browser validation tooling run through Node.
+- `node` must be available because ctx-aide and most browser validation tooling run through Node.
 - `package-manager-lockfile` must be present so the package graph is reproducible.
 - `playwright` maps to `@playwright/test@1.61.1` in `devDependencies`.
-- `codex-native-browser-plugin` is optional because repo-context cannot pin external desktop-app plugin bundles inside the target repository.
+- `codex-native-browser-plugin` is optional because ctx-aide cannot pin external desktop-app plugin bundles inside the target repository.
 
 ## View and Credential Policy
 
 - `logged-out` requires no credentials and validates anonymous browser behavior.
 - `logged-in` uses the `browser-test-user` credential profile.
-- `browser-test-user` can be satisfied by `BROWSER_TEST_EMAIL` and `BROWSER_TEST_PASSWORD`, by `.repo-context/credentials/browser-test-user.env`, or by `.repo-context/browser/browser-test-user.storage-state.json`.
-- Browser storage-state imports copy an exported Playwright-compatible state file. Repo-context does not scrape browser password stores.
-- `.repo-context/` must stay untracked in target repositories because it can contain live session cookies or local credential files.
+- `browser-test-user` can be satisfied by `BROWSER_TEST_EMAIL` and `BROWSER_TEST_PASSWORD`, by `.ctx-aide/credentials/browser-test-user.env`, or by `.ctx-aide/browser/browser-test-user.storage-state.json`.
+- Browser storage-state imports copy an exported Playwright-compatible state file. CTX Aide does not scrape browser password stores.
+- `.ctx-aide/` must stay untracked in target repositories because it can contain live session cookies or local credential files.
 
 ## Breakpoint Policy
 
 - Default breakpoints are `mobile` (`390x844`), `tablet` (`820x1180`), `desktop` (`1440x900`), and `wide` (`1920x1080`).
-- Target repos can override the validation matrix in `docs/config/repo-context.validation.json`.
+- Target repos can override the validation matrix in `docs/config/ctx-aide.validation.json`.
 - Configured breakpoints may reference default preset ids or define custom `{ "id", "width", "height" }` objects.
 - A future smart TUI should edit the same config file instead of introducing a separate source of truth.
 
 ## Runtime Policy
 
 - Default test runner is Playwright through `npx playwright test`.
-- Default screenshot output directory is `.repo-context/artifacts/screenshots`.
+- Default screenshot output directory is `.ctx-aide/artifacts/screenshots`.
 - The validation matrix emits one screenshot path per view and breakpoint.
 - CI gates default to workflow dependency checks, view readiness, validation-plan generation, and the configured test runner.
 - Deploy defaults to disabled/manual. If enabled, deploy policy must require green CI and a cost estimate before infrastructure or hosted deploy changes.
 
 ## Validation
 
-- `ctx workflow deps --workflow workflow.browser-validation --repo <repo> --json`
-- `ctx workflow views --workflow workflow.browser-validation --repo <repo> --json`
-- `ctx workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`
-- `ctx credentials check --profile browser-test-user --repo <repo> --json`
-- `ctx credentials import-browser-state --profile browser-test-user --repo <repo> --from <storage-state.json> --write --json`
-- `ctx workflow deps --workflow workflow.browser-validation --repo <repo> --write --json`
+- `ctx-aide workflow deps --workflow workflow.browser-validation --repo <repo> --json`
+- `ctx-aide workflow views --workflow workflow.browser-validation --repo <repo> --json`
+- `ctx-aide workflow validation-plan --workflow workflow.browser-validation --repo <repo> --json`
+- `ctx-aide credentials check --profile browser-test-user --repo <repo> --json`
+- `ctx-aide credentials import-browser-state --profile browser-test-user --repo <repo> --from <storage-state.json> --write --json`
+- `ctx-aide workflow deps --workflow workflow.browser-validation --repo <repo> --write --json`
 - The target repo's package-manager install command.
 - The target repo's browser smoke or screenshot command.

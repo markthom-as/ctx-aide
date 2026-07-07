@@ -2,9 +2,9 @@
 id: ticket.context.042
 status: done
 title: Polish public README and positioning
-ticket_pack: pack.repo-context-public-release-2026-07-01
+ticket_pack: pack.ctx-aide-public-release-2026-07-01
 milestones:
-  - milestone.repo-context-public-release
+  - milestone.ctx-aide-public-release
 source_spec: spec.public-release-2026-07-01
 source_feedback: []
 implementation_agent: codex
@@ -25,22 +25,22 @@ scope:
     - docs/workflows
   components: []
   flows:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 context_query:
   task: "polish README for public repo-context release"
   generated_at: 2026-07-01
   context_ids:
-    - flow.repo-context-dogfood
+    - flow.ctx-aide-dogfood
 axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.public-docs-match-implemented-behavior
 validation:
   automated:
-    - node tools/context/ctx.mjs scan --json
-    - node tools/context/ctx.mjs spec check --json
-    - node tools/context/ctx.mjs ticket check --json
-    - node tools/context/ctx.mjs pack check --json
+    - node tools/ctx-aide/ctx-aide.mjs scan --json
+    - node tools/ctx-aide/ctx-aide.mjs spec check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke: []
   screenshots: []
 completion:
@@ -101,7 +101,7 @@ The public release should quickly explain what the project does, why it exists, 
 
 ## Validation
 
-- Automated: frontmatter `ctx` checks.
+- Automated: frontmatter `ctx-aide` checks.
 - Smoke: follow the README quickstart commands against the local repo.
 - Screenshots: none.
 
@@ -113,5 +113,5 @@ Assume the reader is an engineering leader or staff/platform engineer looking fo
 
 - Status: done
 - Commit: current-change
-- Verification evidence: README now introduces CTX Aide as the public display name, documents the local quickstart, identifies canonical markdown and generated-cache boundaries, and links current proof surfaces; `node tools/context/ctx.mjs scan --json`, README query smoke, pack status, spec check, ticket check, pack check, and `make validate` passed on 2026-07-05.
+- Verification evidence: README now introduces CTX Aide as the public display name, documents the local quickstart, identifies canonical markdown and generated-cache boundaries, and links current proof surfaces; `node tools/ctx-aide/ctx-aide.mjs scan --json`, README query smoke, pack status, spec check, ticket check, pack check, and `make validate` passed on 2026-07-05.
 - Follow-up tickets: none

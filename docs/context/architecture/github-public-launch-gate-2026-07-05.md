@@ -8,7 +8,7 @@ files:
   - README.md
   - docs/ticket-packs/active/public-release-2026-07-01.md
 flows:
-  - flow.repo-context-dogfood
+  - flow.ctx-aide-dogfood
 tags:
   - public-release
   - github
@@ -42,8 +42,8 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 
 - Public display name: `CTX Aide`.
 - Package-facing name if a future publishing ticket proceeds: `ctx-aide`.
-- Internal repository and command name: `repo-context`.
-- Recommended GitHub repository name: `repo-context`.
+- Internal repository and command name: `ctx-aide`.
+- Recommended GitHub repository name: `ctx-aide`.
 - Cost delta for the prepared launch path: `$0`. The documented path uses local validation and a standard public GitHub repository only. No AWS, Vercel, Fly, hosted database, queue, paid observability, or deployment resource is created.
 - Current remote state: no git remote is configured in this checkout.
 - Launch status: blocked pending user decisions on GitHub owner/org and repository license.
@@ -70,10 +70,10 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 ## Proposed GitHub Metadata
 
 - Owner/org: blocked, user confirmation required.
-- Repository name: `repo-context`.
+- Repository name: `ctx-aide`.
 - Display title: `CTX Aide`.
 - Description: `Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.`
-- Topics: `ai-agents`, `developer-tools`, `codex`, `claude`, `markdown`, `workflow`, `tickets`, `repo-context`, `local-first`, `validation`.
+- Topics: `ai-agents`, `developer-tools`, `codex`, `claude`, `markdown`, `workflow`, `tickets`, `ctx-aide`, `local-first`, `validation`.
 - Homepage: none until a public docs or project page exists.
 - Visibility: public only after explicit confirmation.
 - License: blocked, user confirmation required. No `LICENSE`, `COPYING`, or `NOTICE` file exists today.
@@ -84,13 +84,13 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 If the user confirms owner/org and license, the expected zero-cost launch path is:
 
 ```sh
-gitleaks git . --no-banner --redact --report-format json --report-path /tmp/repo-context-gitleaks-report.json
+gitleaks git . --no-banner --redact --report-format json --report-path /tmp/ctx-aide-gitleaks-report.json
 uvx detect-secrets scan $(git ls-files)
-node tools/context/ctx.mjs scan --json
-node tools/context/ctx.mjs spec check --json
-node tools/context/ctx.mjs ticket check --json
-node tools/context/ctx.mjs pack check --json
-node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json
+node tools/ctx-aide/ctx-aide.mjs scan --json
+node tools/ctx-aide/ctx-aide.mjs spec check --json
+node tools/ctx-aide/ctx-aide.mjs ticket check --json
+node tools/ctx-aide/ctx-aide.mjs pack check --json
+node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json
 make validate
 make smoke
 ```
@@ -98,13 +98,13 @@ make smoke
 Then either create a new public remote:
 
 ```sh
-gh repo create OWNER/repo-context --public --source . --remote origin --push
+gh repo create OWNER/ctx-aide --public --source . --remote origin --push
 ```
 
 Or attach/update an existing remote after confirming it points at the intended owner:
 
 ```sh
-git remote add origin git@github.com:OWNER/repo-context.git
+git remote add origin git@github.com:OWNER/ctx-aide.git
 git push -u origin main
 ```
 
@@ -116,10 +116,10 @@ git push -u origin main
 
 ## Validation
 
-- `node tools/context/ctx.mjs scan --json`
-- `node tools/context/ctx.mjs spec check --json`
-- `node tools/context/ctx.mjs ticket check --json`
-- `node tools/context/ctx.mjs pack check --json`
-- `node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json`
+- `node tools/ctx-aide/ctx-aide.mjs scan --json`
+- `node tools/ctx-aide/ctx-aide.mjs spec check --json`
+- `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+- `node tools/ctx-aide/ctx-aide.mjs pack check --json`
+- `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json`
 - `make validate`
 - `make smoke`

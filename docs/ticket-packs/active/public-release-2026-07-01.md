@@ -1,9 +1,9 @@
 ---
-id: pack.repo-context-public-release-2026-07-01
+id: pack.ctx-aide-public-release-2026-07-01
 status: blocked
 title: Public Release Preparation
 milestones:
-  - milestone.repo-context-public-release
+  - milestone.ctx-aide-public-release
 source_specs:
   - spec.public-release-2026-07-01
 tickets:
@@ -13,6 +13,7 @@ tickets:
   - ticket.context.043
   - ticket.context.044
   - ticket.context.054
+  - ticket.context.055
 run_policy:
   max_parallel_agents: 3
   stale_after_minutes: 20
@@ -30,6 +31,7 @@ parallel_groups:
       - ticket.context.042
       - ticket.context.043
       - ticket.context.054
+      - ticket.context.055
   launch:
     tickets:
       - ticket.context.044
@@ -47,7 +49,7 @@ completion:
 
 ## Outcome
 
-Prepare repo-context, under a better public name, for a credible public GitHub release that demonstrates repo-local context, markdown ticketing, agent guidance, validation, and AI developer-productivity workflow design.
+Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credible public GitHub release that demonstrates repo-local context, markdown ticketing, agent guidance, validation, and AI developer-productivity workflow design.
 
 ## Scope
 
@@ -62,11 +64,12 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 - `ticket.context.043`: done
 - `ticket.context.044`: blocked
 - `ticket.context.054`: done
+- `ticket.context.055`: done
 
 ## Execution Plan
 
 - Parallel groups: `naming` and `safety` can start immediately in parallel.
-- Sequential dependencies: `ticket.context.042` and `ticket.context.043` depend on `ticket.context.040`; `ticket.context.044` depends on all prior tickets; `ticket.context.054` is a follow-on documentation hardening slice that does not unblock publication by itself.
+- Sequential dependencies: `ticket.context.042` and `ticket.context.043` depend on `ticket.context.040`; `ticket.context.044` depends on all prior tickets; `ticket.context.054` is a follow-on documentation hardening slice; `ticket.context.055` performs the repo/tool namespace rename requested before publication.
 - Shared-file coordination: `README.md`, release docs, and repo metadata must be coordinated by a single agent after the name decision lands.
 - Worktree strategy: use separate worktrees for independent naming and safety work if parallel agents run concurrently.
 - Merge queue strategy: one clean commit per completed ticket; merge naming before docs/demo copy changes.
@@ -80,13 +83,13 @@ Prepare repo-context, under a better public name, for a credible public GitHub r
 
 ## Pack Validation
 
-- Smoke tests: `node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-01 --json`.
+- Smoke tests: `node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json`.
 - Screenshots: not required unless a public visual/demo artifact is added.
-- Full regression checks: `node tools/context/ctx.mjs scan --json`, `node tools/context/ctx.mjs spec check --json`, `node tools/context/ctx.mjs ticket check --json`, `node tools/context/ctx.mjs pack check --json`, `make validate`, and `make smoke`.
+- Full regression checks: `node tools/ctx-aide/ctx-aide.mjs scan --json`, `node tools/ctx-aide/ctx-aide.mjs spec check --json`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, `node tools/ctx-aide/ctx-aide.mjs pack check --json`, `make validate`, and `make smoke`.
 
 ## Completion
 
-- Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.054`.
+- Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.054`, `ticket.context.055`.
 - Remaining tickets: none ready.
 - Blocked tickets: `ticket.context.044` pending GitHub owner/org, license, and Cargo/package publication decisions.
 - Final validation: pending.
