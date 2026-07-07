@@ -64,9 +64,15 @@ const helpOutput = execFileSync(process.execPath, [ctxAide, "--help"], {
 });
 assert.equal(helpOutput.includes("ctxa lint --json"), true);
 assert.equal(helpOutput.includes("ctx-aide lint --json"), false);
+assert.equal(helpOutput.includes("CTX Aide (ctxa)\n"), true);
+assert.equal(helpOutput.includes("\nUsage:\n  ctxa <command> [options]\n"), true);
+assert.equal(helpOutput.includes("\nCore\n  ctxa lint --json\n      Validate context, config, and markdown contracts."), true);
+assert.equal(helpOutput.includes("\nAdoption\n  ctxa adoption status --repo <target-repo> --profile auto --json"), true);
+assert.equal(helpOutput.includes("\nUse --json for stable machine-readable output.\n"), true);
 const jsonHelp = run(["--help"]);
 assert.equal(jsonHelp.ok, true);
 assert.equal(jsonHelp.usage.includes("ctxa adoption status --repo <target-repo> --profile auto --json"), true);
+assert.equal(jsonHelp.usage.includes("CTX Aide (ctxa)"), false);
 
 write("docs/context/routes/context-lab.md", `---
 id: route.context-lab

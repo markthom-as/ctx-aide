@@ -5112,56 +5112,118 @@ if (command === "lint") {
   validateFutureWork(errors, tickets, packs, specs);
   printResult({ ok: errors.length === 0, scope: "future check", errors });
 } else {
+  const helpSections = [
+    {
+      title: "Core",
+      commands: [
+        ["ctxa lint --json", "Validate context, config, and markdown contracts."],
+        ["ctxa doctor --json", "Check local runtime dependencies and repo health."],
+        ["ctxa init --json", "Create the baseline CTX Aide repo structure."],
+      ],
+    },
+    {
+      title: "Context",
+      commands: [
+        ["ctxa scan --json", "Index markdown context into generated local artifacts."],
+        ["ctxa query --path <path> --task <task> --agent codex --budget 6000 --json", "Load bounded context for a path and task."],
+        ["ctxa export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json", "Write generated agent context packs."],
+      ],
+    },
+    {
+      title: "Catalog And Impact",
+      commands: [
+        ["ctxa components list --json", "List known component context entries."],
+        ["ctxa components get component.Button --json", "Read one component context entry."],
+        ["ctxa impact --path components/Button.tsx --json", "Find context affected by a path."],
+        ["ctxa run status docs/runs/RUN.md --json", "Read a milestone/run status file."],
+        ["ctxa idvisor workflow --json", "Inspect the Idvisor workflow helper."],
+        ["ctxa customize --profile strict --dry-run --json", "Preview profile customization changes."],
+        ["ctxa discover --backend semble --task <task> --repo . --json", "Run bounded semantic code discovery."],
+      ],
+    },
+    {
+      title: "Repo Health And Policy",
+      commands: [
+        ["ctxa dependency audit --repo . --command 'pnpm audit --prod' --json", "Run a configured dependency audit command."],
+        ["ctxa loc --repo . --json", "Measure source volume."],
+        ["ctxa loc check --repo . --target-id source --json", "Validate configured LOC targets."],
+        ["ctxa tools list --json", "List known agent capabilities and policy."],
+        ["ctxa tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json", "Inspect policy for one capability."],
+        ["ctxa tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json", "Validate whether one capability is allowed."],
+        ["ctxa workflow deps --workflow workflow.browser-validation --repo . --json", "Inspect workflow dependencies."],
+        ["ctxa workflow views --workflow workflow.browser-validation --repo . --json", "Inspect workflow validation views."],
+        ["ctxa workflow validation-plan --workflow workflow.browser-validation --repo . --json", "Build a validation readiness plan."],
+        ["ctxa settings get --repo . --json", "Read repo-local CTX Aide settings."],
+        ["ctxa settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json", "Update a settings feature flag."],
+      ],
+    },
+    {
+      title: "Feedback",
+      commands: [
+        ["ctxa feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json", "Plan how feedback should become ticket work."],
+        ["ctxa feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .ctx-aide/artifacts/screenshots/example.png --url http://localhost:3000 --json", "Review screenshot feedback against a ticket."],
+        ["ctxa feedback review-ui --repo . --screenshot-dir .ctx-aide/artifacts/screenshots --port 0", "Start the local screenshot review UI."],
+        ["ctxa feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json", "Capture feedback as markdown."],
+        ["ctxa feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json", "Promote accepted feedback into ticket work."],
+      ],
+    },
+    {
+      title: "Credentials",
+      commands: [
+        ["ctxa credentials check --profile browser-test-user --repo . --json", "Check a named local credential profile."],
+        ["ctxa credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json", "Import browser storage state for validation."],
+      ],
+    },
+    {
+      title: "Adoption",
+      commands: [
+        ["ctxa adoption status --repo <target-repo> --profile auto --json", "Inspect target repo adoption readiness."],
+        ["ctxa adoption bootstrap --repo <target-repo> --profile wetware --write --json", "Seed CTX Aide files into a target repo."],
+        ["ctxa adoption pack --repo <target-repo> --title '<pack>' --slug <slug> --write --json", "Create a target repo ticket pack."],
+        ["ctxa adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json", "Create target repo context markdown."],
+        ["ctxa adoption ticket --repo <target-repo> --pack <pack-id> --pack-slug <pack-slug> --title '<ticket>' --task '<task>' --context <context-id> --capability-workflow <workflow-id> --capability-step <step-id> --capability <capability-id> --write --json", "Create a target repo implementation ticket."],
+        ["ctxa adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --capability-workflow <workflow-id> --capability-step <step-id> --json", "Load a ticket implementation plan."],
+      ],
+    },
+    {
+      title: "Markdown Gates",
+      commands: [
+        ["ctxa ticket check --json", "Validate ticket markdown."],
+        ["ctxa ticket hydrate docs/tickets/draft/TICKET.md --json", "Hydrate a draft ticket with context."],
+        ["ctxa pack check --json", "Validate ticket packs."],
+        ["ctxa pack status <pack-id> --json", "Read pack status and ticket rollup."],
+        ["ctxa spec check --json", "Validate spec markdown."],
+        ["ctxa future check --json", "Validate future-work markdown."],
+      ],
+    },
+  ];
+  const usage = helpSections.flatMap((section) => section.commands.map(([line]) => line));
+  const formatHelp = () => {
+    const lines = [
+      "CTX Aide (ctxa)",
+      "Repo-local context, markdown tickets, validation gates, and agent handoff.",
+      "",
+      "Usage:",
+      "  ctxa <command> [options]",
+      "  ctxa <command> --json",
+      "",
+      "Commands:",
+    ];
+    for (const section of helpSections) {
+      lines.push("", section.title);
+      for (const [line, description] of section.commands) {
+        lines.push(`  ${line}`, `      ${description}`);
+      }
+    }
+    lines.push("", "Use --json for stable machine-readable output.");
+    return `${lines.join("\n")}\n`;
+  };
   const result = {
     ok: wantsHelp,
-    usage: [
-      "ctxa lint --json",
-      "ctxa doctor --json",
-      "ctxa init --json",
-      "ctxa scan --json",
-      "ctxa query --path <path> --task <task> --agent codex --budget 6000 --json",
-      "ctxa export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json",
-      "ctxa components list --json",
-      "ctxa components get component.Button --json",
-      "ctxa impact --path components/Button.tsx --json",
-      "ctxa run status docs/runs/RUN.md --json",
-      "ctxa idvisor workflow --json",
-      "ctxa customize --profile strict --dry-run --json",
-      "ctxa discover --backend semble --task <task> --repo . --json",
-      "ctxa dependency audit --repo . --command 'pnpm audit --prod' --json",
-      "ctxa loc --repo . --json",
-      "ctxa loc check --repo . --target-id source --json",
-      "ctxa tools list --json",
-      "ctxa tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
-      "ctxa tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json",
-      "ctxa workflow deps --workflow workflow.browser-validation --repo . --json",
-      "ctxa workflow views --workflow workflow.browser-validation --repo . --json",
-      "ctxa workflow validation-plan --workflow workflow.browser-validation --repo . --json",
-      "ctxa settings get --repo . --json",
-      "ctxa settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json",
-      "ctxa feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json",
-      "ctxa feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .ctx-aide/artifacts/screenshots/example.png --url http://localhost:3000 --json",
-      "ctxa feedback review-ui --repo . --screenshot-dir .ctx-aide/artifacts/screenshots --port 0",
-      "ctxa feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json",
-      "ctxa feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json",
-      "ctxa credentials check --profile browser-test-user --repo . --json",
-      "ctxa credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json",
-      "ctxa adoption status --repo <target-repo> --profile auto --json",
-      "ctxa adoption bootstrap --repo <target-repo> --profile wetware --write --json",
-      "ctxa adoption pack --repo <target-repo> --title '<pack>' --slug <slug> --write --json",
-      "ctxa adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json",
-      "ctxa adoption ticket --repo <target-repo> --pack <pack-id> --pack-slug <pack-slug> --title '<ticket>' --task '<task>' --context <context-id> --capability-workflow <workflow-id> --capability-step <step-id> --capability <capability-id> --write --json",
-      "ctxa adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --capability-workflow <workflow-id> --capability-step <step-id> --json",
-      "ctxa ticket check --json",
-      "ctxa ticket hydrate docs/tickets/draft/TICKET.md --json",
-      "ctxa pack check --json",
-      "ctxa pack status <pack-id> --json",
-      "ctxa spec check --json",
-      "ctxa future check --json",
-    ],
+    usage,
   };
   if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-  else if (wantsHelp) process.stdout.write(`${result.usage.join("\n")}\n`);
-  else process.stderr.write(`${result.usage.join("\n")}\n`);
+  else if (wantsHelp) process.stdout.write(formatHelp());
+  else process.stderr.write(formatHelp());
   process.exit(wantsHelp ? 0 : 1);
 }
