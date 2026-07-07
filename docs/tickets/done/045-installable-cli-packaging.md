@@ -1,6 +1,6 @@
 ---
 id: ticket.context.045
-status: ready
+status: done
 title: Create installable local CLI packaging
 ticket_pack: pack.user-friendly-adoption-onboarding-2026-07-05
 milestones:
@@ -45,8 +45,8 @@ validation:
     - node tools/context/ctx.mjs --help
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: this commit
+  completed_at: 2026-07-07
 ---
 
 # Create Installable Local CLI Packaging
@@ -115,7 +115,7 @@ Use `private: true` if needed to prevent accidental registry publishing during t
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: this commit (`Create installable ctx package metadata`)
+- Verification evidence: `node --check tools/context/ctx.mjs`, `npm install --package-lock-only --ignore-scripts`, `npm pack --dry-run`, `node tools/context/ctx.test.mjs`, `npm link --dry-run`, and `node tools/context/ctx.mjs --help` passed on 2026-07-07.
 - Follow-up tickets: none

@@ -44,6 +44,16 @@ function run(args, options = {}) {
   }
 }
 
+const helpOutput = execFileSync(process.execPath, [ctx, "--help"], {
+  cwd: fixture,
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"],
+});
+assert.equal(helpOutput.includes("ctx lint --json"), true);
+const jsonHelp = run(["--help"]);
+assert.equal(jsonHelp.ok, true);
+assert.equal(jsonHelp.usage.includes("ctx adoption status --repo <target-repo> --profile auto --json"), true);
+
 write("docs/context/routes/context-lab.md", `---
 id: route.context-lab
 kind: route

@@ -27,6 +27,22 @@ node tools/context/ctx.mjs pack status pack.repo-context-public-release-2026-07-
 make validate
 ```
 
+To install the local CLI without publishing a package:
+
+```sh
+npm install -g /path/to/repo-context
+ctx --help
+```
+
+For active development on this checkout, link the same local `ctx` command:
+
+```sh
+npm link
+ctx --help
+```
+
+These commands install from a local path only. Registry publishing, package scope, and remote install instructions are gated by the public-release launch decisions.
+
 For the fuller local smoke path:
 
 ```sh

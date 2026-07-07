@@ -17,6 +17,7 @@ const args = process.argv.slice(2);
 const command = args[0] ?? "help";
 const subcommand = args[1] ?? "";
 const json = args.includes("--json");
+const wantsHelp = command === "help" || args.includes("--help") || args.includes("-h");
 
 const ticketStatuses = new Set([
   "draft",
@@ -5111,7 +5112,7 @@ if (command === "lint") {
   printResult({ ok: errors.length === 0, scope: "future check", errors });
 } else {
   const result = {
-    ok: false,
+    ok: wantsHelp,
     usage: [
       "ctx lint --json",
       "ctx doctor --json",
@@ -5159,6 +5160,7 @@ if (command === "lint") {
     ],
   };
   if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else if (wantsHelp) process.stdout.write(`${result.usage.join("\n")}\n`);
   else process.stderr.write(`${result.usage.join("\n")}\n`);
-  process.exit(1);
+  process.exit(wantsHelp ? 0 : 1);
 }
