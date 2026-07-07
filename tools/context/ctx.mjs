@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
+import { screenshotReviewUiCommand } from "./screenshot-review-ui.mjs";
 
 const root = process.cwd();
 const toolRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
@@ -3161,6 +3162,7 @@ function idvisorWorkflow() {
       "node tools/context/ctx.mjs query --path <path> --task <task> --agent codex --budget 6000 --json",
       "node tools/context/ctx.mjs ticket hydrate <ticket> --json",
       "node tools/context/ctx.mjs feedback review --ticket <ticket> --screenshot <path> --json",
+      "node tools/context/ctx.mjs feedback review-ui --repo . --screenshot-dir .repo-context/artifacts/screenshots",
       "node tools/context/ctx.mjs feedback plan --ticket <ticket> --body '<natural feedback>' --json",
       "node tools/context/ctx.mjs feedback capture --ticket <ticket> --body '<feedback>' --write --json",
       "node tools/context/ctx.mjs feedback promote --feedback <feedback-id> --ticket <ticket> --mode follow-up-ticket --write --json",
@@ -4906,6 +4908,9 @@ if (command === "lint") {
   printResult(feedbackPlan());
 } else if (command === "feedback" && subcommand === "review") {
   printResult(feedbackReview());
+} else if (command === "feedback" && subcommand === "review-ui") {
+  const result = screenshotReviewUiCommand(args, { json });
+  if (result) printResult(result);
 } else if (command === "feedback" && subcommand === "capture") {
   printResult(feedbackCapture());
 } else if (command === "feedback" && subcommand === "promote") {
@@ -4980,6 +4985,7 @@ if (command === "lint") {
       "ctx workflow validation-plan --workflow workflow.browser-validation --repo . --json",
       "ctx feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json",
       "ctx feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .repo-context/artifacts/screenshots/example.png --url http://localhost:3000 --json",
+      "ctx feedback review-ui --repo . --screenshot-dir .repo-context/artifacts/screenshots --port 0",
       "ctx feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json",
       "ctx feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json",
       "ctx credentials check --profile browser-test-user --repo . --json",

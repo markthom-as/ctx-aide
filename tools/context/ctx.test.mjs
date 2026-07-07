@@ -4,6 +4,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import {
+  buildScreenshotReviewState,
+  buildTicketDraftPlan,
+  generateTicketDrafts,
+  savePostedFeedback,
+} from "./screenshot-review-ui.mjs";
 
 const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const ctx = path.join(repoRoot, "tools/context/ctx.mjs");
@@ -932,6 +938,54 @@ assert.equal(promotedRuleFollowUp.ok, true);
 const ruleFollowUpText = fs.readFileSync(path.join(adoptedRepo, promotedRuleFollowUp.ticket.file), "utf8");
 assert.equal(ruleFollowUpText.includes("axiom.feedback."), true);
 assert.equal(ruleFollowUpText.includes("Never ship visual tickets"), true);
+
+const reviewUiState = buildScreenshotReviewState({
+  repoPath: adoptedRepo,
+  screenshotDir: ".repo-context/artifacts/screenshots/browser-validation/logged-out",
+});
+assert.equal(reviewUiState.items.length, 1);
+savePostedFeedback(reviewUiState, {
+  entries: {
+    [reviewUiState.items[0].key]: {
+      reviewStatus: "needs_ticket",
+      severity: "P2",
+      component: "Settings",
+      notes: [
+        "- Mobile spacing is too tight under the heading.",
+        "- Change the button copy to Save changes.",
+      ].join("\n"),
+      tags: ["layout", "copy"],
+    },
+  },
+});
+const ticketDir = path.join(adoptedRepo, "docs/tickets/needs-questions");
+const beforeReviewUiTickets = fs.existsSync(ticketDir)
+  ? fs.readdirSync(ticketDir).filter((file) => file.includes("mobile-spacing"))
+  : [];
+const reviewUiPlan = buildTicketDraftPlan(reviewUiState);
+assert.equal(reviewUiPlan.ok, true);
+assert.equal(reviewUiPlan.count, 2);
+assert.equal(reviewUiPlan.write_requires_confirmation, true);
+assert.equal(reviewUiPlan.candidates[0].splitReason, "Structured list feedback");
+const afterPlanTickets = fs.existsSync(ticketDir)
+  ? fs.readdirSync(ticketDir).filter((file) => file.includes("mobile-spacing"))
+  : [];
+assert.deepEqual(afterPlanTickets, beforeReviewUiTickets);
+
+const writtenReviewUiTickets = generateTicketDrafts(reviewUiState, {
+  candidates: reviewUiPlan.candidates,
+});
+assert.equal(writtenReviewUiTickets.ok, true);
+assert.equal(writtenReviewUiTickets.count, 2);
+assert.equal(writtenReviewUiTickets.files.every((file) => file.startsWith("docs/tickets/needs-questions/")), true);
+const generatedTicketText = fs.readFileSync(path.join(adoptedRepo, writtenReviewUiTickets.files[0]), "utf8");
+assert.equal(generatedTicketText.includes("status: needs-questions"), true);
+assert.equal(generatedTicketText.includes("ticket_pack: pack.screenshot-feedback"), true);
+assert.equal(generatedTicketText.includes("source_feedback: []"), true);
+assert.equal(generatedTicketText.includes("Screenshot Feedback"), false);
+assert.equal(generatedTicketText.includes("Mobile spacing is too tight"), true);
+assert.equal(generatedTicketText.includes("validation:"), true);
+assert.equal(generatedTicketText.includes(".repo-context/artifacts/screenshots/browser-validation/logged-out/mobile.png"), true);
 
 const targetRepoToolsCheck = run([
   "tools",
