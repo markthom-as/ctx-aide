@@ -1,6 +1,6 @@
 ---
 id: ticket.context.060
-status: needs-hardening
+status: blocked
 title: Close production onboarding setup flow
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -46,7 +46,6 @@ validation:
     - node tools/ctx-aide/ctx-aide.test.mjs
     - node tools/ctx-aide/ctx-aide.mjs pack status pack.user-friendly-adoption-onboarding-2026-07-05 --json
     - node tools/ctx-aide/ctx-aide.mjs setup --repo <fixture> --profile auto --no-input --json
-    - node tools/ctx-aide/ctx-aide.mjs setup --repo <fixture> --profile auto --write --no-input --json
     - node tools/ctx-aide/ctx-aide.mjs setup --repo <fixture> --profile auto --write --no-input --json
     - node tools/ctx-aide/ctx-aide.mjs ticket check --json
     - node tools/ctx-aide/ctx-aide.mjs pack check --json
@@ -124,11 +123,11 @@ The remaining runnable-product gap is onboarding. Existing ready tickets `ticket
 
 ## Implementation Notes
 
-This ticket can move to `ready` once `047`, `046`, and `048` are complete. Until then it should stay non-executable.
+This closeout ticket is fully specified, but it remains blocked until `047`, `046`, and `048` are complete. Do not start it as a hardening/refactor substitute for those implementation tickets.
 
 ## Completion
 
-- Status: needs-hardening
+- Status: blocked
 - Commit: pending
 - Verification evidence: pending
 - Follow-up tickets: none

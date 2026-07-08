@@ -21,7 +21,6 @@ scope:
     - README.md
     - SECURITY.md
     - CONTRIBUTING.md
-    - CODE_OF_CONDUCT.md
     - CHANGELOG.md
   directories:
     - .github
@@ -80,6 +79,7 @@ The README is substantially hardened, but the repository lacks public-project hy
 - Do not imply external support SLAs.
 - Do not include personal email, phone, or private contact details without explicit approval.
 - Do not add GitHub automation that requires secrets.
+- Do not add `CODE_OF_CONDUCT.md` unless maintainer/contact and enforcement posture are explicit.
 
 ## Axioms
 
@@ -112,6 +112,7 @@ The README is substantially hardened, but the repository lacks public-project hy
 - `.github/ISSUE_TEMPLATE` and `.github/pull_request_template.md` exist if `.github` is introduced.
 - Docs instruct contributors to run the correct validation gates.
 - Docs preserve the current unpublished/no-license posture.
+- `CODE_OF_CONDUCT.md` is either intentionally omitted or added with explicit owner-approved contact/enforcement details.
 
 ## Validation
 

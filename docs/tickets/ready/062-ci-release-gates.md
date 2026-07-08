@@ -37,6 +37,7 @@ axioms:
   - axiom.markdown-source-of-truth
   - axiom.ticket-done-requires-commit
   - axiom.public-docs-match-implemented-behavior
+  - axiom.no-paid-infra-without-cost-estimate
 validation:
   automated:
     - npm ci
@@ -73,7 +74,7 @@ Local validation is currently strong, but there is no `.github` workflow and no 
 ## Positive Rules
 
 - Use deterministic non-interactive commands.
-- Keep CI free of paid infrastructure.
+- Keep CI free of paid infrastructure; if the target remote is private, document the GitHub Actions minute assumption before enabling the workflow.
 - Include package payload and local install smoke, not only unit tests.
 - Fail on changed tracked files after generated validation commands.
 
@@ -83,6 +84,7 @@ Local validation is currently strong, but there is no `.github` workflow and no 
 - Do not require secrets.
 - Do not rely on globally installed `ctxa`.
 - Do not add a matrix broader than the project can support and maintain.
+- Do not add paid runners, third-party CI services, secrets, caches, or release uploads in this first gate.
 
 ## Axioms
 
@@ -115,6 +117,7 @@ Local validation is currently strong, but there is no `.github` workflow and no 
 - Workflow uses Node 20+ and `npm ci`.
 - Workflow includes `npm audit --omit=dev --json`, `npm run build -- --dry-run --json`, `npm run install:local -- --json`, `make validate`, and `make smoke`.
 - Workflow does not contain publish, deploy, secret, or paid-infra steps.
+- Workflow comments or docs state the expected cost posture: public GitHub Actions is free for ordinary public repos; private repos may consume included account minutes, so no paid runner/service is introduced.
 
 ## Validation
 

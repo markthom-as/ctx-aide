@@ -75,7 +75,7 @@ Top-level `ctxa --help` is now grouped and readable, but subcommand help is stil
 
 - Do not duplicate command lists by hand in multiple structures.
 - Do not add prompts, ANSI styling, pagers, or TTY-only behavior.
-- Do not remove the existing flat `usage` array until a compatibility decision is made.
+- Do not remove the existing flat `usage` array unless this ticket deliberately updates the JSON contract, tests, and docs in the same commit.
 
 ## Axioms
 
@@ -85,8 +85,8 @@ Top-level `ctxa --help` is now grouped and readable, but subcommand help is stil
 
 ## Frozen Decisions
 
-- Decision: top-level JSON help remains backward compatible for now.
-- Rationale: current tests and agents may consume `usage`.
+- Decision: top-level JSON help keeps the current `usage` array in this slice.
+- Rationale: the manifest adds structure without forcing unrelated consumers to change during the same ticket.
 - Decision: add a manifest command rather than asking agents to parse human help.
 - Rationale: command discovery should be structured.
 
@@ -107,7 +107,7 @@ Top-level `ctxa --help` is now grouped and readable, but subcommand help is stil
 - `ctxa help <group>` shows readable help for at least core, context, adoption, feedback, and markdown gates.
 - `ctxa help <group> --json` returns structured command entries.
 - `ctxa command manifest --json` returns a versioned manifest with command ids, examples, mutating/read-only classification, JSON support, and short descriptions.
-- Existing `ctxa --help --json` remains compatible.
+- Existing `ctxa --help --json` continues to return the current `usage` array unless this ticket explicitly changes that contract with tests.
 - Setup-specific help is included only if `ctxa setup` exists when this ticket is implemented; otherwise adoption setup remains represented by existing adoption commands.
 
 ## Validation

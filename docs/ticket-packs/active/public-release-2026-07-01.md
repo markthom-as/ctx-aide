@@ -46,6 +46,7 @@ parallel_groups:
 blocked_by:
   - GitHub owner/org decision required before creating or publishing a remote.
   - Repository license decision required before claiming open-source reuse rights.
+  - Production hardening pack must close or explicitly waive unresolved launch blockers.
   - Cargo publishing decision required before claiming crates.io readiness.
 created: 2026-07-01
 completion:
@@ -80,11 +81,11 @@ Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credibl
 
 ## Execution Plan
 
-- Parallel groups: `naming` and `safety` can start immediately in parallel.
-- Sequential dependencies: `ticket.context.042` and `ticket.context.043` depend on `ticket.context.040`; `ticket.context.044` depends on all prior tickets; `ticket.context.054` is a follow-on documentation hardening slice; `ticket.context.055` performs the repo/tool namespace rename requested before publication; `ticket.context.056` removes the remaining legacy naming compatibility and aligns historical docs; `ticket.context.057` makes `ctxa` the single installed CLI binary while keeping `ctx-aide` as the package/repo namespace; `ticket.context.058` adds explicit build and local install scripts for package preflight; `ticket.context.059` formats top-level CLI help for human readers.
-- Shared-file coordination: `README.md`, release docs, and repo metadata must be coordinated by a single agent after the name decision lands.
-- Worktree strategy: use separate worktrees for independent naming and safety work if parallel agents run concurrently.
-- Merge queue strategy: one clean commit per completed ticket; merge naming before docs/demo copy changes.
+- Completed sequence: `ticket.context.040` through `043` and `054` through `059` are done, including public name, safety audit, README/demo proof, ctx-aide namespace rename, removal of legacy naming aliases, `ctxa` as the single installed binary, build/install scripts, and formatted top-level help.
+- Remaining sequence: `ticket.context.044` is the only ticket in this pack still blocked, and it must wait for owner/license decisions plus production-hardening gate closure before any public visibility change.
+- Shared-file coordination: `README.md`, release docs, and repo metadata must be coordinated by a single agent if the launch gate is later executed.
+- Worktree strategy: use a clean worktree for any future launch-gate execution so public-visibility changes cannot absorb unrelated local edits.
+- Merge queue strategy: keep the launch gate as one scoped commit after every prerequisite is done or explicitly waived in markdown.
 
 ## Run Policy
 
@@ -103,5 +104,5 @@ Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credibl
 
 - Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.054`, `ticket.context.055`, `ticket.context.056`, `ticket.context.057`, `ticket.context.058`, `ticket.context.059`.
 - Remaining tickets: none ready.
-- Blocked tickets: `ticket.context.044` pending GitHub owner/org, license, and Cargo/package publication decisions.
+- Blocked tickets: `ticket.context.044` pending GitHub owner/org, license, production-hardening closure, and package publication decisions.
 - Final validation: pending.

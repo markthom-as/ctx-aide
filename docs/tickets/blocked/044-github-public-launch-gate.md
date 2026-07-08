@@ -23,6 +23,16 @@ depends_on:
   - ticket.context.057
   - ticket.context.058
   - ticket.context.059
+  - ticket.context.060
+  - ticket.context.061
+  - ticket.context.062
+  - ticket.context.063
+  - ticket.context.064
+  - ticket.context.065
+  - ticket.context.066
+  - ticket.context.067
+  - ticket.context.068
+  - ticket.context.069
 blocks:
   - ticket.context.070
 scope:
@@ -70,7 +80,7 @@ Create the final launch gate for making the renamed repo public on GitHub, inclu
 
 ## Context
 
-This is the final ticket in the public-release pack. It must not run until the name, safety audit, README, demo proof, ctx-aide rename, package build/install, help formatting, and production-hardening gates are complete or explicitly waived.
+This is the final ticket in the public-release pack. It must not run until the name, safety audit, README, demo proof, ctx-aide rename, package build/install, help formatting, and production-hardening prerequisite tickets are complete or explicitly waived.
 
 ## Positive Rules
 
@@ -111,7 +121,7 @@ This is the final ticket in the public-release pack. It must not run until the n
 
 ## Acceptance Criteria
 
-- Pack status accurately reports upstream ticket completion.
+- Pack status accurately reports upstream public-release and production-hardening prerequisite completion.
 - Full validation passes or blockers are documented.
 - GitHub launch checklist identifies exact owner, repo name, description, topics, visibility, license, and public URL.
 - Public links are updated only after verified launch.

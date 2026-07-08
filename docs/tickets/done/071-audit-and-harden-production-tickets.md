@@ -11,7 +11,7 @@ implementation_agent: codex
 planning_agents:
   - codex-high-effort
 ui_review_agent: claude-high-effort
-parallel_group: onboarding
+parallel_group: audit
 depends_on: []
 blocks: []
 scope:
@@ -56,7 +56,7 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: current-change
+  commit: afe811b
   completed_at: 2026-07-07T18:50:56-0600
 ---
 
@@ -129,6 +129,6 @@ This ticket is intentionally documentation-only.
 ## Completion
 
 - Status: done
-- Commit: current-change
+- Commit: afe811b
 - Verification evidence: `ctxa ticket check`, `ctxa pack check`, production/onboarding/public-release pack status checks, `ctxa spec check`, `make validate`, `make smoke`, and `git diff --check` passed.
 - Follow-up tickets: implement ready tickets starting with `ticket.context.047`.

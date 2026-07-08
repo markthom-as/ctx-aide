@@ -59,7 +59,7 @@ Make profile auto-detection distinguish Astrotechne web from Astrotechne engine 
 ## Positive Rules
 
 - Preserve current web-app behavior for `astrotechne.com`.
-- Keep `--profile astrotechne` as a compatibility alias for the web-app profile.
+- Make `astrotechne-web` and `astrotechne-engine` the canonical explicit profile ids.
 - Add explicit engine behavior for `astrotechne-engine`.
 
 ## Negative Rules
@@ -77,8 +77,8 @@ Make profile auto-detection distinguish Astrotechne web from Astrotechne engine 
 
 - Decision: profile ids should include `astrotechne-web` and `astrotechne-engine`.
 - Rationale: the two repos share a family name but have different ticket and validation conventions.
-- Decision: `astrotechne` remains an alias for `astrotechne-web`.
-- Rationale: existing docs and dry-runs already use that profile.
+- Decision: no hidden profile alias is required.
+- Rationale: the public CLI should prefer explicit profile ids over old aliases unless an implementation ticket documents an intentional shorthand.
 - Decision: engine recommended validation should include Rust checks and the existing semantic-map npm script.
 - Rationale: the engine is Rust-first with a small Node validation surface.
 
@@ -98,7 +98,7 @@ Make profile auto-detection distinguish Astrotechne web from Astrotechne engine 
 
 - Auto-detection for `/Users/jove/code/astrotechne.com` reports web profile and `docs/domain-redesign/tickets`.
 - Auto-detection for `/Users/jove/code/astrotechne-engine` reports engine profile and `docs/tickets`.
-- `--profile astrotechne` continues to report the web-compatible profile.
+- `--profile astrotechne-web` reports the web profile and `--profile astrotechne-engine` reports the engine profile.
 - Status output for engine no longer recommends `npm run tickets:status`.
 - Fixture tests cover both Astrotechne profiles.
 - No target repo files are written by `adoption status`.
