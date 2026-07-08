@@ -50,14 +50,14 @@ Deliver a normal developer onboarding path for ctx-aide: install `ctx-aide`, run
 ## Tickets
 
 - `ticket.context.045`: done
-- `ticket.context.046`: ready, queued after `ticket.context.047`
-- `ticket.context.047`: ready, next executable slice
+- `ticket.context.046`: ready, next executable slice
+- `ticket.context.047`: done
 - `ticket.context.048`: ready, queued after `ticket.context.046` and `ticket.context.047`
 
 ## Execution Plan
 
-- Parallel groups: `profiles` can run now. `setup` and `docs-proof` are sequential follow-ons.
-- Sequential dependencies: `ticket.context.045` is complete; implement `ticket.context.047` next, then `ticket.context.046`, then `ticket.context.048`.
+- Parallel groups: `setup` can run now. `docs-proof` remains a sequential follow-on.
+- Sequential dependencies: `ticket.context.045` and `ticket.context.047` are complete; implement `ticket.context.046` next, then `ticket.context.048`.
 - Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs` need sequential merges if multiple agents run.
 - Worktree strategy: current worktree is acceptable for serial work; use separate worktrees for parallel `packaging` and `profiles` slices.
 - Merge queue strategy: one clean commit per ticket, then a final docs/proof commit.
@@ -86,6 +86,6 @@ Deliver a normal developer onboarding path for ctx-aide: install `ctx-aide`, run
 
 ## Completion
 
-- Completed tickets: `ticket.context.045`.
-- Remaining tickets: `ticket.context.047`, `ticket.context.046`, `ticket.context.048`.
+- Completed tickets: `ticket.context.045`, `ticket.context.047`.
+- Remaining tickets: `ticket.context.046`, `ticket.context.048`.
 - Final validation: pending.

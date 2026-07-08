@@ -3327,16 +3327,21 @@ function targetRepoPath() {
 
 function detectAdoptionProfile(repoPath, explicitProfile = "auto") {
   const base = path.basename(repoPath);
+  const hasAstrotechneWebTickets = fs.existsSync(path.join(repoPath, "docs/domain-redesign/tickets"));
+  const hasCargoWorkspace = fs.existsSync(path.join(repoPath, "Cargo.toml"));
   const profile = explicitProfile === "auto"
-    ? (fs.existsSync(path.join(repoPath, "docs/domain-redesign/tickets")) || base.includes("astrotechne")
-        ? "astrotechne"
-        : (base.includes("wetware") ? "wetware" : "default"))
+    ? (hasAstrotechneWebTickets
+        ? "astrotechne-web"
+        : (base.includes("astrotechne-engine") || (base.includes("astrotechne") && hasCargoWorkspace)
+            ? "astrotechne-engine"
+            : (base.includes("wetware") ? "wetware" : "default")))
     : explicitProfile;
   const pkg = readPackageJson(repoPath);
   const profiles = {
     default: {
       profile: "default",
       ticket_root: "docs/tickets",
+      pack_style: "markdown-file",
       ticket_status_command: null,
       package_manager: detectPackageManager(repoPath, pkg),
       recommended_validation: [],
@@ -3345,6 +3350,7 @@ function detectAdoptionProfile(repoPath, explicitProfile = "auto") {
     wetware: {
       profile: "wetware",
       ticket_root: "docs/tickets",
+      pack_style: "markdown-file",
       ticket_status_command: null,
       package_manager: "pnpm",
       recommended_validation: [
@@ -3355,13 +3361,27 @@ function detectAdoptionProfile(repoPath, explicitProfile = "auto") {
       ],
       preserved_ticket_system: "flat Wetware docs/tickets markdown",
     },
-    astrotechne: {
-      profile: "astrotechne",
+    "astrotechne-web": {
+      profile: "astrotechne-web",
       ticket_root: "docs/domain-redesign/tickets",
+      pack_style: "directory-readme",
       ticket_status_command: "npm run tickets:status",
       package_manager: "npm",
       recommended_validation: ["npm run tickets:status", "npx biome check", "npm run build"],
       preserved_ticket_system: "Astrotechne domain-redesign ticket tree",
+    },
+    "astrotechne-engine": {
+      profile: "astrotechne-engine",
+      ticket_root: "docs/tickets",
+      pack_style: "markdown-file",
+      ticket_status_command: null,
+      package_manager: "cargo+npm",
+      recommended_validation: [
+        "cargo fmt --all --check",
+        "cargo test --workspace",
+        "npm run validate:traditional-semantic-map",
+      ],
+      preserved_ticket_system: "Astrotechne engine docs/tickets markdown",
     },
   };
   return profiles[profile] ?? { ...profiles.default, profile };
@@ -3673,7 +3693,7 @@ function settingsSet() {
 function targetPackRows(repoPath, profile) {
   const ticketRoot = path.join(repoPath, profile.ticket_root);
   if (!fs.existsSync(ticketRoot)) return [];
-  if (profile.profile === "astrotechne") {
+  if (profile.pack_style === "directory-readme") {
     return fs.readdirSync(ticketRoot, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => {
@@ -3977,7 +3997,7 @@ function adoptionContext() {
 }
 
 function adoptionPackPath(profile, slug) {
-  if (profile.profile === "astrotechne") {
+  if (profile.pack_style === "directory-readme") {
     return path.join(profile.ticket_root, slug, "README.md");
   }
   return path.join("docs/ticket-packs/draft", `${slug}.md`);
@@ -3986,7 +4006,7 @@ function adoptionPackPath(profile, slug) {
 function adoptionPackMarkdown(profile, options) {
   const packId = options.id;
   const validation = options.validation.length > 0 ? options.validation : profile.recommended_validation;
-  if (profile.profile === "astrotechne") {
+  if (profile.pack_style === "directory-readme") {
     return `---\nstatus: active\npack_id: ${packId}\ntitle: ${options.title}\ncreated: ${todayDate()}\nupdated: ${todayDate()}\nctx_aide_profile: ${profile.profile}\nvalidation:\n${yamlKeyList("automated", validation, "  ")}\ntickets: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctxa adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctxa adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Status: active\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
   }
   return `---\nid: ${packId}\nstatus: draft\ntitle: ${options.title}\nmilestones:\n  - ${options.milestone}\nsource_specs: []\ntickets: []\nrun_policy:\n  max_parallel_agents: 2\n  stale_after_minutes: 20\n  merge_strategy: sequential-ticket-commits\n  worktree_required: false\nparallel_groups:\n  default:\n    tickets: []\nblocked_by: []\ncreated: ${todayDate()}\ncompletion:\n  completed_at: null\n  final_validation: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Scope\n\n- Included: ${options.scopeIncluded}\n- Excluded: production code changes outside generated tickets.\n\n## Tickets\n\nNo tickets generated yet.\n\n## Execution Plan\n\n- Create scoped tickets with \`ctxa adoption ticket --pack-slug ${options.slug}\`.\n- Hydrate each ticket with \`ctxa adoption implementation-plan\` before implementation.\n- Keep each completed ticket to one clean commit.\n\n## Run Policy\n\n- Max parallel agents: 2.\n- Stale lease threshold: 20 minutes.\n- Dead-agent cleanup: inspect target git status before staging.\n- Requeue rules: stop if missing product, design, architecture, or security decisions.\n\n## Pack Validation\n\n${validation.map((item) => `- \`${item}\``).join("\n") || "- Add validation commands before implementation."}\n\n## Completion\n\n- Completed tickets: none.\n- Remaining tickets: pending.\n- Final validation: pending.\n`;
@@ -4027,7 +4047,7 @@ function adoptionPack() {
       title,
       slug,
       file: relativePath,
-      status: profile.profile === "astrotechne" ? "active" : "draft",
+      status: profile.pack_style === "directory-readme" ? "active" : "draft",
     },
     changes: [change],
     next_commands: [
@@ -4040,7 +4060,7 @@ function adoptionPack() {
 }
 
 function adoptionTicketPath(profile, ticketSlug, packSlug) {
-  if (packSlug && profile.profile === "astrotechne") {
+  if (packSlug && profile.pack_style === "directory-readme") {
     return path.join(profile.ticket_root, packSlug, `${ticketSlug}.md`);
   }
   return path.join(profile.ticket_root, `${ticketSlug}.md`);
@@ -4067,7 +4087,7 @@ function adoptionTicket() {
   const capabilityWorkflow = argValue("--capability-workflow", argValue("--workflow", ""));
   const capabilityStep = argValue("--capability-step", argValue("--step", ""));
   const capabilityRequired = unique(argValues("--capability"));
-  if (packSlug && profile.profile === "astrotechne") {
+  if (packSlug && profile.pack_style === "directory-readme") {
     const packReadme = adoptionPackPath(profile, packSlug);
     if (!fs.existsSync(path.join(repoPath, packReadme))) {
       return {

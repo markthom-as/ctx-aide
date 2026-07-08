@@ -63,8 +63,8 @@ Before daily Astrotechne use, ctx-aide should add:
 
 ## Daily Target Flow
 
-1. `node /Users/jove/code/ctx-aide/tools/ctx-aide/ctx-aide.mjs customize --profile astrotechne --dry-run --json`
-2. Bootstrap context directories in Astrotechne.
+1. `node /Users/jove/code/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile astrotechne-web --json`
+2. Bootstrap context directories in Astrotechne web without moving existing tickets.
 3. Capture context entries for the current feature area.
 4. Run Semble discovery against Astrotechne to connect context to files and packet examples.
 5. Draft and harden the spec.
@@ -80,7 +80,9 @@ Before daily Astrotechne use, ctx-aide should add:
 Before using ctx-aide on production code:
 
 1. Run `ctxa adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json`.
-2. Resolve bootstrap blockers before generating production-code tickets.
-3. Keep dirty target worktree warnings visible; do not stage unrelated target changes into ctxa adoption commits.
-4. Create the packet with `ctxa adoption pack` before creating tickets.
-5. Create tickets with both `--pack <pack-id>` and `--pack-slug <pack-slug>` so the ticket file lands in the packet directory.
+2. Run `ctxa adoption status --repo /Users/jove/code/astrotechne-engine --profile auto --json` before planning engine work.
+3. Confirm the web repo reports `astrotechne-web` with `docs/domain-redesign/tickets`, and the engine repo reports `astrotechne-engine` with `docs/tickets`.
+4. Resolve bootstrap blockers before generating production-code tickets.
+5. Keep dirty target worktree warnings visible; do not stage unrelated target changes into ctxa adoption commits.
+6. Create the packet with `ctxa adoption pack` before creating tickets.
+7. Create web tickets with both `--pack <pack-id>` and `--pack-slug <pack-slug>` so the ticket file lands in the packet directory.

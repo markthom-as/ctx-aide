@@ -1157,7 +1157,7 @@ const astrotechnePack = run([
   "--repo",
   astrotechneTarget,
   "--profile",
-  "astrotechne",
+  "astrotechne-web",
   "--title",
   "Public Copy Launch",
   "--slug",
@@ -1165,8 +1165,14 @@ const astrotechnePack = run([
   "--write",
 ]);
 assert.equal(astrotechnePack.ok, true);
+assert.equal(astrotechnePack.profile.profile, "astrotechne-web");
 assert.equal(astrotechnePack.pack.file, "docs/domain-redesign/tickets/public-copy-launch/README.md");
 assert.equal(fs.existsSync(path.join(astrotechneTarget, astrotechnePack.pack.file)), true);
+
+const astrotechneAutoStatus = run(["adoption", "status", "--repo", astrotechneTarget, "--profile", "auto"], { allowFailure: true });
+assert.equal(astrotechneAutoStatus.profile.profile, "astrotechne-web");
+assert.equal(astrotechneAutoStatus.profile.ticket_root, "docs/domain-redesign/tickets");
+assert.equal(astrotechneAutoStatus.packs.entries[0].style, "directory-readme");
 
 const missingPackTicket = run([
   "adoption",
@@ -1174,7 +1180,7 @@ const missingPackTicket = run([
   "--repo",
   astrotechneTarget,
   "--profile",
-  "astrotechne",
+  "astrotechne-web",
   "--title",
   "Missing Pack Ticket",
   "--slug",
@@ -1192,7 +1198,7 @@ const astrotechnePackedTicket = run([
   "--repo",
   astrotechneTarget,
   "--profile",
-  "astrotechne",
+  "astrotechne-web",
   "--title",
   "Polish Public Copy",
   "--slug",
@@ -1224,6 +1230,38 @@ const astrotechnePackedPlan = run([
 assert.equal(astrotechnePackedPlan.ok, true);
 assert.equal(astrotechnePackedPlan.ticket.file, astrotechnePackedTicket.ticket.file);
 assert.equal(astrotechnePackedPlan.target_paths.includes("app/page.tsx"), true);
+
+const astrotechneEngineTarget = path.join(fixture, "astrotechne-engine");
+fs.mkdirSync(path.join(astrotechneEngineTarget, "docs/tickets"), { recursive: true });
+fs.writeFileSync(path.join(astrotechneEngineTarget, "Cargo.toml"), "[workspace]\nmembers = []\n");
+fs.writeFileSync(path.join(astrotechneEngineTarget, "package.json"), `${JSON.stringify({
+  name: "astrotechne-engine",
+  private: true,
+  scripts: { "validate:traditional-semantic-map": "tsx scripts/validate-traditional-semantic-map.ts" },
+}, null, 2)}\n`);
+const astrotechneEngineStatus = run(["adoption", "status", "--repo", astrotechneEngineTarget, "--profile", "auto"], { allowFailure: true });
+assert.equal(astrotechneEngineStatus.profile.profile, "astrotechne-engine");
+assert.equal(astrotechneEngineStatus.profile.ticket_root, "docs/tickets");
+assert.equal(astrotechneEngineStatus.profile.recommended_validation.includes("cargo fmt --all --check"), true);
+assert.equal(astrotechneEngineStatus.profile.recommended_validation.includes("npm run tickets:status"), false);
+assert.equal(fs.existsSync(path.join(astrotechneEngineTarget, "docs/config/ctx-aide.profile.json")), false);
+
+const astrotechneEnginePack = run([
+  "adoption",
+  "pack",
+  "--repo",
+  astrotechneEngineTarget,
+  "--profile",
+  "astrotechne-engine",
+  "--title",
+  "Engine Flow",
+  "--slug",
+  "engine-flow",
+  "--write",
+]);
+assert.equal(astrotechneEnginePack.ok, true);
+assert.equal(astrotechneEnginePack.pack.file, "docs/ticket-packs/draft/engine-flow.md");
+assert.equal(fs.existsSync(path.join(astrotechneEngineTarget, astrotechneEnginePack.pack.file)), true);
 
 write("docs/specs/dependency-upgrade.md", `---
 id: spec.dependency-upgrade
