@@ -1,0 +1,74 @@
+# Cost posture: this workflow uses only standard GitHub-hosted Ubuntu runners.
+# Public repositories are free for ordinary GitHub Actions usage. Private
+# repositories may consume included account minutes, but this workflow does not
+# introduce paid runners, third-party CI services, secrets, releases, or deploys.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-gates:
+    name: Release gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --json
+
+      - name: Build package payload dry run
+        run: npm run build -- --dry-run --json
+
+      - name: Install local CLI smoke
+        run: |
+          npm run install:local -- --json
+          .ctx-aide/install/bin/ctxa --help
+
+      - name: Review npm package payload
+        run: npm pack --dry-run --json
+
+      - name: Verify local link metadata
+        run: npm link --dry-run
+
+      - name: Validate markdown source of truth
+        run: |
+          node tools/ctx-aide/ctx-aide.mjs scan --json
+          node tools/ctx-aide/ctx-aide.mjs spec check --json
+          node tools/ctx-aide/ctx-aide.mjs ticket check --json
+          node tools/ctx-aide/ctx-aide.mjs pack check --json
+
+      - name: Run repo validation
+        run: make validate
+
+      - name: Run smoke checks
+        run: make smoke
+
+      - name: Verify clean generated output and whitespace
+        run: |
+          git diff --check
+          git diff --exit-code

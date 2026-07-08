@@ -1,6 +1,6 @@
 ---
 id: ticket.context.062
-status: ready
+status: done
 title: Add CI release gates
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -57,8 +57,8 @@ validation:
     - Run the new workflow locally with an equivalent command sequence.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T02:19:00Z
 ---
 
 # Add CI Release Gates
@@ -131,7 +131,7 @@ If local `make smoke` mutates generated artifacts, rerun the generator intention
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `npm ci`, `npm audit --omit=dev --json`, `npm run build -- --dry-run --json`, `npm run install:local -- --json`, `npm pack --dry-run --json`, `npm link --dry-run`, `node tools/ctx-aide/ctx-aide.mjs scan --json`, `node tools/ctx-aide/ctx-aide.mjs spec check --json`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, `node tools/ctx-aide/ctx-aide.mjs pack check --json`, `make validate`, `make smoke`, and `git diff --check` passed locally.
 - Follow-up tickets: branch protection can be added after a public GitHub remote exists.
