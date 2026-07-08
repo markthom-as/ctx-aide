@@ -1,6 +1,6 @@
 ---
 id: pack.user-friendly-adoption-onboarding-2026-07-05
-status: active
+status: done
 title: User-Friendly Adoption Onboarding
 milestones:
   - milestone.user-friendly-adoption-onboarding
@@ -32,8 +32,15 @@ parallel_groups:
 blocked_by: []
 created: 2026-07-05
 completion:
-  completed_at: null
-  final_validation: []
+  completed_at: 2026-07-08T02:55:00Z
+  final_validation:
+    - node tools/ctx-aide/ctx-aide.mjs spec check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
+    - make validate
+    - .ctx-aide/install/bin/ctxa --help
+    - .ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
+    - .ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
 ---
 
 # User-Friendly Adoption Onboarding
@@ -52,12 +59,12 @@ Deliver a normal developer onboarding path for ctx-aide: install `ctx-aide`, run
 - `ticket.context.045`: done
 - `ticket.context.046`: done
 - `ticket.context.047`: done
-- `ticket.context.048`: ready, next executable slice
+- `ticket.context.048`: done
 
 ## Execution Plan
 
-- Parallel groups: `docs-proof` can run now.
-- Sequential dependencies: `ticket.context.045`, `ticket.context.047`, and `ticket.context.046` are complete; implement `ticket.context.048` next.
+- Parallel groups: all groups are complete.
+- Sequential dependencies: `ticket.context.045`, `ticket.context.047`, `ticket.context.046`, and `ticket.context.048` are complete.
 - Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs` and `tools/ctx-aide/ctx-aide.test.mjs` need sequential merges if multiple agents run.
 - Worktree strategy: current worktree is acceptable for serial work; use separate worktrees for parallel `packaging` and `profiles` slices.
 - Merge queue strategy: one clean commit per ticket, then a final docs/proof commit.
@@ -86,6 +93,6 @@ Deliver a normal developer onboarding path for ctx-aide: install `ctx-aide`, run
 
 ## Completion
 
-- Completed tickets: `ticket.context.045`, `ticket.context.047`, `ticket.context.046`.
-- Remaining tickets: `ticket.context.048`.
-- Final validation: pending.
+- Completed tickets: `ticket.context.045`, `ticket.context.047`, `ticket.context.046`, `ticket.context.048`.
+- Remaining tickets: none.
+- Final validation: install-to-setup smoke passed for Astrotechne web and engine in non-mutating no-input JSON mode.

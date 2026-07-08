@@ -1,6 +1,6 @@
 ---
 id: ticket.context.048
-status: ready
+status: done
 title: Document and smoke the install-to-setup path
 ticket_pack: pack.user-friendly-adoption-onboarding-2026-07-05
 milestones:
@@ -48,8 +48,8 @@ validation:
     - .ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T02:55:00Z
 ---
 
 # Document And Smoke The Install-To-Setup Path
@@ -108,7 +108,7 @@ The implementation tickets add packaging, setup, and profile behavior. This tick
 ## Validation
 
 - Automated: frontmatter commands.
-- Smoke: frontmatter commands.
+- Smoke: frontmatter commands. The Astrotechne setup smoke commands are expected to exit nonzero when missing bootstrap files produce planned writes in `--no-input` dry-run mode; the required artifact is parseable JSON with the correct profile, planned changes, and no target writes.
 - Screenshots: none.
 
 ## Implementation Notes
@@ -119,7 +119,7 @@ Audit note: this ticket is correctly detailed but must stay after `ticket.contex
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `node tools/ctx-aide/ctx-aide.mjs spec check --json`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, `node tools/ctx-aide/ctx-aide.mjs pack check --json`, and `make validate` passed. `.ctx-aide/install/bin/ctxa --help` passed. `.ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json` returned expected non-mutating setup JSON for profile `astrotechne-web`. `.ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json` returned expected non-mutating setup JSON for profile `astrotechne-engine`.
 - Follow-up tickets: registry publishing can be a later public-release ticket after owner/license decisions.

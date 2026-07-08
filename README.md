@@ -391,12 +391,11 @@ node tools/ctx-aide/ctx-aide.mjs tools check --workflow workflow.browser-validat
 Before using ctx-aide on a production repository, inspect the target state without mutating it:
 
 ```sh
-node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption status --repo /path/to/target --profile auto --json
-node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption bootstrap --repo /path/to/target --profile auto --json
+node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs setup --repo /path/to/target --profile auto --no-input --json
 node /path/to/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption pack --repo /path/to/target --title "<pack>" --slug <pack-slug> --json
 ```
 
-`adoption bootstrap --write` seeds both `docs/config/ctx-aide.profile.json` and `docs/config/ctx-aide.tools.json` in the target repo. `adoption status` treats a missing or invalid tools policy as a blocker, but it remains read-only and does not probe live connector auth.
+`setup --write` seeds both `docs/config/ctx-aide.profile.json` and `docs/config/ctx-aide.tools.json` in the target repo through the same underlying bootstrap writer. Without `--write` or `--yes`, `setup --no-input --json` returns the planned changes and exits nonzero when confirmation is required. `adoption status` treats a missing or invalid tools policy as a blocker, but it remains read-only and does not probe live connector auth.
 
 For directory-pack repositories such as Astrotechne, create tickets with the pack slug so generated work stays inside the packet:
 
@@ -898,6 +897,8 @@ ctxa tools check --workflow workflow.pull-request-review --step pr-review --capa
 ctxa pr preflight --repo . --pr 123 --json
 ctxa credentials check --profile browser-test-user --repo . --json
 ctxa credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json
+ctxa setup --repo /path/to/app --profile auto --no-input --json
+ctxa setup --repo /path/to/app --profile auto --write --no-input --json
 ctxa adoption bootstrap --repo /path/to/app --profile wetware --write --json
 ctxa adoption context --repo /path/to/app --kind flow --title "Dependency Audit Clearance" --path package.json --task "dependency audit" --write --json
 ctxa adoption ticket --repo /path/to/app --title "Clear Dependency Audit" --task "dependency audit" --context flow.dependency-audit-clearance --write --json

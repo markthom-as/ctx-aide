@@ -63,26 +63,28 @@ Before daily Astrotechne use, ctx-aide should add:
 
 ## Daily Target Flow
 
-1. `node /Users/jove/code/ctx-aide/tools/ctx-aide/ctx-aide.mjs adoption status --repo /Users/jove/code/astrotechne.com --profile astrotechne-web --json`
-2. Bootstrap context directories in Astrotechne web without moving existing tickets.
-3. Capture context entries for the current feature area.
-4. Run Semble discovery against Astrotechne to connect context to files and packet examples.
-5. Draft and harden the spec.
-6. Create a native Astrotechne packet with `ctxa adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title "<pack>" --slug <pack-slug> --write --json`.
-7. Generate atomic implementation tickets with Astrotechne validation commands, using the packet slug when the tickets belong inside that packet.
-8. Implement in parallel lanes where write sets are disjoint.
-9. Validate with focused tests, screenshots for UI, `npm run tickets:status`, typecheck/build as relevant, and route smoke.
-10. Commit each completed ticket separately.
-11. Run coordinator closeout: pack README, completion evidence, final validation, and status drift note.
+1. Install or refresh ctx-aide locally with `npm run install:local -- --json`.
+2. Run `.ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json` and review the detected profile, blockers, dirty-worktree warnings, planned writes, and next commands without mutating the target.
+3. If the setup plan is acceptable, run `.ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --write --no-input --json` to bootstrap missing ctx-aide files without moving existing tickets.
+4. Capture context entries for the current feature area.
+5. Run Semble discovery against Astrotechne to connect context to files and packet examples.
+6. Draft and harden the spec.
+7. Create a native Astrotechne packet with `ctxa adoption pack --repo /Users/jove/code/astrotechne.com --profile auto --title "<pack>" --slug <pack-slug> --write --json`.
+8. Generate atomic implementation tickets with Astrotechne validation commands, using the packet slug when the tickets belong inside that packet.
+9. Implement in parallel lanes where write sets are disjoint.
+10. Validate with focused tests, screenshots for UI, `npm run tickets:status`, typecheck/build as relevant, and route smoke.
+11. Commit each completed ticket separately.
+12. Run coordinator closeout: pack README, completion evidence, final validation, and status drift note.
 
 ## Pre-Production Hardening Flow
 
 Before using ctx-aide on production code:
 
-1. Run `ctxa adoption status --repo /Users/jove/code/astrotechne.com --profile auto --json`.
-2. Run `ctxa adoption status --repo /Users/jove/code/astrotechne-engine --profile auto --json` before planning engine work.
+1. Run `.ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json`.
+2. Run `.ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json` before planning engine work.
 3. Confirm the web repo reports `astrotechne-web` with `docs/domain-redesign/tickets`, and the engine repo reports `astrotechne-engine` with `docs/tickets`.
 4. Resolve bootstrap blockers before generating production-code tickets.
 5. Keep dirty target worktree warnings visible; do not stage unrelated target changes into ctxa adoption commits.
-6. Create the packet with `ctxa adoption pack` before creating tickets.
-7. Create web tickets with both `--pack <pack-id>` and `--pack-slug <pack-slug>` so the ticket file lands in the packet directory.
+6. Use `ctxa adoption status --repo <target> --profile auto --json` when you need the lower-level read-only status details without a setup plan.
+7. Create the packet with `ctxa adoption pack` before creating tickets.
+8. Create web tickets with both `--pack <pack-id>` and `--pack-slug <pack-slug>` so the ticket file lands in the packet directory.
