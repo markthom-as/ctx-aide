@@ -1,6 +1,6 @@
 ---
 id: ticket.context.065
-status: ready
+status: done
 title: Split CLI module boundaries
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -49,8 +49,8 @@ validation:
     - Compare representative JSON outputs before and after extraction for scan, lint, ticket check, pack status, and adoption status.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T03:18:00Z
 ---
 
 # Split CLI Module Boundaries
@@ -120,7 +120,7 @@ Move this ticket to `ready` after `ticket.context.064` lands or after a separate
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `node --check tools/ctx-aide/ctx-aide.mjs`, `node --check tools/ctx-aide/*.mjs`, `node tools/ctx-aide/ctx-aide.test.mjs`, `npm run build -- --dry-run --json`, `node tools/ctx-aide/ctx-aide.mjs lint --json`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, `node tools/ctx-aide/ctx-aide.mjs pack check --json`, and `make validate` passed. Representative JSON commands for scan, lint, ticket check, pack status, and adoption status remained parseable after the command-catalog extraction.
 - Follow-up tickets: additional module extractions should be separate tickets.

@@ -2,8 +2,55 @@
   "schema_version": 1,
   "generated_by": "tools/ctx-aide/ctx-aide.mjs scan",
   "source": "markdown",
-  "entry_count": 10,
+  "entry_count": 11,
   "entries": [
+    {
+      "id": "architecture.cli-module-boundaries-2026-07-08",
+      "kind": "architecture",
+      "status": "active",
+      "title": "CLI Module Boundaries",
+      "markdown_path": "docs/context/architecture/cli-module-boundaries-2026-07-08.md",
+      "summary": "Record the first production-maintainability boundary extracted from the `ctxa` CLI and the next safe extraction candidates.",
+      "routes": [],
+      "files": [
+        "tools/ctx-aide/ctx-aide.mjs",
+        "tools/ctx-aide/command-catalog.mjs",
+        "tools/ctx-aide/ctx-aide.test.mjs"
+      ],
+      "components": [],
+      "flows": [
+        "flow.ctx-aide-dogfood"
+      ],
+      "tags": [
+        "cli",
+        "maintainability",
+        "module-boundary"
+      ],
+      "positive_rules": [
+        "Extract one coherent CLI responsibility at a time.",
+        "Preserve command JSON envelopes and human help text during refactors."
+      ],
+      "negative_rules": [
+        "Do not combine module extraction with command behavior redesign.",
+        "Do not add bundlers, TypeScript, or frameworks as part of boundary cleanup."
+      ],
+      "severity": null,
+      "source": null,
+      "name": null,
+      "import_path": null,
+      "package_path": null,
+      "load_when": {
+        "path_matches": [
+          "tools/ctx-aide/**"
+        ],
+        "task_terms": [
+          "module boundary",
+          "command catalog",
+          "cli refactor"
+        ]
+      },
+      "updated": "2026-07-08"
+    },
     {
       "id": "architecture.github-public-launch-gate-2026-07-05",
       "kind": "architecture",
