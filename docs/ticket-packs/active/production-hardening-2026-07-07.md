@@ -76,7 +76,7 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 
 ## Tickets
 
-- `ticket.context.060`: blocked
+- `ticket.context.060`: done
 - `ticket.context.061`: blocked
 - `ticket.context.062`: done
 - `ticket.context.063`: done
@@ -113,6 +113,6 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 
 ## Completion
 
-- Completed tickets: `ticket.context.071`, `ticket.context.072`, `ticket.context.064`, `ticket.context.062`, `ticket.context.068`, `ticket.context.063`.
-- Remaining tickets: `ticket.context.060`, `ticket.context.061`, `ticket.context.065`, `ticket.context.066`, `ticket.context.067`, `ticket.context.069`, `ticket.context.070`.
+- Completed tickets: `ticket.context.071`, `ticket.context.072`, `ticket.context.064`, `ticket.context.062`, `ticket.context.068`, `ticket.context.063`, `ticket.context.060`.
+- Remaining tickets: `ticket.context.061`, `ticket.context.065`, `ticket.context.066`, `ticket.context.067`, `ticket.context.069`, `ticket.context.070`.
 - Final validation: pending.

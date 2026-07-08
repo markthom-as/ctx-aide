@@ -1,6 +1,6 @@
 ---
 id: ticket.context.060
-status: blocked
+status: done
 title: Close production onboarding setup flow
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -22,7 +22,7 @@ scope:
   routes: []
   files:
     - README.md
-    - docs/ticket-packs/active/user-friendly-adoption-onboarding-2026-07-05.md
+    - docs/ticket-packs/done/user-friendly-adoption-onboarding-2026-07-05.md
     - docs/workflows/astrotechne-adoption.md
   directories:
     - examples
@@ -55,8 +55,8 @@ validation:
     - .ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T03:07:00Z
 ---
 
 # Close Production Onboarding Setup Flow
@@ -123,11 +123,11 @@ The remaining runnable-product gap is onboarding. Existing ready tickets `ticket
 
 ## Implementation Notes
 
-This closeout ticket is fully specified, but it remains blocked until `047`, `046`, and `048` are complete. Do not start it as a hardening/refactor substitute for those implementation tickets.
+This closeout ticket was blocked until `047`, `046`, and `048` were complete. It should remain a gate around the onboarding pack rather than a substitute for implementation tickets.
 
 ## Completion
 
-- Status: blocked
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `node --check tools/ctx-aide/ctx-aide.mjs`, `node tools/ctx-aide/ctx-aide.test.mjs`, `node tools/ctx-aide/ctx-aide.mjs pack status pack.user-friendly-adoption-onboarding-2026-07-05 --json`, fixture setup dry-run/write/rerun smokes, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, `node tools/ctx-aide/ctx-aide.mjs pack check --json`, and `make validate` passed. Installed `.ctx-aide/install/bin/ctxa setup` returned expected no-input dry-run JSON for Astrotechne web and engine without target writes.
 - Follow-up tickets: none
