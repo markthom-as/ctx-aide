@@ -40,10 +40,10 @@ axioms:
   - axiom.no-paid-infra-without-cost-estimate
 validation:
   automated:
-    - test -f LICENSE || test -f COPYING || test -f NOTICE
     - node tools/ctx-aide/ctx-aide.mjs ticket check --json
     - node tools/ctx-aide/ctx-aide.mjs pack check --json
-  smoke: []
+  smoke:
+    - If open-source posture is selected, verify `LICENSE`, `COPYING`, or `NOTICE` exists before unblocking publication.
   screenshots: []
 completion:
   commit: pending
@@ -103,6 +103,7 @@ The current repo is intentionally private and local-first. `package.json` has `p
 - A markdown decision record names the repository owner/org and npm owner/org or explicitly delays them.
 - License posture is recorded and backed by a license file when open-source reuse is intended.
 - `package.json` license/private fields remain aligned with the recorded posture.
+- If the chosen posture remains private/no-license, this ticket documents that outcome and leaves publishing tickets blocked.
 - Publication readiness docs no longer contain stale or ambiguous release decision language.
 
 ## Validation

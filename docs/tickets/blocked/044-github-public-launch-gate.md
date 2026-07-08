@@ -17,7 +17,14 @@ depends_on:
   - ticket.context.041
   - ticket.context.042
   - ticket.context.043
-blocks: []
+  - ticket.context.054
+  - ticket.context.055
+  - ticket.context.056
+  - ticket.context.057
+  - ticket.context.058
+  - ticket.context.059
+blocks:
+  - ticket.context.070
 scope:
   routes: []
   files:
@@ -45,6 +52,7 @@ validation:
     - node tools/ctx-aide/ctx-aide.mjs ticket check --json
     - node tools/ctx-aide/ctx-aide.mjs pack check --json
     - node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json
+    - node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-production-hardening-2026-07-07 --json
     - make validate
     - make smoke
   smoke: []
@@ -62,7 +70,7 @@ Create the final launch gate for making the renamed repo public on GitHub, inclu
 
 ## Context
 
-This is the final ticket in the public-release pack. It must not run until the name, safety audit, README, and demo proof are complete.
+This is the final ticket in the public-release pack. It must not run until the name, safety audit, README, demo proof, ctx-aide rename, package build/install, help formatting, and production-hardening gates are complete or explicitly waived.
 
 ## Positive Rules
 
@@ -73,6 +81,7 @@ This is the final ticket in the public-release pack. It must not run until the n
 ## Negative Rules
 
 - Do not make the repo public if `ticket.context.041` has unresolved safety blockers.
+- Do not make the repo public while `pack.ctx-aide-production-hardening-2026-07-07` still has unresolved launch blockers.
 - Do not push/deploy to paid infrastructure without an explicit cost estimate and user confirmation.
 - Do not update external profile/Opertus links until the public URL exists and is verified.
 
@@ -90,7 +99,7 @@ This is the final ticket in the public-release pack. It must not run until the n
 
 ## Implementation Rules
 
-- Required approach: verify upstream tickets, run full validation, prepare GitHub metadata, create or update remote if approved, verify public URL, then update public links.
+- Required approach: verify upstream tickets and the production-hardening pack, run full validation, prepare GitHub metadata, create or update remote only if approved, verify public URL, then update public links.
 - Existing components/helpers to use: `ctxa` checks, `make validate`, `make smoke`, GitHub CLI if authenticated.
 - Anti-patterns to avoid: public visibility before safety proof, stale profile links, or unpublished local-only launch notes.
 - Stop and escalate if: GitHub repo creation/visibility requires a decision about owner/org, naming, license, unresolved safety risk, or paid infrastructure.

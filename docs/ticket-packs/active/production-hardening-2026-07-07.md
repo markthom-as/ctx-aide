@@ -19,6 +19,7 @@ tickets:
   - ticket.context.068
   - ticket.context.069
   - ticket.context.070
+  - ticket.context.071
 run_policy:
   max_parallel_agents: 4
   stale_after_minutes: 20
@@ -28,6 +29,7 @@ parallel_groups:
   onboarding:
     tickets:
       - ticket.context.060
+      - ticket.context.071
   release-decisions:
     tickets:
       - ticket.context.061
@@ -81,11 +83,12 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 - `ticket.context.068`: ready
 - `ticket.context.069`: ready
 - `ticket.context.070`: blocked
+- `ticket.context.071`: done
 
 ## Execution Plan
 
-- Parallel groups: `automation`, `cli-surface`, and `public-repo` can proceed independently once the worktree is clean.
-- Sequential dependencies: `ticket.context.060` depends on existing onboarding tickets `046`, `047`, and `048`; `ticket.context.066` depends on `061`; `ticket.context.070` depends on every other ticket plus `ticket.context.044`.
+- Parallel groups: `automation`, `cli-surface`, and `public-repo` can proceed independently once the worktree is clean, except where a ticket declares an explicit dependency.
+- Sequential dependencies: `ticket.context.060` depends on existing onboarding tickets `046`, `047`, and `048`; `ticket.context.065` follows `ticket.context.064` unless a separate hardening pass chooses a different extraction target; `ticket.context.066` depends on `061`; `ticket.context.070` depends on every other ticket plus `ticket.context.044`.
 - Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`, and package metadata need sequential commits if multiple agents run.
 - Worktree strategy: use separate worktrees for CI/docs tickets and CLI refactor tickets when running in parallel.
 - Merge queue strategy: one scoped commit per completed ticket; blocked tickets stay in blocked/needs-questions until their decisions are made.
@@ -105,6 +108,6 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 
 ## Completion
 
-- Completed tickets: none.
+- Completed tickets: `ticket.context.071`.
 - Remaining tickets: `ticket.context.060`, `ticket.context.061`, `ticket.context.062`, `ticket.context.063`, `ticket.context.064`, `ticket.context.065`, `ticket.context.066`, `ticket.context.067`, `ticket.context.068`, `ticket.context.069`, `ticket.context.070`.
 - Final validation: pending.

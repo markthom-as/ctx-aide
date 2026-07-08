@@ -43,9 +43,9 @@ validation:
     - node tools/ctx-aide/ctx-aide.mjs pack check --json
     - make validate
   smoke:
-    - ctxa --help
-    - ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
-    - ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
+    - .ctx-aide/install/bin/ctxa --help
+    - .ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
+    - .ctx-aide/install/bin/ctxa setup --repo /Users/jove/code/astrotechne-engine --profile auto --no-input --json
   screenshots: []
 completion:
   commit: pending
@@ -114,6 +114,8 @@ The implementation tickets add packaging, setup, and profile behavior. This tick
 ## Implementation Notes
 
 If global linking is not appropriate during validation, use `npm exec -- <command>` or the package-local bin path and document the exact proof.
+
+Audit note: this ticket is correctly detailed but must stay after `ticket.context.046` and `ticket.context.047`; do not implement docs before the setup command and split profiles exist.
 
 ## Completion
 

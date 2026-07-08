@@ -12,8 +12,7 @@ planning_agents:
   - codex-high-effort
 ui_review_agent: claude-high-effort
 parallel_group: release-decisions
-depends_on:
-  - ticket.context.061
+depends_on: []
 blocks:
   - ticket.context.070
 scope:
@@ -103,6 +102,7 @@ The repository currently has no `Cargo.toml` and no Rust crate. It is runnable t
 - README and publication readiness docs match the decision.
 - If no Cargo package is chosen, Cargo publish checklists are removed or explicitly marked non-goals.
 - If a Cargo package is chosen, follow-up tickets define `Cargo.toml`, packaging, tests, and dry-run publish proof.
+- If no Cargo package is chosen, `ticket.context.070` can proceed with Cargo explicitly documented as a non-goal rather than a blocker.
 
 ## Validation
 

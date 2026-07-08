@@ -40,6 +40,8 @@ validation:
   automated:
     - node --check tools/ctx-aide/ctx-aide.mjs
     - node tools/ctx-aide/ctx-aide.test.mjs
+    - node tools/ctx-aide/ctx-aide.mjs setup --help
+    - node tools/ctx-aide/ctx-aide.mjs setup --help --json
     - node tools/ctx-aide/ctx-aide.mjs setup --repo <fixture> --profile auto --no-input --json
   smoke:
     - node tools/ctx-aide/ctx-aide.mjs setup --repo /Users/jove/code/astrotechne.com --profile auto --no-input --json
@@ -115,6 +117,8 @@ Existing adoption primitives are usable but require several commands. Users shou
 ## Implementation Notes
 
 If a confirmation flag name already exists in local convention, prefer it over adding a second synonym. Otherwise use `--yes` for setup confirmation and keep `--force` for overwrite behavior.
+
+Audit note: this ticket is fully specified but should run after `ticket.context.047`; do not start it until Astrotechne web/engine profile behavior is in place.
 
 ## Completion
 

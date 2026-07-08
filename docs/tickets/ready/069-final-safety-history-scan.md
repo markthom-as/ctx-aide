@@ -43,8 +43,8 @@ validation:
   automated:
     - git status --short
     - git log --all --oneline --decorate
-    - git grep -n -I -E '(AKIA|ASIA|BEGIN (RSA|OPENSSH|EC|PRIVATE) KEY|sk_live_|pk_live_|xox[baprs]-|ghp_|github_pat_|npm_[A-Za-z0-9])'
-    - rg -n -S "(password|secret|token|api[_-]?key|private key|credential)" .
+    - bash -lc "git grep -n -I -E '(AKIA|ASIA|BEGIN (RSA|OPENSSH|EC|PRIVATE) KEY|sk_live_|pk_live_|xox[baprs]-|ghp_|github_pat_|npm_[A-Za-z0-9])' -- . || true"
+    - bash -lc "rg -n -S '(password|secret|token|api[_-]?key|private key|credential)' . || true"
     - npm audit --omit=dev --json
     - npm run build -- --dry-run --json
     - node tools/ctx-aide/ctx-aide.mjs scan --json
@@ -124,6 +124,8 @@ The previous public-release safety audit was created before the latest rename, p
 ## Implementation Notes
 
 Some grep patterns may return expected docs/examples. The important result is reviewed evidence, not zero textual matches.
+
+Audit note: the pattern scans are observation commands; nonzero match/no-match exit codes are normalized so the implementer can review output instead of treating shell status as the finding.
 
 ## Completion
 

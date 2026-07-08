@@ -101,6 +101,7 @@ Make profile auto-detection distinguish Astrotechne web from Astrotechne engine 
 - `--profile astrotechne` continues to report the web-compatible profile.
 - Status output for engine no longer recommends `npm run tickets:status`.
 - Fixture tests cover both Astrotechne profiles.
+- No target repo files are written by `adoption status`.
 
 ## Validation
 
@@ -111,6 +112,8 @@ Make profile auto-detection distinguish Astrotechne web from Astrotechne engine 
 ## Implementation Notes
 
 Recommended engine validation should start with `cargo fmt --all --check`, `cargo test --workspace`, and `npm run validate:traditional-semantic-map` when available.
+
+Audit note: this remains the next executable onboarding ticket because it has no unresolved dependencies and unblocks `ticket.context.046`.
 
 ## Completion
 

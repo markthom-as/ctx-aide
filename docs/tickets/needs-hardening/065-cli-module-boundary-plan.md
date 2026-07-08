@@ -12,7 +12,8 @@ planning_agents:
   - codex-high-effort
 ui_review_agent: claude-high-effort
 parallel_group: cli-surface
-depends_on: []
+depends_on:
+  - ticket.context.064
 blocks:
   - ticket.context.070
 scope:
@@ -115,7 +116,7 @@ The CLI works, but the main file is over 5k lines. That is acceptable for a prot
 
 ## Implementation Notes
 
-Move this ticket to `ready` after choosing the first extraction target. A good candidate after ticket `064` is extracting help/catalog rendering.
+Move this ticket to `ready` after `ticket.context.064` lands or after a separate hardening pass chooses a different first extraction target. A good candidate after ticket `064` is extracting help/catalog rendering.
 
 ## Completion
 

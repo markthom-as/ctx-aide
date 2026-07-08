@@ -47,7 +47,7 @@ validation:
     - node tools/ctx-aide/ctx-aide.mjs ticket check --json
     - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke:
-    - .ctx-aide/install/bin/ctxa help setup after setup command exists
+    - .ctx-aide/install/bin/ctxa help adoption
   screenshots: []
 completion:
   commit: pending
@@ -108,6 +108,7 @@ Top-level `ctxa --help` is now grouped and readable, but subcommand help is stil
 - `ctxa help <group> --json` returns structured command entries.
 - `ctxa command manifest --json` returns a versioned manifest with command ids, examples, mutating/read-only classification, JSON support, and short descriptions.
 - Existing `ctxa --help --json` remains compatible.
+- Setup-specific help is included only if `ctxa setup` exists when this ticket is implemented; otherwise adoption setup remains represented by existing adoption commands.
 
 ## Validation
 
