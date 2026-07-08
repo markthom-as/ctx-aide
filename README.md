@@ -45,6 +45,7 @@ Coding agents are strongest when they can work from stable project truth instead
 Run the core checks from a fresh checkout with Node.js 20+, Python 3, `make`, and Semble available on `PATH` or through `uvx`:
 
 ```sh
+npm ci
 node tools/ctx-aide/ctx-aide.mjs scan --json
 node tools/ctx-aide/ctx-aide.mjs query --path README.md --task "understand CTX Aide public release" --agent codex --budget 1200 --json
 node tools/ctx-aide/ctx-aide.mjs pack status pack.ctx-aide-public-release-2026-07-01 --json
@@ -124,6 +125,28 @@ For the fuller local smoke path:
 make smoke
 ```
 
+## CI Release Gate
+
+The checked-in GitHub Actions workflow at `.github/workflows/ci.yml` mirrors the release-gate commands for a fresh Node 20 checkout:
+
+```sh
+npm ci
+npm audit --omit=dev --json
+npm run build -- --dry-run --json
+npm run install:local -- --json
+npm pack --dry-run --json
+npm link --dry-run
+node tools/ctx-aide/ctx-aide.mjs scan --json
+node tools/ctx-aide/ctx-aide.mjs spec check --json
+node tools/ctx-aide/ctx-aide.mjs ticket check --json
+node tools/ctx-aide/ctx-aide.mjs pack check --json
+make validate
+make smoke
+git diff --check
+```
+
+The workflow does not publish, deploy, upload release artifacts, use secrets, add caches, or use paid runners. Public GitHub repositories are free for ordinary GitHub Actions usage; private repositories may consume included account minutes.
+
 ## Configuration
 
 Repo-local configuration lives under `docs/config/`:
@@ -154,10 +177,12 @@ Target repos bootstrapped by CTX Aide get their own config files. The source rep
 - `docs/context/architecture/public-name-decision-2026-07-05.md`: the public name decision.
 - `docs/context/architecture/public-release-safety-audit-2026-07-05.md`: the public-release safety audit.
 - `docs/context/architecture/publication-readiness-2026-07-07.md`: npm, Cargo, package-payload, and public-criticism readiness notes.
+- `.github/workflows/ci.yml`: the CI release gate for package, install, markdown, validation, smoke, and diff checks.
+- `CONTRIBUTING.md`, `SECURITY.md`, and `CHANGELOG.md`: public repository hygiene docs that preserve the private, unpublished, no-license posture.
 
 ## Status
 
-CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The public-release pack is still blocked on the final GitHub launch gate and on explicit publication decisions for license, owner/org, and Cargo crate shape.
+CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The repository now includes CI release gates and non-license public hygiene docs, but the public-release pack is still blocked on the final GitHub launch gate and on explicit publication decisions for license, owner/org, and Cargo crate shape.
 
 ## Goals
 
@@ -1872,12 +1897,21 @@ The system reduces regressions by making the local product/design contract query
 Recommended checks in CI:
 
 ```bash
-ctxa scan --check --json
+npm ci
+npm audit --omit=dev --json
+npm run build -- --dry-run --json
+npm run install:local -- --json
+npm pack --dry-run --json
+npm link --dry-run
+node tools/ctx-aide/ctx-aide.mjs scan --json
 node tools/ctx-aide/ctx-aide.mjs lint --json
 node tools/ctx-aide/ctx-aide.mjs ticket check --json
 node tools/ctx-aide/ctx-aide.mjs pack check --json
 node tools/ctx-aide/ctx-aide.mjs future check --json
-ctxa spec check --json
+node tools/ctx-aide/ctx-aide.mjs spec check --json
+make validate
+make smoke
+git diff --check
 ```
 
 Later additions:

@@ -37,7 +37,7 @@ load_when:
     - crates.io
     - hacker news
     - public criticism
-updated: 2026-07-07
+updated: 2026-07-08
 ---
 
 # Publication Readiness
@@ -101,6 +101,7 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 - `npm pack --dry-run --json` is the packaging proof surface for the current Node CLI.
 - `npm link --dry-run` proves the local package can install a single `ctxa` binary without publishing.
 - Existing `ctxa` checks cover docs, tickets, packs, future-work, LOC policy, skill validation, and local smoke behavior.
+- The 2026-07-08 safety refresh found no live credentials, no generated-artifact blocker, no production dependency vulnerabilities, and no package-payload blocker.
 
 ## What Is Not Ready
 
@@ -109,6 +110,7 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 - There is no `Cargo.toml`, Rust crate, or crates.io package target. A future ticket must decide whether Cargo should publish a Rust implementation, a Rust shim that invokes Node, or no Cargo package at all.
 - There is no public GitHub remote in this checkout. Public URLs, badges, repository metadata, and external profile links remain blocked by the GitHub launch gate.
 - CI is checked in but not enabled on any public remote from this checkout. Public repositories are free for ordinary GitHub Actions usage; private repositories may consume included account minutes.
+- The final public-release cutover is intentionally blocked until license, owner/org, npm owner, public remote, and Cargo posture decisions are explicit.
 
 ## Public Criticism Checklist
 

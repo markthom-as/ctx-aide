@@ -1,6 +1,6 @@
 ---
 id: ticket.context.069
-status: ready
+status: done
 title: Refresh final safety and history scan
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -56,8 +56,8 @@ validation:
     - Review positive matches manually and document false positives or blockers.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T04:10:00Z
 ---
 
 # Refresh Final Safety And History Scan
@@ -129,7 +129,7 @@ Audit note: the pattern scans are observation commands; nonzero match/no-match e
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
-- Follow-up tickets: remediation tickets for any real findings.
+- Status: done
+- Commit: current-change
+- Verification evidence: `git status --short`, `git log --all --oneline --decorate`, high-risk working-tree credential grep, broad credential-term scan, git-history `-G` scan, `npm audit --omit=dev --json`, `npm run build -- --dry-run --json`, `node tools/ctx-aide/ctx-aide.mjs scan --json`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, `node tools/ctx-aide/ctx-aide.mjs pack check --json`, `make validate`, and `make smoke` passed or produced reviewed false positives. The refresh found no live credentials, no generated-artifact blocker, no production dependency vulnerabilities, and no package-payload blocker.
+- Follow-up tickets: `ticket.context.061`, `ticket.context.066`, `ticket.context.067`, and `ticket.context.070` remain blocked or question-gated by release posture, npm owner/private flag, Cargo posture, and public cutover decisions.
