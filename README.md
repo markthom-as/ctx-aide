@@ -72,10 +72,39 @@ npm run install:local -- --json
 .ctx-aide/install/bin/ctxa --help
 ```
 
-`install:local` installs into `.ctx-aide/install` by default, which is ignored by git. A custom prefix is available for isolated smoke tests:
+`install:local` installs into `.ctx-aide/install` by default, which is ignored by git. It reports the installed `ctxa` bin path in JSON and does not edit shell startup files. To make that isolated install discoverable by `command -v ctxa`, add the reported `bin` directory to `PATH` yourself:
+
+```sh
+export PATH="$PWD/.ctx-aide/install/bin:$PATH"
+ctxa --help
+```
+
+A custom prefix is available for isolated smoke tests:
 
 ```sh
 npm run install:local -- --prefix /tmp/ctx-aide-install --json
+```
+
+To prove the packed artifact installs cleanly, build the tarball and install from it into a separate ignored prefix:
+
+```sh
+npm run build -- --json
+npm run install:local -- --from dist/ctx-aide-0.1.0.tgz --prefix .ctx-aide/tarball-install --json
+.ctx-aide/tarball-install/bin/ctxa doctor --json
+```
+
+The package exposes only the `ctxa` binary. It intentionally does not install a `ctx-aide` command alias.
+
+To preview first-run setup for a target repo without prompting or writing files:
+
+```sh
+.ctx-aide/install/bin/ctxa setup --repo /path/to/target --profile auto --no-input --json
+```
+
+To write the repo-local CTX Aide bootstrap files after reviewing the plan:
+
+```sh
+.ctx-aide/install/bin/ctxa setup --repo /path/to/target --profile auto --write --no-input --json
 ```
 
 For active development on this checkout, link the same local `ctxa` command:

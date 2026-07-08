@@ -1,6 +1,6 @@
 ---
 id: ticket.context.063
-status: ready
+status: done
 title: Harden install ergonomics and tarball smoke
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -52,8 +52,8 @@ validation:
     - command -v ctxa remains optional unless the user explicitly installs globally or adds the local prefix to PATH.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T02:41:00Z
 ---
 
 # Harden Install Ergonomics And Tarball Smoke
@@ -124,7 +124,7 @@ Use the package version from `package.json` when constructing tarball paths if t
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `npm run build -- --json`, `npm run install:local -- --from dist/ctx-aide-0.1.0.tgz --prefix .ctx-aide/tarball-install --json`, `.ctx-aide/tarball-install/bin/ctxa --help`, `.ctx-aide/tarball-install/bin/ctxa doctor --json`, `npm run install:local -- --json`, `node tools/ctx-aide/ctx-aide.test.mjs`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, and `node tools/ctx-aide/ctx-aide.mjs pack check --json` passed. README now documents isolated install, tarball install, explicit PATH behavior, global install posture, and the single `ctxa` binary.
 - Follow-up tickets: none
