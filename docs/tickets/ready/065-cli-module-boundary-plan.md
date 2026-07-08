@@ -1,6 +1,6 @@
 ---
 id: ticket.context.065
-status: needs-hardening
+status: ready
 title: Split CLI module boundaries
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -120,7 +120,7 @@ Move this ticket to `ready` after `ticket.context.064` lands or after a separate
 
 ## Completion
 
-- Status: needs-hardening
+- Status: ready
 - Commit: pending
 - Verification evidence: pending
 - Follow-up tickets: additional module extractions should be separate tickets.

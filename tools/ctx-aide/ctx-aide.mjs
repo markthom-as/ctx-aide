@@ -10,6 +10,14 @@ import {
   ctxAideSettingsPath,
   screenshotReviewUiCommand,
 } from "./screenshot-review-ui.mjs";
+import {
+  commandManifestResult,
+  findCommandGroup,
+  formatGroupHelp,
+  formatTopLevelHelp,
+  groupHelpResult,
+  topLevelHelpResult,
+} from "./command-catalog.mjs";
 
 const root = process.cwd();
 const toolRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
@@ -18,6 +26,11 @@ const command = args[0] ?? "help";
 const subcommand = args[1] ?? "";
 const json = args.includes("--json");
 const wantsHelp = command === "help" || args.includes("--help") || args.includes("-h");
+
+function helpTopicFromArgs(argv) {
+  if (argv[0] !== "help") return "";
+  return argv.slice(1).filter((arg) => !arg.startsWith("-")).join(" ");
+}
 
 const ticketStatuses = new Set([
   "draft",
@@ -3721,12 +3734,11 @@ function targetPackRows(repoPath, profile) {
     .sort((a, b) => a.file.localeCompare(b.file));
 }
 
-function adoptionStatus() {
-  const repoPath = targetRepoPath();
+function adoptionStatusFor(repoPath, profileArg = "auto") {
   if (!fs.existsSync(repoPath)) {
     return { ok: false, scope: "adoption status", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
   }
-  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
+  const profile = detectAdoptionProfile(repoPath, profileArg);
   const configPath = path.join(repoPath, "docs/config/ctx-aide.profile.json");
   const config = readJsonIfExists(configPath);
   const settingsResult = readCtxAideSettings(repoPath);
@@ -3824,6 +3836,10 @@ function adoptionStatus() {
   };
 }
 
+function adoptionStatus() {
+  return adoptionStatusFor(targetRepoPath(), argValue("--profile", "auto"));
+}
+
 const adoptionContextDirs = [
   "docs/context/routes",
   "docs/context/files",
@@ -3892,15 +3908,14 @@ function writeAdoptionSettings(repoPath, options) {
   return writeFileIfAllowed(repoPath, relativePath, `${JSON.stringify(settings, null, 2)}\n`, { write, force });
 }
 
-function adoptionBootstrap() {
-  const repoPath = targetRepoPath();
-  const write = args.includes("--write");
-  const force = args.includes("--force");
+function adoptionBootstrapFor(repoPath, profileArg = "auto", options = {}) {
+  const write = Boolean(options.write);
+  const force = Boolean(options.force);
   if (!fs.existsSync(repoPath)) {
     return { ok: false, scope: "adoption bootstrap", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
   }
-  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
-  const enableScreenshotFeedbackUi = args.includes("--enable-screenshot-feedback-ui");
+  const profile = detectAdoptionProfile(repoPath, profileArg);
+  const enableScreenshotFeedbackUi = Boolean(options.enableScreenshotFeedbackUi);
   const changes = [];
   for (const dir of [...adoptionContextDirs, profile.ticket_root]) {
     const full = path.join(repoPath, dir);
@@ -3956,6 +3971,112 @@ function adoptionBootstrap() {
       `ctxa adoption ticket --repo ${repoPath} --pack <pack-id> --pack-slug <pack-slug> --title "<ticket>" --task "<task>" --context "<context-id>" --write --json`,
     ],
     errors: [],
+  };
+}
+
+function adoptionBootstrap() {
+  return adoptionBootstrapFor(targetRepoPath(), argValue("--profile", "auto"), {
+    write: args.includes("--write"),
+    force: args.includes("--force"),
+    enableScreenshotFeedbackUi: args.includes("--enable-screenshot-feedback-ui"),
+  });
+}
+
+function setupHelpText() {
+  return `Usage: ctxa setup --repo <target-repo> [options]
+
+Detect target repo adoption state, preview bootstrap changes, and optionally write CTX Aide files.
+
+Options:
+  --repo <path>     Target repository path. Defaults to current directory.
+  --profile <id>    Adoption profile, or auto. Defaults to auto.
+  --write           Write planned bootstrap files.
+  --yes             Alias for --write for non-interactive confirmation.
+  --no-input        Never prompt; report required confirmation as structured output.
+  --json            Emit structured JSON.
+  -h, --help        Show this help.
+`;
+}
+
+function setupCommand() {
+  if (wantsHelp) {
+    return {
+      ok: true,
+      scope: "setup help",
+      help: true,
+      usage: [
+        "ctxa setup --repo <target-repo> --profile auto --no-input --json",
+        "ctxa setup --repo <target-repo> --profile auto --write --no-input --json",
+      ],
+      options: ["--repo", "--profile", "--write", "--yes", "--no-input", "--json"],
+      text: setupHelpText(),
+      errors: [],
+    };
+  }
+  const repoPath = targetRepoPath();
+  const profileArg = argValue("--profile", "auto");
+  const write = args.includes("--write") || args.includes("--yes");
+  const force = args.includes("--force");
+  const noInput = args.includes("--no-input") || json || !process.stdin.isTTY;
+  const enableScreenshotFeedbackUi = args.includes("--enable-screenshot-feedback-ui");
+  if (!fs.existsSync(repoPath)) {
+    return {
+      ok: false,
+      scope: "setup",
+      repo: displayPath(repoPath),
+      profile: null,
+      write,
+      status_before: null,
+      changes: [],
+      warnings: [],
+      next_commands: [],
+      errors: [{ file: displayPath(repoPath), message: "repo path does not exist" }],
+    };
+  }
+  const statusBefore = adoptionStatusFor(repoPath, profileArg);
+  const bootstrap = adoptionBootstrapFor(repoPath, profileArg, {
+    write,
+    force,
+    enableScreenshotFeedbackUi,
+  });
+  const plannedChanges = bootstrap.changes.filter((change) => change.action === "planned");
+  const blockedChanges = bootstrap.changes.filter((change) => change.action === "blocked");
+  const needsConfirmation = !write && plannedChanges.length > 0;
+  const warnings = unique([
+    ...(statusBefore.warnings ?? []),
+    ...(needsConfirmation ? ["setup is a dry run; pass --write or --yes to create planned files"] : []),
+  ]);
+  const errors = [
+    ...(bootstrap.errors ?? []),
+    ...blockedChanges.map((change) => ({ file: change.file, message: change.reason ?? "blocked change" })),
+    ...(needsConfirmation && noInput
+      ? [{ file: "setup", message: "setup requires --write or --yes to apply planned changes in no-input mode" }]
+      : []),
+  ];
+  const profile = bootstrap.profile ?? statusBefore.profile;
+  return {
+    ok: bootstrap.ok && errors.length === 0,
+    scope: "setup",
+    repo: displayPath(repoPath),
+    profile,
+    write,
+    no_input: noInput,
+    status_before: {
+      ok: statusBefore.ok,
+      blockers: statusBefore.blockers ?? [],
+      warnings: statusBefore.warnings ?? [],
+      context_count: statusBefore.context?.count ?? 0,
+      pack_count: statusBefore.packs?.count ?? 0,
+      generated: statusBefore.generated ?? null,
+      git: statusBefore.git ?? null,
+    },
+    changes: bootstrap.changes,
+    warnings,
+    next_commands: [
+      `ctxa adoption status --repo ${repoPath} --profile ${profile.profile} --json`,
+      ...bootstrap.next_commands,
+    ],
+    errors,
   };
 }
 
@@ -5039,6 +5160,8 @@ if (command === "lint") {
   printResult(query());
 } else if (command === "export-agent") {
   printResult(exportAgent());
+} else if (command === "command" && subcommand === "manifest") {
+  printResult(commandManifestResult());
 } else if (command === "components" && subcommand === "list") {
   printResult(componentsList());
 } else if (command === "components" && subcommand === "get") {
@@ -5093,6 +5216,13 @@ if (command === "lint") {
   printResult(credentialsCheck());
 } else if (command === "credentials" && subcommand === "import-browser-state") {
   printResult(credentialsImportBrowserState());
+} else if (command === "setup") {
+  const result = setupCommand();
+  if (result.help && !json) {
+    process.stdout.write(result.text);
+    process.exit(0);
+  }
+  printResult(result);
 } else if (command === "adoption" && subcommand === "status") {
   printResult(adoptionStatus());
 } else if (command === "adoption" && subcommand === "bootstrap") {
@@ -5132,118 +5262,18 @@ if (command === "lint") {
   validateFutureWork(errors, tickets, packs, specs);
   printResult({ ok: errors.length === 0, scope: "future check", errors });
 } else {
-  const helpSections = [
-    {
-      title: "Core",
-      commands: [
-        ["ctxa lint --json", "Validate context, config, and markdown contracts."],
-        ["ctxa doctor --json", "Check local runtime dependencies and repo health."],
-        ["ctxa init --json", "Create the baseline CTX Aide repo structure."],
-      ],
-    },
-    {
-      title: "Context",
-      commands: [
-        ["ctxa scan --json", "Index markdown context into generated local artifacts."],
-        ["ctxa query --path <path> --task <task> --agent codex --budget 6000 --json", "Load bounded context for a path and task."],
-        ["ctxa export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json", "Write generated agent context packs."],
-      ],
-    },
-    {
-      title: "Catalog And Impact",
-      commands: [
-        ["ctxa components list --json", "List known component context entries."],
-        ["ctxa components get component.Button --json", "Read one component context entry."],
-        ["ctxa impact --path components/Button.tsx --json", "Find context affected by a path."],
-        ["ctxa run status docs/runs/RUN.md --json", "Read a milestone/run status file."],
-        ["ctxa idvisor workflow --json", "Inspect the Idvisor workflow helper."],
-        ["ctxa customize --profile strict --dry-run --json", "Preview profile customization changes."],
-        ["ctxa discover --backend semble --task <task> --repo . --json", "Run bounded semantic code discovery."],
-      ],
-    },
-    {
-      title: "Repo Health And Policy",
-      commands: [
-        ["ctxa dependency audit --repo . --command 'pnpm audit --prod' --json", "Run a configured dependency audit command."],
-        ["ctxa loc --repo . --json", "Measure source volume."],
-        ["ctxa loc check --repo . --target-id source --json", "Validate configured LOC targets."],
-        ["ctxa tools list --json", "List known agent capabilities and policy."],
-        ["ctxa tools policy --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json", "Inspect policy for one capability."],
-        ["ctxa tools check --workflow workflow.browser-validation --step browser-smoke --capability tool.playwright --json", "Validate whether one capability is allowed."],
-        ["ctxa workflow deps --workflow workflow.browser-validation --repo . --json", "Inspect workflow dependencies."],
-        ["ctxa workflow views --workflow workflow.browser-validation --repo . --json", "Inspect workflow validation views."],
-        ["ctxa workflow validation-plan --workflow workflow.browser-validation --repo . --json", "Build a validation readiness plan."],
-        ["ctxa settings get --repo . --json", "Read repo-local CTX Aide settings."],
-        ["ctxa settings set --repo . --feature screenshot-feedback-review-ui --enabled true --write --json", "Update a settings feature flag."],
-      ],
-    },
-    {
-      title: "Feedback",
-      commands: [
-        ["ctxa feedback plan --repo . --ticket docs/tickets/ready/example.md --body '<natural feedback>' --json", "Plan how feedback should become ticket work."],
-        ["ctxa feedback review --repo . --ticket docs/tickets/ready/example.md --screenshot .ctx-aide/artifacts/screenshots/example.png --url http://localhost:3000 --json", "Review screenshot feedback against a ticket."],
-        ["ctxa feedback review-ui --repo . --screenshot-dir .ctx-aide/artifacts/screenshots --port 0", "Start the local screenshot review UI."],
-        ["ctxa feedback capture --repo . --ticket docs/tickets/ready/example.md --title '<feedback>' --body '<feedback text>' --write --json", "Capture feedback as markdown."],
-        ["ctxa feedback promote --repo . --feedback <feedback-id-or-path> --ticket docs/tickets/ready/example.md --mode follow-up-ticket --write --json", "Promote accepted feedback into ticket work."],
-      ],
-    },
-    {
-      title: "Credentials",
-      commands: [
-        ["ctxa credentials check --profile browser-test-user --repo . --json", "Check a named local credential profile."],
-        ["ctxa credentials import-browser-state --profile browser-test-user --from storage-state.json --repo . --write --json", "Import browser storage state for validation."],
-      ],
-    },
-    {
-      title: "Adoption",
-      commands: [
-        ["ctxa adoption status --repo <target-repo> --profile auto --json", "Inspect target repo adoption readiness."],
-        ["ctxa adoption bootstrap --repo <target-repo> --profile wetware --write --json", "Seed CTX Aide files into a target repo."],
-        ["ctxa adoption pack --repo <target-repo> --title '<pack>' --slug <slug> --write --json", "Create a target repo ticket pack."],
-        ["ctxa adoption context --repo <target-repo> --kind flow --title '<flow>' --path <path> --task '<task>' --write --json", "Create target repo context markdown."],
-        ["ctxa adoption ticket --repo <target-repo> --pack <pack-id> --pack-slug <pack-slug> --title '<ticket>' --task '<task>' --context <context-id> --capability-workflow <workflow-id> --capability-step <step-id> --capability <capability-id> --write --json", "Create a target repo implementation ticket."],
-        ["ctxa adoption implementation-plan --repo <target-repo> --ticket <ticket.md> --capability-workflow <workflow-id> --capability-step <step-id> --json", "Load a ticket implementation plan."],
-      ],
-    },
-    {
-      title: "Markdown Gates",
-      commands: [
-        ["ctxa ticket check --json", "Validate ticket markdown."],
-        ["ctxa ticket hydrate docs/tickets/draft/TICKET.md --json", "Hydrate a draft ticket with context."],
-        ["ctxa pack check --json", "Validate ticket packs."],
-        ["ctxa pack status <pack-id> --json", "Read pack status and ticket rollup."],
-        ["ctxa spec check --json", "Validate spec markdown."],
-        ["ctxa future check --json", "Validate future-work markdown."],
-      ],
-    },
-  ];
-  const usage = helpSections.flatMap((section) => section.commands.map(([line]) => line));
-  const formatHelp = () => {
-    const lines = [
-      "CTX Aide (ctxa)",
-      "Repo-local context, markdown tickets, validation gates, and agent handoff.",
-      "",
-      "Usage:",
-      "  ctxa <command> [options]",
-      "  ctxa <command> --json",
-      "",
-      "Commands:",
-    ];
-    for (const section of helpSections) {
-      lines.push("", section.title);
-      for (const [line, description] of section.commands) {
-        lines.push(`  ${line}`, `      ${description}`);
-      }
-    }
-    lines.push("", "Use --json for stable machine-readable output.");
-    return `${lines.join("\n")}\n`;
-  };
-  const result = {
-    ok: wantsHelp,
-    usage,
-  };
-  if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-  else if (wantsHelp) process.stdout.write(formatHelp());
-  else process.stderr.write(formatHelp());
-  process.exit(wantsHelp ? 0 : 1);
+  const topic = helpTopicFromArgs(args);
+  const result = topic ? groupHelpResult(topic) : topLevelHelpResult(wantsHelp);
+  if (json) {
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  } else if (topic) {
+    const group = findCommandGroup(topic);
+    if (group) process.stdout.write(formatGroupHelp(group));
+    else process.stderr.write(`${result.errors[0].message}\n\n${formatTopLevelHelp()}`);
+  } else if (wantsHelp) {
+    process.stdout.write(formatTopLevelHelp());
+  } else {
+    process.stderr.write(formatTopLevelHelp());
+  }
+  process.exit(result.ok ? 0 : 1);
 }

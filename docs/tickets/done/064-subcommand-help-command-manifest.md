@@ -1,6 +1,6 @@
 ---
 id: ticket.context.064
-status: ready
+status: done
 title: Add subcommand help and command manifest
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -50,8 +50,8 @@ validation:
     - .ctx-aide/install/bin/ctxa help adoption
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T02:05:00Z
 ---
 
 # Add Subcommand Help And Command Manifest
@@ -122,7 +122,7 @@ Prefer a small manifest schema committed under `docs/context/schema/` only if it
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `node --check tools/ctx-aide/ctx-aide.mjs`, `node --check tools/ctx-aide/command-catalog.mjs`, `node tools/ctx-aide/ctx-aide.test.mjs`, `ctxa help adoption --json`, and `ctxa command manifest --json` passed.
 - Follow-up tickets: manifest-driven MCP/tool metadata can come later.

@@ -80,8 +80,8 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 - `ticket.context.061`: blocked
 - `ticket.context.062`: ready
 - `ticket.context.063`: ready
-- `ticket.context.064`: ready
-- `ticket.context.065`: needs-hardening
+- `ticket.context.064`: done
+- `ticket.context.065`: ready, next executable slice
 - `ticket.context.066`: blocked
 - `ticket.context.067`: needs-questions
 - `ticket.context.068`: ready
@@ -93,7 +93,7 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 ## Execution Plan
 
 - Parallel groups: `automation`, `cli-surface`, and `public-repo` can proceed independently once the worktree is clean, except where a ticket declares an explicit dependency.
-- Sequential dependencies: `ticket.context.060` is blocked until onboarding tickets `047`, `046`, and `048` are done; `ticket.context.065` follows `ticket.context.064` unless a separate hardening pass chooses a different extraction target; `ticket.context.066` depends on `061`; `ticket.context.070` depends on every other ticket plus `ticket.context.044`.
+- Sequential dependencies: `ticket.context.060` is blocked until onboarding tickets `047`, `046`, and `048` are done; `ticket.context.065` can now proceed after `ticket.context.064`; `ticket.context.066` depends on `061`; `ticket.context.070` depends on every other ticket plus `ticket.context.044`.
 - Shared-file coordination: `tools/ctx-aide/ctx-aide.mjs`, `tools/ctx-aide/ctx-aide.test.mjs`, `README.md`, and package metadata need sequential commits if multiple agents run.
 - Worktree strategy: use separate worktrees for CI/docs tickets and CLI refactor tickets when running in parallel.
 - Merge queue strategy: one scoped commit per completed ticket; blocked tickets stay in blocked/needs-questions until their decisions are made.
@@ -113,6 +113,6 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 
 ## Completion
 
-- Completed tickets: `ticket.context.071`, `ticket.context.072`.
-- Remaining tickets: `ticket.context.060`, `ticket.context.061`, `ticket.context.062`, `ticket.context.063`, `ticket.context.064`, `ticket.context.065`, `ticket.context.066`, `ticket.context.067`, `ticket.context.068`, `ticket.context.069`, `ticket.context.070`.
+- Completed tickets: `ticket.context.071`, `ticket.context.072`, `ticket.context.064`.
+- Remaining tickets: `ticket.context.060`, `ticket.context.061`, `ticket.context.062`, `ticket.context.063`, `ticket.context.065`, `ticket.context.066`, `ticket.context.067`, `ticket.context.068`, `ticket.context.069`, `ticket.context.070`.
 - Final validation: pending.

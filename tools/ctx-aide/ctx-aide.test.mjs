@@ -67,12 +67,41 @@ assert.equal(helpOutput.includes("ctx-aide lint --json"), false);
 assert.equal(helpOutput.includes("CTX Aide (ctxa)\n"), true);
 assert.equal(helpOutput.includes("\nUsage:\n  ctxa <command> [options]\n"), true);
 assert.equal(helpOutput.includes("\nCore\n  ctxa lint --json\n      Validate context, config, and markdown contracts."), true);
-assert.equal(helpOutput.includes("\nAdoption\n  ctxa adoption status --repo <target-repo> --profile auto --json"), true);
+assert.equal(helpOutput.includes("\nAdoption\n"), true);
+assert.equal(helpOutput.includes("ctxa adoption status --repo <target-repo> --profile auto --json"), true);
+assert.equal(helpOutput.includes("ctxa setup --repo <target-repo> --profile auto --no-input --json"), true);
 assert.equal(helpOutput.includes("\nUse --json for stable machine-readable output.\n"), true);
 const jsonHelp = run(["--help"]);
 assert.equal(jsonHelp.ok, true);
 assert.equal(jsonHelp.usage.includes("ctxa adoption status --repo <target-repo> --profile auto --json"), true);
+assert.equal(jsonHelp.usage.includes("ctxa setup --repo <target-repo> --profile auto --no-input --json"), true);
 assert.equal(jsonHelp.usage.includes("CTX Aide (ctxa)"), false);
+const setupHelpOutput = execFileSync(process.execPath, [ctxAide, "setup", "--help"], {
+  cwd: fixture,
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"],
+});
+assert.equal(setupHelpOutput.includes("Usage: ctxa setup --repo <target-repo>"), true);
+const setupJsonHelp = run(["setup", "--help"]);
+assert.equal(setupJsonHelp.ok, true);
+assert.equal(setupJsonHelp.usage.includes("ctxa setup --repo <target-repo> --profile auto --write --no-input --json"), true);
+const adoptionHelpOutput = execFileSync(process.execPath, [ctxAide, "help", "adoption"], {
+  cwd: fixture,
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"],
+});
+assert.equal(adoptionHelpOutput.includes("CTX Aide (ctxa) Adoption"), true);
+assert.equal(adoptionHelpOutput.includes("ctxa setup --repo <target-repo> --profile auto --no-input --json"), true);
+const adoptionJsonHelp = run(["help", "adoption"]);
+assert.equal(adoptionJsonHelp.ok, true);
+assert.equal(adoptionJsonHelp.scope, "help adoption");
+assert.equal(adoptionJsonHelp.commands.some((entry) => entry.id === "setup" && entry.mutating === true), true);
+const commandManifest = run(["command", "manifest"]);
+assert.equal(commandManifest.ok, true);
+assert.equal(commandManifest.manifest_version, 1);
+assert.equal(commandManifest.groups.some((group) => group.id === "adoption"), true);
+assert.equal(commandManifest.commands.some((entry) => entry.id === "command.manifest" && entry.mutating === false), true);
+assert.equal(commandManifest.commands.some((entry) => entry.id === "setup" && entry.required_flags.includes("--repo")), true);
 
 write("docs/context/routes/context-lab.md", `---
 id: route.context-lab
@@ -645,6 +674,31 @@ const enabledBootstrap = run([
 assert.equal(enabledBootstrap.ok, true);
 const enabledBootstrapSettings = JSON.parse(fs.readFileSync(path.join(enabledBootstrapRepo, "docs/config/ctx-aide.settings.json"), "utf8"));
 assert.equal(enabledBootstrapSettings.features.screenshot_feedback_review_ui.enabled, true);
+
+const setupRepo = path.join(fixture, "setup-app");
+fs.mkdirSync(setupRepo, { recursive: true });
+fs.writeFileSync(path.join(setupRepo, "package.json"), `${JSON.stringify({ name: "setup-app", private: true }, null, 2)}\n`);
+const setupDryRun = run(["setup", "--repo", setupRepo, "--profile", "default", "--no-input"], { allowFailure: true });
+assert.equal(setupDryRun.ok, false);
+assert.equal(setupDryRun.profile.profile, "default");
+assert.equal(setupDryRun.write, false);
+assert.equal(setupDryRun.changes.some((change) => change.action === "planned"), true);
+assert.equal(setupDryRun.errors[0].message.includes("--write"), true);
+assert.equal(fs.existsSync(path.join(setupRepo, "docs/config/ctx-aide.profile.json")), false);
+
+const setupWrite = run(["setup", "--repo", setupRepo, "--profile", "default", "--write", "--no-input"]);
+assert.equal(setupWrite.ok, true);
+assert.equal(setupWrite.write, true);
+assert.equal(setupWrite.status_before.blockers.some((blocker) => blocker.includes("ctx-aide.profile.json")), true);
+assert.equal(setupWrite.next_commands.some((command) => command.includes("ctxa adoption pack")), true);
+assert.equal(fs.existsSync(path.join(setupRepo, "docs/config/ctx-aide.profile.json")), true);
+assert.equal(fs.existsSync(path.join(setupRepo, "docs/config/ctx-aide.settings.json")), true);
+assert.equal(fs.existsSync(path.join(setupRepo, "docs/config/ctx-aide.tools.json")), true);
+
+const setupRerun = run(["setup", "--repo", setupRepo, "--profile", "default", "--write", "--no-input"]);
+assert.equal(setupRerun.ok, true);
+assert.equal(setupRerun.changes.some((change) => change.action === "skipped"), true);
+assert.equal(setupRerun.changes.some((change) => change.action === "created"), false);
 
 const adoptedContext = run([
   "adoption",
