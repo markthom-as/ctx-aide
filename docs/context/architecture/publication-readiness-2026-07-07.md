@@ -92,6 +92,8 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 ## What Is Ready
 
 - The README now explains purpose, why the project exists, what it does, what it is not, setup, configuration, proof surfaces, and status.
+- The repository now includes non-license public hygiene docs: `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, GitHub issue templates, and a pull request template.
+- `.github/workflows/ci.yml` records the CI release gate for Node 20, package dry-run, local install smoke, markdown checks, repo validation, smoke checks, and diff cleanliness.
 - `package.json` uses the intended npm package name `ctx-aide`.
 - The npm package payload is constrained with an explicit `files` allowlist instead of relying on `.gitignore` fallback.
 - `npm run build -- --json` runs syntax checks, unit tests, context checks, ticket/pack checks, and `npm pack` for the Node CLI package.
@@ -106,6 +108,7 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 - `package.json` intentionally keeps `private: true`; `npm publish` should remain blocked until the publication gate is reopened.
 - There is no `Cargo.toml`, Rust crate, or crates.io package target. A future ticket must decide whether Cargo should publish a Rust implementation, a Rust shim that invokes Node, or no Cargo package at all.
 - There is no public GitHub remote in this checkout. Public URLs, badges, repository metadata, and external profile links remain blocked by the GitHub launch gate.
+- CI is checked in but not enabled on any public remote from this checkout. Public repositories are free for ordinary GitHub Actions usage; private repositories may consume included account minutes.
 
 ## Public Criticism Checklist
 

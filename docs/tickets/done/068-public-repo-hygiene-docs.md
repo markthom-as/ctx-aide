@@ -1,6 +1,6 @@
 ---
 id: ticket.context.068
-status: ready
+status: done
 title: Add public repository hygiene docs
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -52,8 +52,8 @@ validation:
     - Review top-level docs for no unsupported license or publication claims.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-08T02:27:00Z
 ---
 
 # Add Public Repository Hygiene Docs
@@ -126,7 +126,7 @@ If `CODE_OF_CONDUCT.md` needs a named maintainer/contact, leave it out or keep i
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending
+- Status: done
+- Commit: current-change
+- Verification evidence: `test -f SECURITY.md`, `test -f CONTRIBUTING.md`, `test -f CHANGELOG.md`, `node tools/ctx-aide/ctx-aide.mjs scan --json`, `node tools/ctx-aide/ctx-aide.mjs lint --json`, `node tools/ctx-aide/ctx-aide.mjs ticket check --json`, `node tools/ctx-aide/ctx-aide.mjs pack check --json`, and `make validate` passed. Docs preserve the unpublished, private, no-license posture and intentionally omit `CODE_OF_CONDUCT.md`.
 - Follow-up tickets: license file after `ticket.context.061`

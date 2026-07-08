@@ -1,0 +1,47 @@
+name: Bug report
+description: Report behavior that disagrees with documented CTX Aide behavior.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secrets, private URLs, session cookies, access tokens, or exploit details. For security issues, follow SECURITY.md first.
+  - type: input
+    id: ticket
+    attributes:
+      label: Related ticket or context
+      description: Link a markdown ticket, ticket pack, context id, or source file when one exists.
+      placeholder: "ticket.context.062, pack.ctx-aide-production-hardening-2026-07-07, or README.md"
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: Describe what happened and where.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Describe the documented or intended behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include commands and inputs needed to reproduce the issue.
+      placeholder: |
+        1. Run `npm ci`
+        2. Run `make validate`
+        3. Observe ...
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation attempted
+      description: List checks you ran, such as `make validate`, `make smoke`, or a focused `ctxa` command.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Include redacted logs or screenshots only if they do not expose private data.

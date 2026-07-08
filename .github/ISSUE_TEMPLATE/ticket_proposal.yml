@@ -1,0 +1,41 @@
+name: Ticket proposal
+description: Propose scoped CTX Aide work that should become a markdown ticket.
+title: "[Ticket]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        CTX Aide uses markdown specs, tickets, and ticket packs as source of truth. Keep proposals scoped and avoid secrets, private URLs, session cookies, or personal contact details.
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What should be true when this work is done?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Link relevant docs, commands, files, tickets, packs, or context ids.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed scope
+      description: List what is in scope and what should stay out of scope.
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: Which automated checks, smoke tests, or screenshots should prove the work?
+      placeholder: |
+        - `node tools/ctx-aide/ctx-aide.mjs scan --json`
+        - `make validate`
+        - `make smoke`
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Gates
+      options:
+        - label: This proposal does not require choosing a license, publishing a package, creating a public remote, adding secrets, or using paid infrastructure.
+        - label: This proposal can be represented as one or more markdown tickets before implementation.

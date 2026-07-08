@@ -9,7 +9,10 @@
   },
   "files": [
     "AGENTS.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
     "README.md",
+    "SECURITY.md",
     "docs/config/*.json",
     "docs/config/*.md",
     "docs/context/architecture/github-public-launch-gate-2026-07-05.md",
