@@ -1,6 +1,6 @@
 ---
 id: ticket.context.073
-status: ready
+status: done
 title: Add repo-local skill inventory
 ticket_pack: pack.ctx-aide-repo-skill-task-discovery-2026-07-08
 milestones:
@@ -47,8 +47,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-19T10:04:45Z
 ---
 
 # Add Repo-Local Skill Inventory
@@ -118,7 +118,13 @@ Keep output bounded and avoid embedding full skill bodies.
 
 ## Completion
 
-- Status: ready
-- Commit: pending
-- Verification evidence: pending.
+- Status: done
+- Commit: current-change
+- Verification evidence:
+  - `node --check tools/ctx-aide/ctx-aide.mjs`
+  - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `node tools/ctx-aide/ctx-aide.mjs skills inventory --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs skills check --repo . --json`
+  - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
+  - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
 - Follow-up tickets: `ticket.context.074`, `ticket.context.077`.

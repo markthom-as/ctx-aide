@@ -222,6 +222,26 @@ export const commandGroups = [
     ],
   },
   {
+    id: "skills",
+    title: "Skills",
+    description: "Inventory and validate repo-local Codex skills.",
+    aliases: ["skill"],
+    commands: [
+      command({
+        id: "skills.inventory",
+        command: "skills inventory",
+        usage: "ctxa skills inventory --repo . --json",
+        description: "List repo-local skills without installing or activating them.",
+      }),
+      command({
+        id: "skills.check",
+        command: "skills check",
+        usage: "ctxa skills check --repo . --json",
+        description: "Validate repo-local skill manifest metadata.",
+      }),
+    ],
+  },
+  {
     id: "feedback",
     title: "Feedback",
     description: "Plan, review, capture, and promote feedback into markdown work.",

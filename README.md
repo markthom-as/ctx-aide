@@ -403,6 +403,17 @@ Policy rules:
 - Unknown capability ids fail `ctxa lint` unless they use the `custom.*` namespace.
 - `ctxa lint` and `ctxa doctor` validate malformed JSON, same-layer allow/deny overlaps, unknown workflow ids, and invalid capability references.
 
+## Repo-Local Skill Inventory
+
+CTX Aide can inspect repo-local Codex skill manifests without installing them or reading machine-wide skill folders. Inventory is limited to `skills/*/SKILL.md` in the selected repo.
+
+```sh
+node tools/ctx-aide/ctx-aide.mjs skills inventory --repo . --json
+node tools/ctx-aide/ctx-aide.mjs skills check --repo . --json
+```
+
+`skills inventory` returns bounded metadata for each skill: id, relative path, name, description, source, status, risk, and validation warnings. `skills check` fails when a manifest is unreadable, missing `name` or `description` frontmatter, or duplicates another skill id.
+
 Useful commands:
 
 ```sh

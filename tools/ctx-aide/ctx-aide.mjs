@@ -187,6 +187,108 @@ function readDocAt(baseRoot, file) {
   return parseDocText(file, fs.readFileSync(path.join(baseRoot, file), "utf8"));
 }
 
+function displayPathFrom(basePath, targetPath) {
+  const resolved = path.resolve(targetPath);
+  return pathInside(basePath, resolved) ? (path.relative(basePath, resolved) || ".") : resolved;
+}
+
+function repoSkillManifestFiles(repoPath) {
+  const skillsDir = path.join(repoPath, "skills");
+  if (!fs.existsSync(skillsDir)) return [];
+  return fs.readdirSync(skillsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(skillsDir, entry.name, "SKILL.md"))
+    .filter((file) => fs.existsSync(file))
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function skillIdForManifest(repoPath, manifestPath, frontmatter) {
+  if (typeof frontmatter.id === "string" && frontmatter.id.trim()) return frontmatter.id.trim();
+  const relative = displayPathFrom(repoPath, path.dirname(manifestPath));
+  return `skill.${slugify(relative.replace(/^skills\//, ""))}`;
+}
+
+function skillInventory(options = {}) {
+  const repoPath = path.resolve(options.repoPath ?? targetRepoPath());
+  const manifests = repoSkillManifestFiles(repoPath);
+  const errors = [];
+  const skills = [];
+  const idFiles = new Map();
+  for (const manifestPath of manifests) {
+    const relativePath = displayPathFrom(repoPath, manifestPath);
+    try {
+      const doc = parseDocText(relativePath, fs.readFileSync(manifestPath, "utf8"));
+      const id = skillIdForManifest(repoPath, manifestPath, doc.frontmatter);
+      const warnings = [];
+      if (typeof doc.frontmatter.name !== "string" || !doc.frontmatter.name.trim()) warnings.push("missing frontmatter name");
+      if (typeof doc.frontmatter.description !== "string" || !doc.frontmatter.description.trim()) warnings.push("missing frontmatter description");
+      for (const heading of ["Core Contract", "Workflow"]) {
+        if (!sectionPresent(doc.body, heading)) warnings.push(`missing section: ${heading}`);
+      }
+      const previous = idFiles.get(id);
+      if (previous) {
+        warnings.push(`duplicate skill id also used by ${previous}`);
+      } else {
+        idFiles.set(id, relativePath);
+      }
+      skills.push({
+        id,
+        path: relativePath,
+        name: doc.frontmatter.name ?? "",
+        description: doc.frontmatter.description ?? firstParagraph(doc.body),
+        source: "repo-local",
+        status: warnings.some((warning) => warning.startsWith("missing frontmatter") || warning.startsWith("duplicate skill id")) ? "invalid" : "ok",
+        risk: doc.frontmatter.risk ?? "repo-local",
+        validation_warnings: warnings,
+      });
+    } catch (error) {
+      errors.push({ file: relativePath, message: `unreadable skill file: ${error.message}` });
+    }
+  }
+  const duplicateIds = new Set();
+  const seen = new Set();
+  for (const skill of skills) {
+    if (seen.has(skill.id)) duplicateIds.add(skill.id);
+    seen.add(skill.id);
+  }
+  for (const skill of skills) {
+    if (duplicateIds.has(skill.id) && !skill.validation_warnings.some((warning) => warning.startsWith("duplicate skill id"))) {
+      skill.status = "invalid";
+      skill.validation_warnings.push(`duplicate skill id also used by ${idFiles.get(skill.id)}`);
+    }
+  }
+  return {
+    ok: errors.length === 0,
+    scope: "skills inventory",
+    repo: displayPath(repoPath),
+    source: "repo-local skills/*/SKILL.md",
+    count: skills.length,
+    skills,
+    errors,
+  };
+}
+
+function skillsCheck() {
+  const inventory = skillInventory();
+  const errors = [...inventory.errors];
+  for (const skill of inventory.skills) {
+    for (const warning of skill.validation_warnings) {
+      if (warning.startsWith("missing frontmatter") || warning.startsWith("duplicate skill id")) {
+        errors.push({ file: skill.path, message: warning });
+      }
+    }
+  }
+  return {
+    ok: errors.length === 0,
+    scope: "skills check",
+    repo: inventory.repo,
+    source: inventory.source,
+    count: inventory.count,
+    skills: inventory.skills,
+    errors,
+  };
+}
+
 function nestedFrontmatterValue(doc, parent, key) {
   let inParent = false;
   for (const line of (doc.frontmatterText ?? "").split("\n")) {
@@ -5197,6 +5299,10 @@ if (command === "lint") {
   printResult(workflowValidationPlan());
 } else if (command === "pr" && subcommand === "preflight") {
   printResult(pullRequestPreflight());
+} else if (command === "skills" && subcommand === "inventory") {
+  printResult(skillInventory());
+} else if (command === "skills" && subcommand === "check") {
+  printResult(skillsCheck());
 } else if (command === "settings" && subcommand === "get") {
   printResult(settingsGet());
 } else if (command === "settings" && subcommand === "set") {

@@ -100,8 +100,10 @@ const commandManifest = run(["command", "manifest"]);
 assert.equal(commandManifest.ok, true);
 assert.equal(commandManifest.manifest_version, 1);
 assert.equal(commandManifest.groups.some((group) => group.id === "adoption"), true);
+assert.equal(commandManifest.groups.some((group) => group.id === "skills"), true);
 assert.equal(commandManifest.commands.some((entry) => entry.id === "command.manifest" && entry.mutating === false), true);
 assert.equal(commandManifest.commands.some((entry) => entry.id === "setup" && entry.required_flags.includes("--repo")), true);
+assert.equal(commandManifest.commands.some((entry) => entry.id === "skills.inventory" && entry.mutating === false), true);
 
 write("docs/context/routes/context-lab.md", `---
 id: route.context-lab
@@ -221,6 +223,88 @@ assert.equal(fs.existsSync(path.join(fixture, cursorPack.out)), true);
 const componentList = run(["components", "list"]);
 assert.equal(componentList.ok, true);
 assert.equal(componentList.count, 0);
+
+const emptySkills = run(["skills", "inventory"]);
+assert.equal(emptySkills.ok, true);
+assert.equal(emptySkills.count, 0);
+
+write("skills/context/SKILL.md", `---
+name: context
+description: Load bounded repo context for implementation tasks.
+---
+
+# Context Skill
+
+## Core Contract
+
+- Keep markdown source-backed.
+
+## Workflow
+
+1. Inspect scoped context.
+`);
+const skillInventory = run(["skills", "inventory"]);
+assert.equal(skillInventory.ok, true);
+assert.equal(skillInventory.count, 1);
+assert.equal(skillInventory.skills[0].id, "skill.context");
+assert.equal(skillInventory.skills[0].path, "skills/context/SKILL.md");
+assert.equal(skillInventory.skills[0].source, "repo-local");
+const skillCheck = run(["skills", "check"]);
+assert.equal(skillCheck.ok, true);
+
+write("skills/missing-description/SKILL.md", `---
+name: missing-description
+---
+
+# Missing Description
+
+## Core Contract
+
+- Keep metadata complete.
+
+## Workflow
+
+1. Validate.
+`);
+const invalidSkillCheck = run(["skills", "check"], { allowFailure: true });
+assert.equal(invalidSkillCheck.ok, false);
+assert.equal(invalidSkillCheck.errors.some((error) => error.file === "skills/missing-description/SKILL.md" && error.message.includes("description")), true);
+
+write("skills/duplicate-a/SKILL.md", `---
+id: skill.duplicate
+name: duplicate-a
+description: First duplicate id.
+---
+
+# Duplicate A
+
+## Core Contract
+
+- Keep ids unique.
+
+## Workflow
+
+1. Validate.
+`);
+write("skills/duplicate-b/SKILL.md", `---
+id: skill.duplicate
+name: duplicate-b
+description: Second duplicate id.
+---
+
+# Duplicate B
+
+## Core Contract
+
+- Keep ids unique.
+
+## Workflow
+
+1. Validate.
+`);
+const duplicateSkillCheck = run(["skills", "check"], { allowFailure: true });
+assert.equal(duplicateSkillCheck.ok, false);
+assert.equal(duplicateSkillCheck.errors.some((error) => error.message.includes("duplicate skill id")), true);
 
 write("src/feature.ts", "export const first = 1;\n\nexport const second = 2;\n");
 write("node_modules/pkg/index.js", "module.exports = 1;\n");
