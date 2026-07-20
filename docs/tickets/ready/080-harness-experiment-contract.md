@@ -19,6 +19,7 @@ scope:
   routes: []
   files:
     - docs/runs/templates/harness-experiment.md
+    - docs/context/schema/harness-experiment-v1.schema.json
     - tools/ctx-aide/ctx-aide.mjs
     - tools/ctx-aide/ctx-aide.test.mjs
     - tools/ctx-aide/command-catalog.mjs
@@ -102,12 +103,36 @@ of a harness intervention.
 - Decision: schema ID is exactly `ctxa.harness-experiment/v1`.
 - Rationale: the version is explicit in machine projections and can evolve
   without silently changing old markdown meaning.
+- Decision: repository-scoped artifact identity is
+  `(producer, schema_id, experiment_id, artifact_revision)` where
+  `artifact_revision` is a positive integer; a
+  higher revision may name `supersedes_artifact_revision`, but the same
+  identity with a different digest is a conflict.
+- Rationale: retries remain idempotent while accepted experiment updates keep
+  prior evidence immutable.
+- Decision: artifact revision and every projected integer are at most
+  `9007199254740991`.
+- Rationale: Node/Rust JSON remains inside the RFC 8785/I-JSON interoperable
+  integer range.
+- Decision: lifecycle phases are exactly `planned`, `baseline_recorded`,
+  `intervention_recorded`, and `decided`.
+- Rationale: a plan must validate before a run exists, without weakening the
+  evidence required for a final retain/revise/remove decision.
 - Decision: normalized gap classes are exactly `context`, `capability`,
   `domain_ownership`, `authority`, `proof`, `feedback`, and `worker`.
 - Rationale: they separate missing information from missing execution ability,
   ownership, permission, evidence, feedback, or worker capability.
 - Decision: final decisions are exactly `retain`, `revise`, and `remove`.
 - Rationale: a completed experiment must say what happens to the intervention.
+- Decision: the normative projection schema is
+  `docs/context/schema/harness-experiment-v1.schema.json`; validators return
+  its exact `schema_sha256`, and package builds must ship it.
+- Rationale: consumers can reject a drifted `/v1` contract mechanically.
+- Decision: input and projected JSON are each limited to 256 KiB; evidence
+  summaries are limited to 4 KiB each, lists to 100 entries, IDs to 128
+  characters, and repository-relative paths to 1,024 characters.
+- Rationale: local artifacts remain useful while every parser and integration
+  surface has a deterministic resource ceiling.
 - Decision: expected infrastructure cost delta is `$0/month`.
 - Rationale: this ticket adds local templates, parsing, validation, and docs.
 
@@ -115,12 +140,35 @@ of a harness intervention.
 
 - Required approach: add the template and a read-only `harness experiment
   check` command that parses one repo-contained markdown file and returns the
-  schema ID, stable IDs, normalized fields, validation state, and digest.
+  schema ID/digest, stable ID/revision, normalized fields, validation state,
+  and exact source-file digest.
 - Existing components/helpers to use: markdown/frontmatter parsing, path-inside
   checks, SHA-256 helper or Node crypto, bounded output, redaction, command
   manifest/catalog conventions, and fixture temp repos.
 - Anti-patterns to avoid: shelling out, interpreting command strings, accepting
-  free-form gap/decision values, or copying full validation logs.
+  free-form phase/gap/decision values, normalizing source bytes before hashing,
+  or copying full validation logs.
+- Conditional validation:
+  - `planned` requires the frozen job, authority, budget, stop, hypothesis,
+    intervention owner, rollback, review, and retirement contract only;
+  - `baseline_recorded` additionally requires baseline evidence and earliest
+    failed handoff;
+  - `intervention_recorded` additionally requires target-native checks and a
+    fresh rerun whose run ID differs from baseline;
+  - `decided` additionally requires decision, rationale, carrying cost, and
+    operator acceptance; `retain`/`revise` require passing target-native checks
+    and fresh-rerun evidence.
+- Any phase change is represented by a higher artifact revision with an
+  explicit supersedes reference, bounded `revision_reason`, and `prior_phase`.
+  Phase may stay unchanged or advance
+  `planned -> baseline_recorded -> intervention_recorded -> decided`, skipping
+  only when all target-phase fields exist. `decided` can supersede only as
+  `decided`. Live Idvisor progress never edits the source revision.
+- CLI behavior: the command is noninteractive, accepts exactly one file, emits
+  one JSON object and no stderr on JSON success, emits no ANSI/spinner output,
+  and on JSON failure emits exactly one bounded structured error/result object
+  on stdout, empty stderr, and a nonzero exit. Bound errors to 100 entries with
+  512-character messages and report `errors_omitted_count` when necessary.
 - Stop and escalate if: a required field cannot be expressed without adding a
   runtime status that competes with Idvisor run truth.
 
@@ -133,16 +181,26 @@ of a harness intervention.
 
 ## Acceptance Criteria
 
-- The template covers target revision/external state, job, worker requirements,
-  accepted outcome, authority, budget/stop, baseline, earliest gap, hypothesis,
-  intervention owner/rollback, native checks, fresh rerun, decision, carrying
-  cost, review/retirement, and operator acceptance.
+- The template covers artifact revision/supersession, lifecycle phase, target
+  revision/external state, job, worker requirements, accepted outcome,
+  authority, budget/stop, baseline, earliest gap, hypothesis, intervention
+  owner/rollback, native checks, fresh rerun, decision, carrying cost,
+  review/retirement, and operator acceptance.
+- A valid `planned` artifact contains no fabricated result fields; each later
+  phase enforces the exact conditional requirements frozen above.
 - `check` rejects missing baseline/fresh-rerun evidence for retain/revise,
   unknown gap/decision values, identical baseline and fresh-run IDs, path
   escape, unbounded evidence, and secret-like content.
-- A valid record returns one complete JSON value with schema ID, artifact ID,
-  relative source path, SHA-256 digest, normalized decision, and errors array.
+- A valid record returns one complete JSON value with schema ID/digest,
+  artifact ID/revision, supersession reference, relative source path,
+  exact-byte SHA-256 digest, normalized phase/decision, and errors array.
 - The command remains read-only and does not create run files or invoke tools.
+- Fixtures prove deterministic identity/digest projection, rejection of an
+  invalid same-or-higher superseded revision, valid higher revision shape, and
+  256 KiB bounds. Cross-file import conflicts belong to tickets 083/IDV-2102,
+  not this one-file read-only checker.
+- `npm pack --dry-run` includes the normative schema, and a test parses the
+  packed/installed schema rather than relying only on the checkout.
 
 ## Validation
 

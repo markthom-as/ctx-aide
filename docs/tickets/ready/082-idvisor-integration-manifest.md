@@ -23,6 +23,7 @@ scope:
     - tools/ctx-aide/ctx-aide.mjs
     - tools/ctx-aide/ctx-aide.test.mjs
     - tools/ctx-aide/command-catalog.mjs
+    - docs/context/schema/idvisor-manifest-v1.schema.json
     - docs/idvisor/ctx-aide-plugin.md
     - README.md
   directories: []
@@ -76,7 +77,7 @@ bounds, and truth declarations.
   migration.
 - Reuse the existing command catalog and `command manifest` metadata rather
   than maintaining a second command inventory.
-- Advertise only implemented commands and schema versions.
+- Advertise only implemented commands and exact schema ID/digest pairs.
 
 ## Negative Rules
 
@@ -110,29 +111,64 @@ bounds, and truth declarations.
   timeout hint.
 - Rationale: Idvisor can spawn safely without shell parsing and can enforce
   complete bounded capture.
-- Decision: schema IDs include `ctxa.harness-experiment/v1`,
-  `ctxa.research-claim-set/v1`, and `ctxa.idvisor-result/v1`.
-- Rationale: the producer and consumer agree on artifact boundaries before
-  import/export.
+- Decision: every supported schema row includes stable schema ID and SHA-256
+  of the exact checked-in schema bytes. This ticket advertises the implemented
+  harness, research, and manifest schemas; ticket 083 adds the result schema
+  and import command only when they are implemented.
+- Rationale: a `/v1` label alone cannot prove producer/consumer compatibility,
+  and the manifest must never advertise future behavior.
+- Decision: normative schema files are package-shipped under
+  `docs/context/schema/`; introspection commands are exactly
+  `ctxa schema list --json` and `ctxa schema get <schema-id> --json`.
+- Rationale: humans and agents can discover, inspect, and mechanically compare
+  the same contracts without scraping help or a checkout path.
+- Decision: `schema get` returns exact UTF-8 file contents in `schema_text`
+  plus `schema_id` and `schema_sha256`; it does not return only a reparsed JSON
+  object whose formatting cannot reproduce the byte digest.
+- Rationale: callers can decode and independently verify the advertised digest.
+- Decision: manifest stdout is at most 64 KiB, stderr at most 8 KiB, and each
+  timeout hint is an integer from 100 through 5,000 ms. Idvisor may use only a
+  stricter timeout.
+- Rationale: process probing remains bounded and no manifest can expand the
+  consumer's authority or resource ceiling.
+- Decision: schema list/get stdout is also limited to 64 KiB and returns no
+  source paths outside the package-relative schema registry.
+- Rationale: schema introspection stays agent-safe and package-portable.
+- Decision: v1 advertises at most 32 schemas and 128 commands; each command has
+  at most 32 argv-template tokens, IDs/tokens are at most 128/256 characters,
+  and duplicate IDs are invalid even when rows otherwise match.
+- Rationale: structural ceilings remain explicit before the byte limit.
 - Decision: expected infrastructure cost delta is `$0/month`.
 - Rationale: the manifest is local static JSON.
 
 ## Implementation Rules
 
 - Required approach: derive manifest command rows from the canonical command
-  catalog, then add integration-specific schema and authority declarations.
+  catalog, derive the schema registry from exact checked-in schema bytes, then
+  add integration-specific compatibility and authority declarations.
 - Existing components/helpers to use: `commandManifestResult`, package version,
   command catalog mutability/write metadata, bounded JSON output, and tests.
 - Anti-patterns to avoid: duplicated command strings, runtime PATH inspection,
-  compatibility inferred from package name alone, or a manifest that changes
-  according to local ticket status.
+  compatibility inferred from package name/schema ID alone, self-reported
+  schema digests not rechecked from bytes, or a manifest that changes according
+  to local ticket status.
+- Agent-native behavior: top-level and subcommand help expose the manifest and
+  schema commands; all are noninteractive and read-only; JSON success is one
+  object on stdout with empty stderr and exit 0; JSON failure is one structured
+  error object on stdout with stable `error.code`, empty stderr, no partial
+  object/ANSI/spinner/prompt, and nonzero exit. Profiles and async job APIs are
+  not applicable because the commands are bounded synchronous reads.
+- Stable failure codes include `invalid_arguments`, `unknown_schema`,
+  `schema_read_failed`, `schema_digest_mismatch`, and `output_too_large`.
 - Stop and escalate if: any advertised command lacks a complete parseable JSON
   contract or a truthful mutation boundary.
 
 ## Scope
 
-- In: new manifest command, command-catalog entry, version/schema declarations,
-  compatibility behavior for the old workflow helper, docs, and tests.
+- In: new manifest command, schema list/get, normative manifest schema,
+  command-catalog entries, version/schema ID+digest declarations,
+  compatibility behavior for the old workflow helper, package contents, docs,
+  and tests.
 - Out: executing commands for Idvisor, installing Idvisor, probing its daemon,
   changing artifact validators, adding MCP, or enabling mutation.
 
@@ -144,11 +180,21 @@ bounds, and truth declarations.
   shell command strings or Node implementation paths.
 - Read-only and write-capable commands are distinguishable; every write-capable
   command names the explicit write flag and dry-run behavior.
-- Artifact and result schema IDs match tickets 080, 081, and 083.
-- Tests fail if package binary identity, command mutability, schema versions,
-  output bounds, or truth-boundary text drift.
+- Harness, research, and manifest schema IDs/digests match their exact
+  package-shipped documents. Ticket 083 adds the result row; until then it is
+  absent rather than speculative.
+- `schema list` returns bounded ID/digest metadata; `schema get` returns the
+  requested exact `schema_text` and digest, independently rehashes in tests,
+  and fails closed for an unknown ID.
+- Tests fail if package binary identity, command mutability, schema ID/digest,
+  schema package inclusion, timeout/output bounds, or truth-boundary text
+  drift.
+- A consumer fixture with a known schema ID and wrong digest is rejected, as
+  are trailing stdout, any success stderr, an out-of-range hint, and output
+  above 64 KiB.
 - `ctxa idvisor workflow --json` remains callable and points integrations to
-  the authoritative manifest without pretending to be version 1 itself.
+  the authoritative manifest without pretending to be version 1 itself; its
+  compatibility response also contains no Node path or shell command string.
 
 ## Validation
 
@@ -160,7 +206,8 @@ bounds, and truth declarations.
 ## Implementation Notes
 
 Idvisor owns its own conservative child-process timeout. The manifest timeout
-is a hint and may only make Idvisor stricter, never less bounded.
+is a bounded hint and may only make Idvisor stricter, never less bounded.
+Schema compatibility does not establish repository trust or grant mutation.
 
 ## Completion
 

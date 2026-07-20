@@ -46,6 +46,7 @@ without moving markdown or runtime authority across the seam.
 ## Scope
 
 - Included: harness-experiment and research claim-set templates/checks,
+  immutable artifact revisions, package-shipped schema ID/digest contracts,
   machine projections, a versioned `ctxa` Idvisor manifest, dry-run-first
   result import, explicit result promotion, docs, fixtures, and tests.
 - Excluded: an agent runner, provider/model routing, live fan-out, hosted
@@ -58,8 +59,9 @@ without moving markdown or runtime authority across the seam.
 - `ticket.context.081`: ready.
 - `ticket.context.082`: ready; depends on 080 and 081.
 - `ticket.context.083`: ready; depends on 082 and the frozen
-  `ctxa.idvisor-result/v1` envelope, with cross-repo interoperability exercised
-  after Idvisor IDV-2105 lands.
+  `ctxa.idvisor-result/v1` envelope, adds that implemented schema/command to the
+  manifest, and exercises cross-repo interoperability after Idvisor IDV-2105
+  lands.
 
 ## Execution Plan
 
@@ -83,6 +85,12 @@ without moving markdown or runtime authority across the seam.
 - Requeue rules: return a ticket to hardening if implementation needs a new
   artifact status, truth owner, event/RPC name, paid service, provider pin, or
   automatic markdown write not frozen in the source spec.
+- Compatibility rules: a schema ID without its checked-in digest is
+  incompatible; an exact artifact identity with a changed digest is a
+  conflict; a legitimate edit requires a higher superseding revision.
+- Independence claim: v1 proves only distinct durable run IDs. Requeue any
+  implementation that claims different actor/account/provider/model identity
+  without adding and separately hardening durable identity evidence.
 
 ## Pack Validation
 
@@ -90,7 +98,12 @@ without moving markdown or runtime authority across the seam.
   - validate one passing and one failing harness-experiment fixture;
   - validate independent and self-verified research claim fixtures;
   - parse `ctxa idvisor manifest --json` as one complete bounded JSON value;
-  - dry-run one valid and one stale-digest Idvisor result import.
+  - list/get each package-installed schema and match its manifest digest;
+  - dry-run one valid and one stale-digest Idvisor result import from file and
+    bounded stdin;
+  - run shared RFC 8785 golden vectors in Node and, after IDV-2105, Rust;
+  - prove exact retries are no-ops, conflicting identities fail closed, and a
+    superseding artifact revision preserves the old snapshot.
 - Screenshots: not required.
 - Full regression checks:
   - `node tools/ctx-aide/ctx-aide.mjs scan --json`
@@ -98,6 +111,7 @@ without moving markdown or runtime authority across the seam.
   - `node tools/ctx-aide/ctx-aide.mjs ticket check --json`
   - `node tools/ctx-aide/ctx-aide.mjs pack check --json`
   - `node tools/ctx-aide/ctx-aide.test.mjs`
+  - `npm pack --dry-run`
   - `make validate`
 
 ## Completion

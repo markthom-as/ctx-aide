@@ -29,7 +29,7 @@ does not embed, launch, or depend on the Idvisor daemon.
 
 - Routes: none.
 - Files/directories: `docs/runs`, `docs/research`, `docs/idvisor`,
-  `docs/workflows`, `tools/ctx-aide`, `README.md`.
+  `docs/context/schema`, `docs/workflows`, `tools/ctx-aide`, `README.md`.
 - Components: markdown harness-experiment records, research claim sets,
   machine-readable Idvisor manifest, and Idvisor result imports.
 - Flows: `flow.ctx-aide-dogfood`, evidence-backed research, harness improvement,
@@ -109,6 +109,21 @@ does not embed, launch, or depend on the Idvisor daemon.
   Idvisor workflows without moving source truth.
 - Rejected alternatives: storing harness plans or research claims only in
   Idvisor SQLite.
+- Decision: every machine contract is a checked-in JSON Schema identified by
+  both a stable schema ID and the SHA-256 digest of its exact bytes.
+- Rationale: a version label alone cannot detect accidental schema drift or a
+  producer/consumer build assembled from different contract documents.
+- Rejected alternatives: treating a matching `/v1` suffix as sufficient
+  compatibility, or deriving schemas from prose at runtime.
+- Decision: source artifacts are immutable revisions. Within one repository,
+  identity is
+  `(producer, schema_id, artifact_id, artifact_revision)`; a higher revision
+  may explicitly supersede a prior revision with bounded `revision_reason`, but
+  an existing identity can never change digest.
+- Rationale: retries must be idempotent without making legitimate repository
+  edits look like digest conflicts or rewriting prior runtime evidence.
+- Rejected alternatives: using `artifact_id` alone as mutable identity or
+  silently accepting a new digest for an imported artifact.
 - Decision: add `ctxa idvisor manifest --json` as the versioned discovery seam.
 - Rationale: Idvisor needs argv-safe command metadata, mutation boundaries,
   schema IDs, size bounds, and a truth-boundary declaration; the existing
@@ -158,8 +173,10 @@ or run. An Idvisor run marked complete is not proof that a CTX ticket is done.
    set in CTX Aide markdown.
 2. Idvisor runs `ctxa idvisor manifest --json` as a bounded, read-only probe
    using executable plus argv, never a shell command string.
-3. Idvisor imports an artifact by stable ID, schema ID, repository-relative
-   path, source revision, and SHA-256 digest.
+3. Idvisor imports an artifact by stable ID, immutable artifact revision,
+   schema ID and schema digest, repository-relative path, repository revision,
+   and the SHA-256 digest of the exact source-file bytes. A superseding
+   revision is a new source reference, never an in-place mutation.
 4. Idvisor projects the artifact into daemon-owned queue items, buffers, and a
    workflow assembled from reusable fragments.
 5. Idvisor enforces approval, capability, budget, context, resource, process,
@@ -176,8 +193,11 @@ or run. An Idvisor run marked complete is not proof that a CTX ticket is done.
 
 `ctxa.harness-experiment/v1` requires:
 
-- stable experiment ID, repository/revision, relevant external state, and
-  artifact digest;
+- stable experiment ID, positive integer artifact revision, optional prior
+  revision being superseded, repository/revision, relevant external state,
+  and exact-byte artifact digest;
+- lifecycle phase `planned`, `baseline_recorded`, `intervention_recorded`, or
+  `decided`, with fields required conditionally by phase;
 - representative job, fixed worker/role requirements, accepted outcome,
   authority boundary, budget, timeout, and stop conditions;
 - baseline result and evidence;
@@ -192,37 +212,68 @@ or run. An Idvisor run marked complete is not proof that a CTX ticket is done.
   Idvisor-backed.
 
 A check passing is evidence only for the claim it exercises. Cached or reused
-run output cannot satisfy the fresh-rerun field.
+run output cannot satisfy the fresh-rerun field. A planned artifact is valid
+without a decision; only phase `decided` may contain `retain`, `revise`, or
+`remove`, and `retain`/`revise` require distinct baseline and fresh-run IDs.
+Advancing phase changes bytes and therefore requires a higher superseding
+artifact revision with `prior_phase`; Idvisor live step state never mutates the
+CTX snapshot. Phase may remain unchanged or advance in the declared order;
+direct advancement is allowed only when every target-phase field is present.
+`decided` may supersede only as `decided` with a revision reason.
 
 ## Research Claim-Set Contract
 
 `ctxa.research-claim-set/v1` requires:
 
-- stable subject and claim-set IDs, research question, scope, exclusions,
-  evidence policy, budget, and stop conditions;
+- stable subject and claim-set IDs, positive integer artifact revision,
+  optional prior revision being superseded, research question, scope,
+  exclusions, evidence policy, budget, and stop conditions;
 - atomic claims with stable IDs and status `proposed`,
   `verification_required`, `verified`, `rejected`, or
   `accepted_for_synthesis`;
-- finder reference and, for verified claims, a distinct verifier reference;
+- finder run reference and, for verified claims, a distinct verifier run
+  reference with `independence_level: distinct_run`;
 - source records with URL or repository pointer, source kind, locator,
   access/revision time, and a short bounded excerpt or exact structured fact;
 - explicit primary-source preference and a reason when secondary evidence is
   accepted;
-- numeric facts separated into value, unit, scope, and source evidence;
+- numeric facts separated into source-preserving `value_text`, unit, scope, and
+  source evidence; values are strings, not JSON floating-point numbers;
 - verification outcome, confidence, contradiction/rejection reason, and
   synthesis eligibility;
 - human acceptance for final synthesis or promotion.
 
-The validator rejects self-verification, unsupported numbers, unbounded source
-copies, missing source locators, and claims marked verified without independent
-evidence. Rejection is claim-scoped, not project-scoped.
+The validator rejects self-verification by the same run, unsupported numbers,
+unbounded source copies, missing source locators, and claims marked verified
+without independent evidence. V1 proves run-level separation only: Idvisor's
+current durable run model does not carry an actor, account, or model identity,
+so the contract must not claim stronger human/provider independence. Finder
+and verifier runs may use the same harness/model, but cannot share private
+transcript or reasoning state. Rejection is claim-scoped, not project-scoped.
+
+Claim status never changes inside an immutable artifact revision. Across
+explicit superseding revisions, a claim may remain unchanged or advance from
+`proposed` to `verification_required`, `verified`, or `rejected`; from
+`verification_required` to `verified` or `rejected`; or from `verified` to
+`accepted_for_synthesis` or `rejected`. Direct advancement is valid only when
+the target status's evidence fields are complete. `rejected` and
+`accepted_for_synthesis` are terminal unless the higher revision carries
+`reopens_claim_from_artifact_revision` and a bounded `reopen_reason`, returning
+the claim to `verification_required`. A superseding claim set carries a bounded
+`status_changes` ledger of `claim_id`, `from`, and `to`; new claims instead name
+`introduced_in_artifact_revision`.
+
+V1 bounds one claim set to 500 claims, 20 sources and 50 numeric facts per
+claim, 240 characters per excerpt, and 1 MiB of exact input bytes. The JSON
+projection is limited to 1 MiB and must remain valid when errors are reported.
 
 ## Idvisor Manifest Contract
 
 `ctxa idvisor manifest --json` returns `ctxa.idvisor-manifest/v1` with:
 
 - producer name/version and the sole installed binary name `ctxa`;
-- `manifest_version`, compatibility range, and artifact schema IDs;
+- `manifest_version`, compatibility range, and supported schema ID/digest
+  pairs for the harness, research, manifest, and result contracts;
 - commands represented as executable plus argv templates, stable command ID,
   mutability, required explicit write flag, output schema, stdout/stderr bounds,
   and timeout hint;
@@ -231,13 +282,26 @@ evidence. Rejection is claim-scoped, not project-scoped.
 - no host paths, secrets, provider credentials, shell fragments, or dynamic
   runtime state.
 
+The normative schemas are package-shipped under `docs/context/schema/`.
+`ctxa schema list --json` exposes their bounded IDs/digests and
+`ctxa schema get <schema-id> --json` returns `schema_text` containing the exact
+UTF-8 file bytes as a JSON string plus its digest, so a consumer can decode and
+rehash the normative document without guessing serialization.
+The manifest and both schema commands are read-only, noninteractive, emit one
+JSON value on stdout and nothing on stderr on success, and never use ANSI,
+spinners, or prompts. JSON failures use a stable `error.code`, a nonzero exit,
+and no partial success object. Manifest stdout is at most 64 KiB, stderr is at
+most 8 KiB, and its timeout hint is an integer from 100 through 5,000 ms.
+
 Idvisor must treat an absent, truncated, invalid, incompatible, stderr-producing,
-or trailing-text manifest as unavailable. A manifest advertises capability; it
-does not grant permission to run a mutating command.
+trailing-text, unknown-schema-digest, or out-of-bound manifest as unavailable.
+A manifest advertises capability; it does not grant permission to run a
+mutating command. Schema compatibility and repository trust/authorization are
+separate decisions.
 
 ## Result Import Contract
 
-`ctxa idvisor result import --source <file> --json` validates
+`ctxa idvisor result import --source <file|-> --json` validates
 `ctxa.idvisor-result/v1` and returns a dry-run plan. The envelope contains only:
 
 - source artifact references and digests;
@@ -249,15 +313,44 @@ does not grant permission to run a mutating command.
   sequence;
 - producer/schema versions and envelope digest.
 
-The envelope digest is canonical over all fields except the digest itself and
-`generated_at`; it includes the source event sequence. A partial or blocked
+The envelope carries the exact target artifact ID, artifact revision,
+source-file digest, schema ID, and schema digest. Decisions are referenced by
+durable decision IDs and typed actor (`operator_command` or `run`) rather than
+inferred from queue status, prose, or timestamps. Human acceptance requires an
+`operator_command` decision plus the separate Idvisor manual-approval source; a
+run decision cannot satisfy it. Any `recorded_by` label is display-only: v1
+proves use of the operator mutation path, not authenticated human identity.
+
+The envelope digest uses RFC 8785 JSON Canonicalization Scheme over all fields
+except `envelope_sha256` and `generated_at`; it includes the source event
+sequence. All JSON numeric fields are integers in the I-JSON interoperable range
+`-9007199254740991..9007199254740991`; decimals, monetary values, and ratios are
+source-preserving strings with explicit units/currency. Node and Rust
+implementations must pass the same Unicode, escaping, key-order, and nested
+golden vectors before interoperability is claimed. The source artifact digest
+is over exact file bytes and is not JSON-canonicalized. A partial or blocked
 workflow may be imported as a snapshot when it contains structured evidence,
 but it cannot imply success or acceptance.
 
-`--write` may create a result snapshot under `docs/runs` and may update an
-explicitly named claim set or harness experiment. It may not mark a ticket or
-pack done, overwrite human-authored decisions, or promote a lesson without an
-explicit target and mode.
+`--write` may create a result snapshot under `docs/runs`. A claim-set or
+harness update requires an explicit target, mode, and higher
+`--new-artifact-revision`; it performs a compare-and-swap against the exported
+target ID/revision/digest, writes the new revision with an explicit supersedes
+reference, and never changes the identity of the imported old revision. It may
+not mark a ticket or pack done, overwrite human-authored decisions, or promote
+a lesson without an explicit target and mode.
+
+File and stdin input are each bounded to 1 MiB; detached stdin never prompts.
+An exact repeated envelope is a no-op keyed by its digest and target artifact
+revision, including when the first import already produced the declared
+superseding revision. A different envelope for the same import identity is a
+conflict. New snapshots use atomic create-new/no-overwrite semantics; update
+modes rehash the target immediately before compare-and-swap and fail on
+revision or digest drift.
+Stable error codes include `invalid_arguments`, `input_too_large`,
+`invalid_json`, `unsupported_schema`, `schema_digest_mismatch`,
+`envelope_digest_mismatch`, `source_artifact_stale`, `target_conflict`,
+`prohibited_field`, and `write_failed`.
 
 ## Design Decisions
 
@@ -288,7 +381,9 @@ explicit target and mode.
     documents into claim records.
   - Redact credentials, headers, raw prompts/completions, provider bodies, and
     transcript content from manifests and result imports.
-  - Require independent verifier identity for verified claims.
+  - Require a distinct durable verifier run for verified claims and label the
+    v1 guarantee honestly as `distinct_run`; stronger actor/account
+    attestation is deferred until Idvisor persists such identity.
   - Default every write-capable command to dry-run and require `--write`.
   - Keep capability grants, budget overrides, network access, and process
     supervision in Idvisor when it is the runtime.
@@ -302,8 +397,9 @@ None for the first implementation pack.
 
 ## Hardening Review
 
-- Architecture: dependency direction, truth ownership, artifact handoff, and
-  current `ctx`/`ctxa` migration are explicit; no shared database is added.
+- Architecture: dependency direction, truth ownership, immutable artifact
+  revision, schema identity, result decision authority, and current
+  `ctx`/`ctxa` migration are explicit; no shared database is added.
 - Design: artifacts are atomic and inspectable; errors remain attached to the
   smallest owning claim or stage.
 - Security: manifest and result surfaces are bounded, schema-versioned,
@@ -311,9 +407,14 @@ None for the first implementation pack.
 - Best practices: extract portable contracts in CTX Aide and generic runtime
   primitives/fragments in Idvisor; avoid one-off integration types where a
   reusable source reference or workflow export works.
-- Testing: fixture contracts cover self-verification, unsupported numbers,
-  stale digests, incompatible versions, output truncation, and result-import
-  write boundaries.
+- Replay/migration: exact duplicate imports are idempotent, conflicting
+  identities fail closed, supersession never rewrites old evidence, and old
+  Idvisor review events retain deterministic legacy IDs while new evidence
+  passes carry explicit IDs.
+- Testing: cross-language canonicalization fixtures and package-installed
+  schema discovery join self-verification, unsupported numbers, stale digests,
+  incompatible versions, output truncation, and result-import write-boundary
+  fixtures.
 - Parallelization: harness and research contracts can land independently;
   manifest work follows their schema IDs, and result import follows the frozen
   export envelope.
