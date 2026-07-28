@@ -4,7 +4,7 @@ CTX Aide is a local-first workflow system for coding agents. It keeps context, s
 
 At its core, this repo is a repo-native operating system for coding-agent work: markdown context, specs, tickets, validation, and handoff rules that let agents implement safely from durable repo truth instead of chat history.
 
-The repository directory, package-facing namespace, local skill, and config filenames are `ctx-aide`; the installed CLI command is `ctxa`. The package remains intentionally private until owner, license, and publish decisions are explicit.
+The repository directory, package-facing namespace, local skill, and config filenames are `ctx-aide`; the installed CLI command is `ctxa`. The source is MIT-licensed for a public GitHub alpha under `markthom-as/ctx-aide`. The npm package remains intentionally private and unpublished.
 
 No paid infrastructure is required. Markdown is canonical, generated agent packs are lightweight artifacts, and SQLite indexes are local rebuildable caches.
 
@@ -178,11 +178,11 @@ Target repos bootstrapped by CTX Aide get their own config files. The source rep
 - `docs/context/architecture/public-release-safety-audit-2026-07-05.md`: the public-release safety audit.
 - `docs/context/architecture/publication-readiness-2026-07-07.md`: npm, Cargo, package-payload, and public-criticism readiness notes.
 - `.github/workflows/ci.yml`: the CI release gate for package, install, markdown, validation, smoke, and diff checks.
-- `CONTRIBUTING.md`, `SECURITY.md`, and `CHANGELOG.md`: public repository hygiene docs that preserve the private, unpublished, no-license posture.
+- `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, and `CHANGELOG.md`: MIT licensing and public repository hygiene.
 
 ## Status
 
-CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The repository now includes CI release gates and non-license public hygiene docs, but the public-release pack is still blocked on the final GitHub launch gate and on explicit publication decisions for license, owner/org, and Cargo crate shape.
+CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The alpha source posture is public GitHub under `markthom-as/ctx-aide` with the MIT license. npm publication, Cargo distribution, hosted services, and paid infrastructure are not part of the alpha release.
 
 ## Goals
 

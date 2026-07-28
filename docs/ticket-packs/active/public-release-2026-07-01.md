@@ -44,10 +44,9 @@ parallel_groups:
     tickets:
       - ticket.context.044
 blocked_by:
-  - GitHub owner/org decision required before creating or publishing a remote.
-  - Repository license decision required before claiming open-source reuse rights.
   - Production hardening pack must close or explicitly waive unresolved launch blockers.
-  - Cargo publishing decision required before claiming crates.io readiness.
+  - No-Cargo and no-npm alpha posture must close in their owning tickets.
+  - Fresh safety and full validation must pass before the public remote is created.
 created: 2026-07-01
 completion:
   completed_at: null
@@ -82,7 +81,9 @@ Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credibl
 ## Execution Plan
 
 - Completed sequence: `ticket.context.040` through `043` and `054` through `059` are done, including public name, safety audit, README/demo proof, ctx-aide namespace rename, removal of legacy naming aliases, `ctxa` as the single installed binary, build/install scripts, and formatted top-level help.
-- Remaining sequence: `ticket.context.044` is the only ticket in this pack still blocked, and it must wait for owner/license decisions plus production-hardening gate closure before any public visibility change.
+- Remaining sequence: `ticket.context.044` is the only ticket in this pack still
+  blocked. Owner `markthom-as` and MIT licensing are resolved; it waits for the
+  no-Cargo/no-npm tickets and production-hardening gate closure.
 - Shared-file coordination: `README.md`, release docs, and repo metadata must be coordinated by a single agent if the launch gate is later executed.
 - Worktree strategy: use a clean worktree for any future launch-gate execution so public-visibility changes cannot absorb unrelated local edits.
 - Merge queue strategy: keep the launch gate as one scoped commit after every prerequisite is done or explicitly waived in markdown.
@@ -104,5 +105,6 @@ Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credibl
 
 - Completed tickets: `ticket.context.040`, `ticket.context.041`, `ticket.context.042`, `ticket.context.043`, `ticket.context.054`, `ticket.context.055`, `ticket.context.056`, `ticket.context.057`, `ticket.context.058`, `ticket.context.059`.
 - Remaining tickets: none ready.
-- Blocked tickets: `ticket.context.044` pending GitHub owner/org, license, production-hardening closure, and package publication decisions.
+- Blocked tickets: `ticket.context.044` pending production-hardening closure and
+  fresh public-cutover validation.
 - Final validation: pending.

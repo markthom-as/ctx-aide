@@ -20,9 +20,9 @@ tags:
   - package-readiness
 positive_rules:
   - Keep package publication claims tied to dry-run evidence and explicit registry checks.
-  - Keep accidental registry publishing blocked until owner, license, and Cargo crate decisions are explicit.
+  - Keep accidental registry publishing blocked; public source does not imply registry publication.
 negative_rules:
-  - Do not claim npm or crates.io publish readiness while package.json is private, no license file exists, or no Cargo.toml exists.
+  - Do not claim npm or crates.io publish readiness while package.json is private or no Cargo.toml exists.
   - Do not publish to npm, crates.io, or GitHub from this repo without a fresh launch ticket and validation evidence.
 load_when:
   path_matches:
@@ -37,7 +37,7 @@ load_when:
     - crates.io
     - hacker news
     - public criticism
-updated: 2026-07-08
+updated: 2026-07-28
 ---
 
 # Publication Readiness
@@ -53,27 +53,37 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 - Source repository namespace: `ctx-aide`.
 - Intended npm package name: `ctx-aide`.
 - Intended installed binary name: `ctxa`.
-- Package status: local package metadata is prepared, but `private: true` remains the safety gate.
+- GitHub owner/repository: `markthom-as/ctx-aide`.
+- Source license: MIT, recorded in `LICENSE` and package metadata.
+- Source posture: public GitHub alpha after the final cutover gate.
+- Package status: local package metadata is prepared; `private: true` remains
+  intentional because npm publication is not part of the alpha.
+- npm owner/publication: deferred; no registry package is approved for alpha.
 - Build/install status: `npm run build` verifies the package payload and writes a local tarball; `npm run install:local` installs `ctxa` into an ignored local prefix for smoke testing.
 - Cargo status: no Rust crate exists in this repository. crates.io publication is blocked until a Cargo package shape is designed and implemented.
+- Support posture: community issue discussion and private GitHub vulnerability
+  reporting after launch, with no response-time or support SLA.
 - Cost delta: `$0/month`. This work changes docs and local package metadata only.
 
 ## Positive Rules
 
 - Keep package publication claims tied to dry-run evidence and explicit registry checks.
-- Keep accidental registry publishing blocked until owner, license, and Cargo crate decisions are explicit.
+- Keep accidental registry publishing blocked; public source does not imply npm
+  or crates.io publication.
 - Recheck registry state immediately before claiming name availability.
 
 ## Negative Rules
 
-- Do not claim npm or crates.io publish readiness while `package.json` is private, no license file exists, or no `Cargo.toml` exists.
+- Do not claim npm or crates.io publish readiness while `package.json` is
+  private or no `Cargo.toml` exists.
 - Do not publish to npm, crates.io, or GitHub from this repo without a fresh launch ticket and validation evidence.
-- Do not choose a license, registry owner, GitHub owner, or Cargo crate shape by implication.
+- Do not turn the public-source decision into registry publication authority.
 
 ## Implementation Rules
 
 - Use `npm pack --dry-run --json` as the bounded package-payload proof for the Node CLI.
-- Use `npm publish --dry-run` only after `private: true` is intentionally removed by a publishing ticket.
+- Use `npm publish --dry-run` only if a later owner-approved ticket reopens npm
+  publication and intentionally removes `private: true`.
 - Use `cargo package --list` and `cargo publish --dry-run` only after a Cargo crate exists.
 - Record expected non-zero registry-observation commands as observations, not green validation gates.
 
@@ -92,7 +102,9 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 ## What Is Ready
 
 - The README now explains purpose, why the project exists, what it does, what it is not, setup, configuration, proof surfaces, and status.
-- The repository now includes non-license public hygiene docs: `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, GitHub issue templates, and a pull request template.
+- The repository now includes MIT licensing and public hygiene docs:
+  `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, GitHub issue
+  templates, and a pull request template.
 - `.github/workflows/ci.yml` records the CI release gate for Node 20, package dry-run, local install smoke, markdown checks, repo validation, smoke checks, and diff cleanliness.
 - `package.json` uses the intended npm package name `ctx-aide`.
 - The npm package payload is constrained with an explicit `files` allowlist instead of relying on `.gitignore` fallback.
@@ -105,12 +117,14 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 
 ## What Is Not Ready
 
-- There is no `LICENSE`, `COPYING`, or `NOTICE` file. Open-source reuse and registry publication remain blocked until the user chooses a license or explicit no-license posture.
-- `package.json` intentionally keeps `private: true`; `npm publish` should remain blocked until the publication gate is reopened.
+- `package.json` intentionally keeps `private: true`; npm publication is not
+  approved for the alpha.
 - There is no `Cargo.toml`, Rust crate, or crates.io package target. A future ticket must decide whether Cargo should publish a Rust implementation, a Rust shim that invokes Node, or no Cargo package at all.
 - There is no public GitHub remote in this checkout. Public URLs, badges, repository metadata, and external profile links remain blocked by the GitHub launch gate.
 - CI is checked in but not enabled on any public remote from this checkout. Public repositories are free for ordinary GitHub Actions usage; private repositories may consume included account minutes.
-- The final public-release cutover is intentionally blocked until license, owner/org, npm owner, public remote, and Cargo posture decisions are explicit.
+- The final public-release cutover remains blocked until the no-Cargo/no-npm
+  alpha decisions are closed in their owning tickets and the launch safety gate
+  passes.
 
 ## Public Criticism Checklist
 
@@ -143,7 +157,7 @@ Also rerun the public-release safety scans listed in `docs/context/architecture/
 
 ## Future Publishing Ticket Requirements
 
-An npm publishing ticket must include:
+If npm publication is proposed after alpha, its ticket must include:
 
 - License decision and file.
 - Package owner or npm organization.
@@ -152,7 +166,7 @@ An npm publishing ticket must include:
 - Decision to remove `private: true`.
 - `npm publish --dry-run` evidence before any real publish.
 
-A Cargo publishing ticket must include:
+If Cargo publication is proposed after alpha, its ticket must include:
 
 - Crate purpose: Rust implementation, Rust shim, or no Cargo target.
 - `Cargo.toml`, package files, version policy, license metadata, and README mapping.
@@ -161,4 +175,5 @@ A Cargo publishing ticket must include:
 
 ## Stop Conditions
 
-Stop and escalate if publishing requires choosing a license, reserving a registry name, creating a public remote, setting package ownership, or creating any paid service.
+Stop and escalate if a future ticket expands beyond the approved public GitHub
+source into registry publication, a different owner, or any paid service.

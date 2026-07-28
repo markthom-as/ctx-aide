@@ -29,7 +29,7 @@ load_when:
     - public release
     - public URL
     - launch gate
-updated: 2026-07-05
+updated: 2026-07-28
 ---
 
 # GitHub Public Launch Gate
@@ -46,7 +46,13 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 - Recommended GitHub repository name: `ctx-aide`.
 - Cost delta for the prepared launch path: `$0`. The documented path uses local validation and a standard public GitHub repository only. No AWS, Vercel, Fly, hosted database, queue, paid observability, or deployment resource is created.
 - Current remote state: no git remote is configured in this checkout.
-- Launch status: blocked pending user decisions on GitHub owner/org and repository license.
+- GitHub owner/repository: `markthom-as/ctx-aide`.
+- License: MIT.
+- Registry posture: no npm or Cargo publication for alpha.
+- Support posture: no SLA; use GitHub issues and private vulnerability reporting
+  after launch.
+- Launch status: owner and license are resolved; final cutover still waits for
+  the no-Cargo/no-npm tickets and fresh safety validation.
 
 ## Positive Rules
 
@@ -56,8 +62,9 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 
 ## Negative Rules
 
-- Do not run `gh repo create`, `gh repo edit --visibility public`, or `git push` to a new public remote until the owner/org and license are confirmed.
-- Do not claim open-source reuse rights without a license file or explicit no-license decision.
+- Do not run `gh repo create` or push the public remote outside the final
+  cutover ticket.
+- Do not treat public source as approval to publish npm or Cargo packages.
 - Do not add deployment-connected remotes or paid services without a fresh cost estimate and user confirmation.
 
 ## Upstream Evidence
@@ -69,19 +76,19 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 
 ## Proposed GitHub Metadata
 
-- Owner/org: blocked, user confirmation required.
+- Owner/org: `markthom-as`.
 - Repository name: `ctx-aide`.
 - Display title: `CTX Aide`.
 - Description: `Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.`
 - Topics: `ai-agents`, `developer-tools`, `codex`, `claude`, `markdown`, `workflow`, `tickets`, `ctx-aide`, `local-first`, `validation`.
 - Homepage: none until a public docs or project page exists.
-- Visibility: public only after explicit confirmation.
-- License: blocked, user confirmation required. No `LICENSE`, `COPYING`, or `NOTICE` file exists today.
+- Visibility: public at final cutover.
+- License: MIT.
 - Public URL: pending owner/org decision and remote creation.
 
 ## Launch Commands After Approval
 
-If the user confirms owner/org and license, the expected zero-cost launch path is:
+After the remaining release tickets close, the expected zero-cost launch path is:
 
 ```sh
 gitleaks git . --no-banner --redact --report-format json --report-path /tmp/ctx-aide-gitleaks-report.json
@@ -110,9 +117,10 @@ git push -u origin main
 
 ## Implementation Rules
 
-- Add the chosen license before public launch if the user wants open-source reuse.
+- Verify the MIT license/package metadata before public launch.
 - Update README links only after the public URL is verified.
-- Keep this gate blocked until owner/org and license are explicit.
+- Keep this gate blocked until the no-npm/no-Cargo decisions and fresh safety
+  validation are complete.
 
 ## Validation
 

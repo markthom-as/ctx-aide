@@ -1,6 +1,6 @@
 ---
 id: ticket.context.061
-status: blocked
+status: done
 title: Decide release posture and ownership
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -19,7 +19,9 @@ blocks:
 scope:
   routes: []
   files:
+    - LICENSE
     - package.json
+    - package-lock.json
     - README.md
     - docs/context/architecture/publication-readiness-2026-07-07.md
     - docs/context/architecture/github-public-launch-gate-2026-07-05.md
@@ -46,8 +48,8 @@ validation:
     - If open-source posture is selected, verify `LICENSE`, `COPYING`, or `NOTICE` exists before unblocking publication.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: self
+  completed_at: 2026-07-28
 ---
 
 # Decide Release Posture And Ownership
@@ -68,10 +70,9 @@ The current repo is intentionally private and local-first. `package.json` has `p
 
 ## Negative Rules
 
-- Do not choose a license by implication.
-- Do not remove `private: true` without a publishing ticket.
-- Do not create or mutate a public remote without owner/org approval.
-- Do not imply open-source reuse rights without a license file.
+- Do not remove `private: true`; npm publication is outside the alpha.
+- Do not create or mutate the public remote before the final launch gate.
+- Do not imply registry publication or support SLAs from the source license.
 
 ## Axioms
 
@@ -81,10 +82,21 @@ The current repo is intentionally private and local-first. `package.json` has `p
 
 ## Frozen Decisions
 
+- Decision: the public GitHub source owner/repository is
+  `markthom-as/ctx-aide`.
+- Rationale: the authenticated personal owner is the simplest zero-cost alpha
+  home and avoids inventing organization governance.
+- Decision: source license is MIT with copyright holder `markthom-as`.
+- Rationale: a short OSI-approved permissive license minimizes adoption friction
+  for small developer tooling.
+- Decision: npm remains private/unpublished and no Cargo package ships for alpha.
+- Rationale: the Nix developer package can pin source directly; registries add
+  ownership, release, and maintenance work without alpha user value.
+- Decision: security uses GitHub private vulnerability reporting after launch;
+  ordinary support has no SLA.
+- Rationale: this matches the current maintainer capacity without paid services.
 - Decision: no publishing or public visibility occurs in this ticket.
 - Rationale: this ticket records decisions and unblocks later tickets.
-- Decision: acceptable outcomes include open-source license, source-available/no-license posture, private-only posture, or delayed release.
-- Rationale: the release posture is a product/legal decision, not an implementation default.
 
 ## Implementation Rules
 
@@ -118,7 +130,10 @@ This ticket is intentionally blocked on user decisions. It should not be impleme
 
 ## Completion
 
-- Status: blocked
-- Commit: pending
-- Verification evidence: pending
-- Follow-up tickets: `ticket.context.066` and `ticket.context.070`
+- Status: done.
+- Commit: self; resolve with post-commit ticket validation.
+- Verification evidence: owner `markthom-as`, repository `ctx-aide`, MIT source
+  license, no-npm/no-Cargo alpha, no-SLA support, and `$0/month` posture are
+  recorded consistently in LICENSE, package metadata, README, and release docs.
+- Follow-up tickets: `ticket.context.067`, `ticket.context.066`,
+  `ticket.context.044`, `ticket.context.070`, and `ticket.context.087`.

@@ -55,8 +55,8 @@ parallel_groups:
       - ticket.context.066
       - ticket.context.070
 blocked_by:
-  - License, repository owner/org, and package owner decisions are required before publication or public launch.
-  - Cargo distribution requires an explicit product decision before any crates.io readiness claim.
+  - Cargo no-package posture must close in ticket.context.067.
+  - npm no-publish posture must close in ticket.context.066.
 created: 2026-07-07
 completion:
   completed_at: null
@@ -77,7 +77,7 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 ## Tickets
 
 - `ticket.context.060`: done
-- `ticket.context.061`: blocked
+- `ticket.context.061`: done
 - `ticket.context.062`: done
 - `ticket.context.063`: done
 - `ticket.context.064`: done
@@ -113,6 +113,7 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 
 ## Completion
 
-- Completed tickets: `ticket.context.071`, `ticket.context.072`, `ticket.context.064`, `ticket.context.062`, `ticket.context.068`, `ticket.context.063`, `ticket.context.060`, `ticket.context.065`, `ticket.context.069`.
-- Remaining tickets: `ticket.context.061`, `ticket.context.066`, `ticket.context.067`, `ticket.context.070`.
-- Final validation: blocked on release posture, npm publishing, Cargo posture, and public cutover decisions.
+- Completed tickets: `ticket.context.061`, `ticket.context.071`, `ticket.context.072`, `ticket.context.064`, `ticket.context.062`, `ticket.context.068`, `ticket.context.063`, `ticket.context.060`, `ticket.context.065`, `ticket.context.069`.
+- Remaining tickets: `ticket.context.066`, `ticket.context.067`, `ticket.context.070`.
+- Final validation: blocked on the explicit no-npm/no-Cargo alpha closeouts and
+  public cutover.
