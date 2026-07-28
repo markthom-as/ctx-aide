@@ -55,7 +55,8 @@ are bounded and revision-linked.
 
 - `ticket.context.084`: done; command contracts, strict argv, pipe-safe output,
   and atomic explicit generated writes are implemented.
-- `ticket.context.085`: ready; follows 084.
+- `ticket.context.085`: done; authoritative data-driven target profiles,
+  vakOS root truth, migration-safe tickets, and enforced command policy ship.
 - `ticket.context.086`: ready; follows 085.
 
 ## Execution Plan
@@ -89,6 +90,6 @@ are bounded and revision-linked.
 
 ## Completion
 
-- Completed tickets: `ticket.context.084`.
-- Remaining tickets: `ticket.context.085`, `ticket.context.086`.
+- Completed tickets: `ticket.context.084`, `ticket.context.085`.
+- Remaining tickets: `ticket.context.086`.
 - Final validation: pending.

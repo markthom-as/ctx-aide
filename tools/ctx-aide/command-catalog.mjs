@@ -1,4 +1,4 @@
-const commandCatalogVersion = 2;
+const commandCatalogVersion = 3;
 
 const valueOption = (name, valueType = "string", options = {}) => ({
   name,
@@ -26,14 +26,16 @@ const write = flagOption("--write");
 const force = flagOption("--force");
 const allowOutsideRepo = flagOption("--allow-outside-repo");
 const profile = valueOption("--profile");
+const targetOptions = [repo, profile];
 
 const commandContracts = {
-  lint: {},
+  lint: { options: targetOptions },
   doctor: {},
   init: { options: [force], effect: "repo-scaffold" },
-  scan: { options: [write], effect: "generated-context-index", requires_write: true },
+  scan: { options: [...targetOptions, write], effect: "generated-context-index", requires_write: true },
   query: {
     options: [
+      ...targetOptions,
       valueOption("--path", "path"),
       valueOption("--task"),
       valueOption("--agent", "enum", { values: ["codex", "claude", "cursor"] }),
@@ -43,6 +45,7 @@ const commandContracts = {
   },
   "export-agent": {
     options: [
+      ...targetOptions,
       valueOption("--agent", "enum", { values: ["codex", "claude", "cursor"] }),
       valueOption("--out", "path"),
       allowOutsideRepo,
@@ -51,10 +54,12 @@ const commandContracts = {
     effect: "generated-agent-pack",
     requires_write: true,
   },
-  "command.manifest": {},
+  "command.manifest": { options: targetOptions },
+  "schema.list": { options: targetOptions },
+  "schema.get": { options: targetOptions, positionals: { minimum: 1, maximum: 1, names: ["schema-id"] } },
   "components.list": {},
   "components.get": { positionals: { minimum: 1, maximum: 1, names: ["component-id"] } },
-  impact: { options: [valueOption("--path", "path", { repeatable: true }), valueOption("--changed", "path"), valueOption("--task")] },
+  impact: { options: [...targetOptions, valueOption("--path", "path", { repeatable: true }), valueOption("--changed", "path"), valueOption("--task")] },
   "run.status": { positionals: { minimum: 1, maximum: 1, names: ["run-file"] } },
   "idvisor.workflow": {},
   customize: {
@@ -99,12 +104,12 @@ const commandContracts = {
       valueOption("--tolerance-lines", "integer", { minimum: 0 }),
     ],
   },
-  "tools.list": { options: [repo, valueOption("--config", "path"), valueOption("--capability", "string", { repeatable: true })] },
+  "tools.list": { options: [...targetOptions, valueOption("--config", "path"), valueOption("--capability", "string", { repeatable: true })] },
   "tools.policy": {
-    options: [repo, valueOption("--config", "path"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability")],
+    options: [...targetOptions, valueOption("--config", "path"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability")],
   },
   "tools.check": {
-    options: [repo, valueOption("--config", "path"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability")],
+    options: [...targetOptions, valueOption("--config", "path"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability")],
   },
   "workflow.deps": {
     options: [
@@ -124,21 +129,21 @@ const commandContracts = {
   "pr.preflight": { options: [repo, valueOption("--pr"), flagOption("--allow-dirty")] },
   "settings.get": { options: [repo] },
   "settings.set": {
-    options: [repo, valueOption("--feature"), valueOption("--enabled", "boolean"), flagOption("--enable"), flagOption("--disable"), write],
+    options: [...targetOptions, valueOption("--feature"), valueOption("--enabled", "boolean"), flagOption("--enable"), flagOption("--disable"), write],
     effect: "settings-file",
     requires_write: true,
   },
   "skills.inventory": { options: [repo] },
   "skills.check": { options: [repo] },
   "feedback.plan": {
-    options: [repo, valueOption("--ticket", "path"), valueOption("--body"), valueOption("--feedback"), valueOption("--file", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--artifact", "path", { repeatable: true }), valueOption("--screenshot", "path", { repeatable: true })],
+    options: [...targetOptions, valueOption("--ticket", "path"), valueOption("--body"), valueOption("--feedback"), valueOption("--file", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--artifact", "path", { repeatable: true }), valueOption("--screenshot", "path", { repeatable: true })],
   },
   "feedback.review": {
-    options: [repo, valueOption("--ticket", "path"), valueOption("--screenshot", "path", { repeatable: true }), valueOption("--artifact", "path", { repeatable: true }), valueOption("--url", "string", { repeatable: true }), valueOption("--file", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--out", "path"), allowOutsideRepo],
+    options: [...targetOptions, valueOption("--ticket", "path"), valueOption("--screenshot", "path", { repeatable: true }), valueOption("--artifact", "path", { repeatable: true }), valueOption("--url", "string", { repeatable: true }), valueOption("--file", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--out", "path"), allowOutsideRepo],
   },
   "feedback.review-ui": {
     options: [
-      repo,
+      ...targetOptions,
       valueOption("--run-dir", "path"),
       valueOption("--summary", "path"),
       valueOption("--screenshot-dir", "path"),
@@ -156,7 +161,7 @@ const commandContracts = {
   },
   "feedback.capture": {
     options: [
-      repo,
+      ...targetOptions,
       valueOption("--ticket", "path"),
       valueOption("--title"),
       valueOption("--body"),
@@ -183,7 +188,7 @@ const commandContracts = {
   },
   "feedback.promote": {
     options: [
-      repo,
+      ...targetOptions,
       valueOption("--feedback"),
       valueOption("--ticket", "path"),
       valueOption("--mode", "enum", { values: ["acceptance-criteria", "follow-up-ticket"] }),
@@ -233,17 +238,17 @@ const commandContracts = {
     requires_write: true,
   },
   "adoption.ticket": {
-    options: [repo, profile, valueOption("--pack"), valueOption("--pack-slug"), valueOption("--title"), valueOption("--task"), valueOption("--slug"), valueOption("--id"), valueOption("--milestone"), valueOption("--work-type"), valueOption("--parallel-group"), valueOption("--context", "string", { repeatable: true }), valueOption("--context-id", "string", { repeatable: true }), valueOption("--file", "path", { repeatable: true }), valueOption("--path", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--component", "string", { repeatable: true }), valueOption("--flow", "string", { repeatable: true }), valueOption("--validation", "string", { repeatable: true }), valueOption("--capability-workflow"), valueOption("--capability-step"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability", "string", { repeatable: true }), valueOption("--outcome"), write, force],
+    options: [repo, profile, valueOption("--pack"), valueOption("--pack-slug"), valueOption("--title"), valueOption("--task"), valueOption("--slug"), valueOption("--id"), valueOption("--milestone"), valueOption("--work-type"), valueOption("--parallel-group"), valueOption("--source-spec", "path", { repeatable: true }), valueOption("--source-spec-section", "string", { repeatable: true }), valueOption("--depends-on", "string", { repeatable: true }), valueOption("--blocks", "string", { repeatable: true }), valueOption("--context", "string", { repeatable: true }), valueOption("--context-id", "string", { repeatable: true }), valueOption("--file", "path", { repeatable: true }), valueOption("--path", "path", { repeatable: true }), valueOption("--directory", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--component", "string", { repeatable: true }), valueOption("--flow", "string", { repeatable: true }), valueOption("--validation", "string", { repeatable: true }), valueOption("--capability-workflow"), valueOption("--capability-step"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability", "string", { repeatable: true }), valueOption("--outcome"), write, force],
     effect: "ticket-markdown",
     requires_write: true,
   },
   "adoption.implementation-plan": {
-    options: [repo, valueOption("--ticket", "path"), valueOption("--capability-workflow"), valueOption("--capability-step"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability", "string", { repeatable: true }), valueOption("--tools-config", "path"), valueOption("--limit", "integer", { minimum: 1, maximum: 100 }), flagOption("--include-body")],
+    options: [...targetOptions, valueOption("--ticket", "path"), valueOption("--capability-workflow"), valueOption("--capability-step"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability", "string", { repeatable: true }), valueOption("--tools-config", "path"), valueOption("--limit", "integer", { minimum: 1, maximum: 100 }), flagOption("--include-body")],
     max_result_items: 100,
   },
-  "ticket.check": {},
+  "ticket.check": { options: targetOptions },
   "ticket.hydrate": { positionals: { minimum: 1, maximum: 1, names: ["ticket-file"] }, effect: "ticket-hydration" },
-  "pack.check": {},
+  "pack.check": { options: targetOptions },
   "pack.status": { positionals: { minimum: 1, maximum: 1, names: ["pack-id"] } },
   "spec.check": {},
   "future.check": {},
@@ -355,6 +360,19 @@ export const commandGroups = [
         command: "command manifest",
         usage: "ctxa command manifest --json",
         description: "Return a versioned machine-readable command manifest.",
+      }),
+      command({
+        id: "schema.list",
+        command: "schema list",
+        usage: "ctxa schema list --json",
+        description: "List packaged machine-readable schemas and digests.",
+      }),
+      command({
+        id: "schema.get",
+        command: "schema get",
+        usage: "ctxa schema get <schema-id> --json",
+        description: "Return one exact packaged schema.",
+        required_flags: ["<schema-id>"],
       }),
       command({
         id: "components.list",

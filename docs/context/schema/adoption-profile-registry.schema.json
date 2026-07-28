@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ctx-aide.local/schema/adoption-profile-registry.schema.json",
+  "title": "CTX Aide adoption profile registry",
+  "type": "object",
+  "required": ["registry_version", "schema_id", "profiles", "detection"],
+  "properties": {
+    "registry_version": { "const": 1 },
+    "schema_id": { "const": "ctxa.adoption-profile/v2" },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/profile" }
+    },
+    "detection": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["profile", "required_paths"],
+        "properties": {
+          "profile": { "type": "string", "minLength": 1 },
+          "basename_includes": { "type": "string" },
+          "required_paths": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "required": [
+        "config_version", "profile", "context_root", "ticket_root",
+        "ticket_layout", "ticket_format", "source_reference_mode",
+        "pack_root", "pack_style", "workflow_root", "generated_root",
+        "allow_outside_repo", "recommended_validation",
+        "normative_spec_files", "command_policy"
+      ],
+      "properties": {
+        "config_version": { "const": 2 },
+        "profile": { "type": "string", "minLength": 1 },
+        "context_root": { "$ref": "#/$defs/relativePath" },
+        "ticket_root": { "$ref": "#/$defs/relativePath" },
+        "ticket_layout": { "enum": ["flat", "status-directories", "pack-directories"] },
+        "ticket_format": { "enum": ["ctxa-canonical-v1", "canonical-frontmatter-vakos-v1"] },
+        "legacy_ticket_reader": { "type": ["string", "null"] },
+        "source_reference_mode": { "enum": ["ctxa-spec-id", "repo-relative-normative-file"] },
+        "spec_root": { "type": ["string", "null"] },
+        "pack_root": { "$ref": "#/$defs/relativePath" },
+        "pack_style": { "enum": ["markdown-file", "directory-readme", "flat-markdown-file"] },
+        "workflow_root": { "$ref": "#/$defs/relativePath" },
+        "generated_root": { "$ref": "#/$defs/relativePath" },
+        "allow_outside_repo": { "type": "boolean" },
+        "package_manager": { "type": "string" },
+        "ticket_status_command": { "type": ["string", "null"] },
+        "recommended_validation": { "type": "array", "items": { "type": "string" } },
+        "preserved_ticket_system": { "type": "string" },
+        "normative_spec_files": { "type": "array", "items": { "$ref": "#/$defs/relativePath" } },
+        "command_policy": {
+          "type": "object",
+          "required": ["mode", "allow", "feature_gated", "deny"],
+          "properties": {
+            "mode": { "enum": ["all", "allowlist"] },
+            "allow": { "type": "array", "items": { "type": "string" } },
+            "feature_gated": { "type": "object", "additionalProperties": { "type": "string" } },
+            "deny": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    }
+  },
+  "additionalProperties": false
+}

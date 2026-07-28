@@ -129,7 +129,7 @@ assert.equal(adoptionJsonHelp.scope, "help adoption");
 assert.equal(adoptionJsonHelp.commands.some((entry) => entry.id === "setup" && entry.mutating === true), true);
 const commandManifest = run(["command", "manifest"]);
 assert.equal(commandManifest.ok, true);
-assert.equal(commandManifest.manifest_version, 2);
+assert.equal(commandManifest.manifest_version, 3);
 assert.equal(commandManifest.groups.some((group) => group.id === "adoption"), true);
 assert.equal(commandManifest.groups.some((group) => group.id === "skills"), true);
 assert.equal(commandManifest.commands.some((entry) => entry.id === "command.manifest" && entry.mutating === false), true);
@@ -157,7 +157,7 @@ assert.equal(pipedFailure.bytes > 65536, true);
 const unknownOption = run(["tools", "policy", "--capability", "tool.ctxa", "--definitely-unknown"], { allowFailure: true });
 assert.equal(unknownOption.ok, false);
 assert.equal(unknownOption.errors[0].code, "unknown-option");
-const wrongCommandOption = run(["lint", "--repo", "."], { allowFailure: true });
+const wrongCommandOption = run(["lint", "--agent", "codex"], { allowFailure: true });
 assert.equal(wrongCommandOption.errors[0].code, "unknown-option");
 const duplicateOption = run(["tools", "policy", "--capability", "tool.ctxa", "--capability", "tool.ctxa"], { allowFailure: true });
 assert.equal(duplicateOption.errors.some((error) => error.code === "duplicate-option"), true);
@@ -1657,6 +1657,207 @@ if (commandExists("rg")) {
   assert.equal(rgDiscovery.matches.length, 1);
   assert.equal(rgDiscovery.matches[0].file.replace(/^\.\//, ""), "src/auth.js");
 }
+
+const vakosTarget = path.join(fixture, "vakos-target");
+fs.mkdirSync(path.join(vakosTarget, "tickets"), { recursive: true });
+for (const normativeSource of [
+  "PROJECT_BRIEF.md",
+  "ARCHITECTURE.md",
+  "ALPHA_SPEC.md",
+  "MOTION_SPEC.md",
+  "COMPOSITOR_SPEC.md",
+  "SYSTEM_INTEGRATION_SPEC.md",
+  "CTX_AIDE_SPEC.md",
+]) {
+  fs.writeFileSync(path.join(vakosTarget, normativeSource), `# ${normativeSource.replace(/\.md$/, "").replaceAll("_", " ")}\n`);
+}
+fs.writeFileSync(path.join(vakosTarget, "flake.nix"), "{ outputs = { self }: {}; }\n");
+fs.writeFileSync(path.join(vakosTarget, "Cargo.toml"), "[workspace]\nresolver = \"2\"\nmembers = []\n");
+fs.writeFileSync(path.join(vakosTarget, "tickets/0001-legacy.md"), `# Ticket 0001: Preserve Legacy Truth
+
+Status: complete
+
+Legacy vakOS tickets remain readable without being rewritten.
+`);
+
+const vakosPreview = run(["adoption", "bootstrap", "--repo", vakosTarget, "--profile", "vakos"]);
+assert.equal(vakosPreview.ok, true);
+assert.equal(vakosPreview.write, false);
+assert.deepEqual(vakosPreview.profile_contract.roots, {
+  context: "docs/context",
+  tickets: "tickets",
+  specs: null,
+  packs: "docs/ticket-packs",
+  workflows: "docs/workflows",
+  generated: "docs/context/generated",
+});
+assert.equal(fs.existsSync(path.join(vakosTarget, "docs/config/ctx-aide.profile.json")), false);
+assert.equal(fs.existsSync(path.join(vakosTarget, "docs/specs")), false);
+
+const vakosBootstrap = run(["adoption", "bootstrap", "--repo", vakosTarget, "--profile", "vakos", "--write"]);
+assert.equal(vakosBootstrap.ok, true);
+assert.equal(vakosBootstrap.profile_contract.digest, vakosPreview.profile_contract.digest);
+const vakosProfilePath = path.join(vakosTarget, "docs/config/ctx-aide.profile.json");
+const vakosProfileText = fs.readFileSync(vakosProfilePath, "utf8");
+const vakosProfile = JSON.parse(vakosProfileText);
+assert.equal(vakosProfile.config_version, 2);
+assert.equal(vakosProfile.ticket_root, "tickets");
+assert.equal(vakosProfile.source_reference_mode, "repo-relative-normative-file");
+assert.equal(fs.existsSync(path.join(vakosTarget, "docs/specs")), false);
+
+const vakosContext = run([
+  "adoption",
+  "context",
+  "--repo",
+  vakosTarget,
+  "--profile",
+  "vakos",
+  "--kind",
+  "architecture",
+  "--title",
+  "Profile Contract",
+  "--slug",
+  "profile-contract",
+  "--path",
+  "CTX_AIDE_SPEC.md",
+  "--task",
+  "profile contract",
+  "--write",
+]);
+assert.equal(vakosContext.ok, true);
+assert.equal(vakosContext.context.file, "docs/context/architecture/profile-contract.md");
+
+const vakosLegacyCheck = run(["ticket", "check", "--repo", vakosTarget, "--profile", "vakos"]);
+assert.equal(vakosLegacyCheck.ok, true);
+const vakosManifest = run(["command", "manifest", "--repo", vakosTarget, "--profile", "vakos"]);
+const vakosSchemaList = run(["schema", "list", "--repo", vakosTarget, "--profile", "vakos"]);
+const vakosProfileSchema = run(["schema", "get", "ctxa.adoption-profile/v2", "--repo", vakosTarget, "--profile", "vakos"]);
+for (const result of [vakosManifest, vakosSchemaList, vakosProfileSchema, vakosLegacyCheck]) {
+  assert.equal(result.profile_contract.digest, vakosPreview.profile_contract.digest);
+  assert.deepEqual(result.profile_contract.roots, vakosPreview.profile_contract.roots);
+}
+assert.equal(vakosManifest.manifest_version, 3);
+assert.equal(vakosSchemaList.schemas.some((schema) => schema.id === "ctxa.adoption-profile/v2"), true);
+assert.equal(vakosProfileSchema.sha256, vakosManifest.profile_contract.schema_digest);
+
+const vakosTicket = run([
+  "adoption",
+  "ticket",
+  "--repo",
+  vakosTarget,
+  "--profile",
+  "vakos",
+  "--id",
+  "ticket.vakos.0019",
+  "--slug",
+  "0019-profile-contract",
+  "--title",
+  "Integrate Profile Contract",
+  "--task",
+  "integrate profile contract",
+  "--source-spec",
+  "CTX_AIDE_SPEC.md",
+  "--source-spec-section",
+  "Target Contract",
+  "--context",
+  "architecture.profile-contract",
+  "--file",
+  "crates/core/src/lib.rs",
+  "--validation",
+  "cargo test --workspace",
+  "--write",
+]);
+assert.equal(vakosTicket.ok, true);
+assert.equal(vakosTicket.ticket.file, "tickets/0019-profile-contract.md");
+assert.equal(fs.existsSync(path.join(vakosTarget, vakosTicket.ticket.file)), true);
+const vakosCanonicalCheck = run(["ticket", "check", "--repo", vakosTarget, "--profile", "vakos"]);
+assert.equal(vakosCanonicalCheck.ok, true);
+const vakosPlan = run([
+  "adoption",
+  "implementation-plan",
+  "--repo",
+  vakosTarget,
+  "--profile",
+  "vakos",
+  "--ticket",
+  vakosTicket.ticket.file,
+]);
+assert.equal(vakosPlan.ok, true);
+assert.deepEqual(vakosPlan.normative_sources, [{ file: "CTX_AIDE_SPEC.md", allowed: true }]);
+assert.equal(vakosPlan.context_ids.includes("architecture.profile-contract"), true);
+assert.equal(vakosPlan.target_paths.includes("CTX_AIDE_SPEC.md"), true);
+
+const vakosStatus = run(["adoption", "status", "--repo", vakosTarget, "--profile", "vakos"]);
+assert.equal(vakosStatus.ok, true);
+assert.equal(vakosStatus.blockers.length, 0);
+const deniedVakosCommand = run(["dependency", "audit", "--repo", vakosTarget, "--command", "exit 0"], { allowFailure: true });
+assert.equal(deniedVakosCommand.ok, false);
+assert.equal(deniedVakosCommand.errors[0].code, "command_disabled");
+const nonAllowlistedVakosCommand = run(["loc", "--repo", vakosTarget], { allowFailure: true });
+assert.equal(nonAllowlistedVakosCommand.ok, false);
+assert.equal(nonAllowlistedVakosCommand.errors[0].code, "command_disabled");
+const disabledVakosFeature = run([
+  "feedback",
+  "plan",
+  "--repo",
+  vakosTarget,
+  "--profile",
+  "vakos",
+  "--ticket",
+  vakosTicket.ticket.file,
+  "--body",
+  "Animate the local model readiness transition.",
+], { allowFailure: true });
+assert.equal(disabledVakosFeature.ok, false);
+assert.equal(disabledVakosFeature.errors[0].code, "command_feature_disabled");
+const enabledVakosFeature = run([
+  "settings",
+  "set",
+  "--repo",
+  vakosTarget,
+  "--profile",
+  "vakos",
+  "--feature",
+  "screenshot_feedback_review_ui",
+  "--enabled",
+  "true",
+  "--write",
+]);
+assert.equal(enabledVakosFeature.ok, true);
+const enabledVakosFeedback = run([
+  "feedback",
+  "plan",
+  "--repo",
+  vakosTarget,
+  "--profile",
+  "vakos",
+  "--ticket",
+  vakosTicket.ticket.file,
+  "--body",
+  "Animate the local model readiness transition.",
+]);
+assert.equal(enabledVakosFeedback.ok, true);
+
+const conflictingVakosProfile = run(["adoption", "status", "--repo", vakosTarget, "--profile", "default"], { allowFailure: true });
+assert.equal(conflictingVakosProfile.ok, false);
+assert.equal(conflictingVakosProfile.errors[0].code, "invalid-profile");
+fs.writeFileSync(vakosProfilePath, `${JSON.stringify({ ...vakosProfile, config_version: 99 }, null, 2)}\n`);
+const invalidVakosVersion = run(["adoption", "status", "--repo", vakosTarget], { allowFailure: true });
+assert.equal(invalidVakosVersion.ok, false);
+assert.equal(invalidVakosVersion.errors[0].code, "invalid-profile");
+fs.writeFileSync(vakosProfilePath, `${JSON.stringify({ ...vakosProfile, ticket_root: "../escape" }, null, 2)}\n`);
+const traversingVakosProfile = run(["adoption", "status", "--repo", vakosTarget], { allowFailure: true });
+assert.equal(traversingVakosProfile.ok, false);
+assert.equal(traversingVakosProfile.errors.some((error) => error.message.includes("traverse outside")), true);
+fs.writeFileSync(vakosProfilePath, vakosProfileText);
+const outsideVakos = path.join(fixture, "outside-vakos");
+fs.mkdirSync(path.join(outsideVakos, "context"), { recursive: true });
+fs.symlinkSync(outsideVakos, path.join(vakosTarget, "escape-link"), "dir");
+fs.writeFileSync(vakosProfilePath, `${JSON.stringify({ ...vakosProfile, context_root: "escape-link/context" }, null, 2)}\n`);
+const symlinkVakosProfile = run(["adoption", "status", "--repo", vakosTarget], { allowFailure: true });
+assert.equal(symlinkVakosProfile.ok, false);
+assert.equal(symlinkVakosProfile.errors.some((error) => error.message.includes("symlink outside")), true);
+fs.writeFileSync(vakosProfilePath, vakosProfileText);
 
 fs.rmSync(fixture, { recursive: true, force: true });
 process.stdout.write("ctx-aide tests passed\n");

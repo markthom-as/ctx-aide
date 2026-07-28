@@ -1,6 +1,6 @@
 ---
 id: ticket.context.085
-status: ready
+status: done
 title: Make target profiles authoritative
 ticket_pack: pack.vakos-adoption-readiness-2026-07-27
 milestones:
@@ -45,8 +45,8 @@ validation:
     - node tools/ctx-aide/ctx-aide.mjs adoption status --repo <fixture> --profile vakos --json
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-27
 ---
 
 # Make Target Profiles Authoritative
@@ -135,7 +135,12 @@ and schemas resolve from `toolRoot`.
 
 ## Completion
 
-- Status: ready.
-- Commit: pending.
-- Verification evidence: pending.
+- Status: done.
+- Commit: current-change.
+- Verification evidence: syntax checks, full CLI regression suite, package
+  spec/ticket/pack checks, and the vakOS target fixture all pass. The fixture
+  proves one semantic profile digest/root map across manifest/schema/ticket
+  commands; legacy and canonical ticket validation; root normative-source
+  hydration; pre-effect command denial and feature gates; and fail-closed
+  conflict, version, traversal, and symlink handling.
 - Follow-up tickets: 086.

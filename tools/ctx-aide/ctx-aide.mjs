@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   SCREENSHOT_REVIEW_UI_FEATURE_ID,
   defaultCtxAideSettings,
@@ -11,6 +12,7 @@ import {
   screenshotReviewUiCommand,
 } from "./screenshot-review-ui.mjs";
 import {
+  commandEntries,
   commandManifestResult,
   findCommandGroup,
   formatGroupHelp,
@@ -20,9 +22,15 @@ import {
   validateInvocation,
 } from "./command-catalog.mjs";
 
-const root = process.cwd();
+const startupRoot = process.cwd();
+let root = startupRoot;
 const toolRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const args = process.argv.slice(2);
+const repoOptionIndex = args.indexOf("--repo");
+const invocationTargetRepoPath = repoOptionIndex >= 0 && args[repoOptionIndex + 1]
+  ? path.resolve(startupRoot, args[repoOptionIndex + 1])
+  : startupRoot;
+let runtimeProfileResolution = null;
 const command = args[0] ?? "help";
 const subcommand = args[1] ?? "";
 const json = args.includes("--json");
@@ -122,8 +130,16 @@ function markdownFiles(dir) {
     .map((file) => path.relative(root, file));
 }
 
+function activeProfile() {
+  return runtimeProfileResolution?.ok ? runtimeProfileResolution.profile : null;
+}
+
+function profileRoot(field, fallback) {
+  return activeProfile()?.[field] ?? fallback;
+}
+
 function contextMarkdownFiles() {
-  return markdownFiles("docs/context")
+  return markdownFiles(profileRoot("context_root", "docs/context"))
     .filter((file) => !file.includes("/schema/") && !file.includes("/generated/"))
     .sort();
 }
@@ -1150,7 +1166,7 @@ const defaultWorkflowValidationConfig = {
 };
 
 function workflowMarkdownFiles() {
-  return markdownFiles("docs/workflows").sort();
+  return markdownFiles(profileRoot("workflow_root", "docs/workflows")).sort();
 }
 
 function readWorkflows() {
@@ -2420,7 +2436,7 @@ function feedbackCapture() {
     routes,
     artifacts: artifactPaths,
   });
-  const relativePath = argValue("--out", `docs/context/feedback/${todayDate()}-${slug}.md`);
+  const relativePath = argValue("--out", path.join(profileRoot("context_root", "docs/context"), "feedback", `${todayDate()}-${slug}.md`));
   const entry = {
     id,
     severity: argValue("--severity", "medium"),
@@ -2484,7 +2500,7 @@ function findFeedbackDoc(repoPath, feedbackArg) {
     return { ok: true, file: candidate, doc };
   }
   const entry = targetContextEntries(repoPath).find((item) => item.id === feedbackArg && item.kind === "feedback");
-  if (!entry) return { ok: false, errors: [{ file: "docs/context/feedback", message: `unknown feedback: ${feedbackArg}` }] };
+  if (!entry) return { ok: false, errors: [{ file: path.join(profileRoot("context_root", "docs/context"), "feedback"), message: `unknown feedback: ${feedbackArg}` }] };
   return { ok: true, file: entry.markdown_path, doc: readDocAt(repoPath, entry.markdown_path) };
 }
 
@@ -2851,7 +2867,7 @@ function manifestFor(entries) {
 }
 
 function writeGeneratedManifest(manifest, options = {}) {
-  const outDir = path.join(root, "docs/context/generated");
+  const outDir = path.join(root, profileRoot("generated_root", "docs/context/generated"));
   const outPath = path.join(outDir, "context-manifest.json");
   if (options.write) atomicWriteFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
   return path.relative(root, outPath);
@@ -2870,7 +2886,7 @@ function writeSqliteIndex(entries, options = {}) {
   if (!commandExists("sqlite3")) {
     return { path: null, warning: "sqlite3 is unavailable; skipped SQLite index generation" };
   }
-  const outDir = path.join(root, "docs/context/generated");
+  const outDir = path.join(root, profileRoot("generated_root", "docs/context/generated"));
   const dbPath = path.join(outDir, "context.sqlite");
   if (!options.write) return { path: path.relative(root, dbPath), warning: null };
   fs.mkdirSync(outDir, { recursive: true });
@@ -3098,8 +3114,8 @@ function exportAgent() {
   const write = args.includes("--write");
   const agent = argValue("--agent", "codex");
   const defaultOut = {
-    codex: "docs/context/generated/agent-pack.codex.md",
-    claude: "docs/context/generated/agent-pack.claude.md",
+    codex: path.join(profileRoot("generated_root", "docs/context/generated"), "agent-pack.codex.md"),
+    claude: path.join(profileRoot("generated_root", "docs/context/generated"), "agent-pack.claude.md"),
     cursor: ".cursor/rules/generated/ctx-aide.mdc",
   }[agent];
   if (!defaultOut) {
@@ -3464,70 +3480,316 @@ function yamlKeyList(key, values, indent = "") {
 }
 
 function targetRepoPath() {
-  const repoArg = argValue("--repo", ".");
-  return path.isAbsolute(repoArg) ? repoArg : path.join(root, repoArg);
+  return invocationTargetRepoPath;
+}
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+const adoptionProfileRegistryPath = path.join(toolRoot, "docs/config/ctx-aide.adoption-profiles.json");
+const adoptionProfileSchemaPath = path.join(toolRoot, "docs/context/schema/adoption-profile-registry.schema.json");
+
+function readAdoptionProfileRegistry() {
+  try {
+    const raw = fs.readFileSync(adoptionProfileRegistryPath, "utf8");
+    const registry = JSON.parse(raw);
+    if (registry.registry_version !== 1 || registry.schema_id !== "ctxa.adoption-profile/v2") {
+      return { ok: false, errors: [{ file: displayPath(adoptionProfileRegistryPath), message: "unsupported adoption profile registry version or schema" }] };
+    }
+    if (!plainObject(registry.profiles) || !plainObject(registry.profiles.default)) {
+      return { ok: false, errors: [{ file: displayPath(adoptionProfileRegistryPath), message: "adoption profile registry must define profiles.default" }] };
+    }
+    return {
+      ok: true,
+      registry,
+      digest: sha256(raw),
+      schema: {
+        id: registry.schema_id,
+        path: displayPath(adoptionProfileSchemaPath),
+        digest: sha256(fs.readFileSync(adoptionProfileSchemaPath)),
+      },
+      errors: [],
+    };
+  } catch (error) {
+    return { ok: false, errors: [{ file: displayPath(adoptionProfileRegistryPath), message: `invalid adoption profile registry: ${error.message}` }] };
+  }
+}
+
+function profilePathFields(profile) {
+  return unique([
+    profile.context_root,
+    profile.ticket_root,
+    profile.spec_root,
+    profile.pack_root,
+    profile.workflow_root,
+    profile.generated_root,
+    ...(Array.isArray(profile.normative_spec_files) ? profile.normative_spec_files : []),
+  ]);
+}
+
+function nearestExistingPath(targetPath) {
+  let candidate = targetPath;
+  while (!fs.existsSync(candidate)) {
+    const parent = path.dirname(candidate);
+    if (parent === candidate) break;
+    candidate = parent;
+  }
+  return candidate;
+}
+
+function validateProfilePath(repoPath, relativePath) {
+  if (typeof relativePath !== "string" || !relativePath || path.isAbsolute(relativePath)) {
+    return "must be a non-empty repo-relative path";
+  }
+  const normalized = path.normalize(relativePath);
+  if (normalized === ".." || normalized.startsWith(`..${path.sep}`)) return "must not traverse outside the repository";
+  const targetPath = path.resolve(repoPath, normalized);
+  if (!pathInside(repoPath, targetPath)) return "must resolve inside the repository";
+  try {
+    const realRepo = fs.realpathSync(repoPath);
+    const existing = nearestExistingPath(targetPath);
+    const realExisting = fs.realpathSync(existing);
+    if (!pathInside(realRepo, realExisting)) return "resolves through a symlink outside the repository";
+    if (fs.existsSync(targetPath) && !pathInside(realRepo, fs.realpathSync(targetPath))) {
+      return "resolves through a symlink outside the repository";
+    }
+  } catch (error) {
+    return `cannot verify path containment: ${error.message}`;
+  }
+  return null;
+}
+
+function validateResolvedProfile(repoPath, profile, registry) {
+  const errors = [];
+  const file = "docs/config/ctx-aide.profile.json";
+  if (profile.config_version !== 2) errors.push({ file, message: `unsupported profile config_version: ${profile.config_version}` });
+  if (!Object.hasOwn(registry.profiles, profile.profile)) errors.push({ file, message: `unknown adoption profile: ${profile.profile}` });
+  if (!["flat", "status-directories", "pack-directories"].includes(profile.ticket_layout)) {
+    errors.push({ file, message: `unsupported ticket_layout: ${profile.ticket_layout}` });
+  }
+  if (!["ctxa-canonical-v1", "canonical-frontmatter-vakos-v1"].includes(profile.ticket_format)) {
+    errors.push({ file, message: `unsupported ticket_format: ${profile.ticket_format}` });
+  }
+  if (![null, "vakos-body-status-v1"].includes(profile.legacy_ticket_reader ?? null)) {
+    errors.push({ file, message: `unsupported legacy_ticket_reader: ${profile.legacy_ticket_reader}` });
+  }
+  if (!["ctxa-spec-id", "repo-relative-normative-file"].includes(profile.source_reference_mode)) {
+    errors.push({ file, message: `unsupported source_reference_mode: ${profile.source_reference_mode}` });
+  }
+  if (!["markdown-file", "directory-readme", "flat-markdown-file"].includes(profile.pack_style)) {
+    errors.push({ file, message: `unsupported pack_style: ${profile.pack_style}` });
+  }
+  for (const relativePath of profilePathFields(profile)) {
+    const pathError = validateProfilePath(repoPath, relativePath);
+    if (pathError) errors.push({ file, field: relativePath, message: pathError });
+  }
+  const policy = profile.command_policy;
+  if (!plainObject(policy) || !["all", "allowlist"].includes(policy.mode) || !Array.isArray(policy.allow) || !plainObject(policy.feature_gated) || !Array.isArray(policy.deny)) {
+    errors.push({ file, message: "command_policy must define mode, allow, feature_gated, and deny" });
+  } else {
+    const known = new Set(commandEntries().map((entry) => entry.id));
+    for (const commandId of [...policy.allow, ...Object.keys(policy.feature_gated), ...policy.deny]) {
+      if (!known.has(commandId)) errors.push({ file, message: `command_policy references unknown command: ${commandId}` });
+    }
+    for (const commandId of policy.deny) {
+      if (policy.allow.includes(commandId) || Object.hasOwn(policy.feature_gated, commandId)) {
+        errors.push({ file, message: `command_policy conflict for ${commandId}` });
+      }
+    }
+  }
+  if (profile.source_reference_mode === "repo-relative-normative-file") {
+    if (!Array.isArray(profile.normative_spec_files) || profile.normative_spec_files.length === 0) {
+      errors.push({ file, message: "normative_spec_files must not be empty" });
+    }
+    for (const sourceFile of profile.normative_spec_files ?? []) {
+      if (!fs.existsSync(path.join(repoPath, sourceFile))) errors.push({ file: sourceFile, message: "normative source file is missing" });
+    }
+  }
+  if (profile.allow_outside_repo === false && args.includes("--allow-outside-repo")) {
+    errors.push({ file: "argv", message: `profile ${profile.profile} forbids --allow-outside-repo` });
+  }
+  return errors;
+}
+
+function detectProfileId(repoPath, registry) {
+  const basename = path.basename(repoPath).toLowerCase();
+  for (const rule of registry.detection ?? []) {
+    if (rule.basename_includes && !basename.includes(String(rule.basename_includes).toLowerCase())) continue;
+    if (!(rule.required_paths ?? []).every((relativePath) => fs.existsSync(path.join(repoPath, relativePath)))) continue;
+    return rule.profile;
+  }
+  return "default";
+}
+
+function resolveAdoptionProfile(repoPath, explicitProfile = "auto") {
+  const registryResult = readAdoptionProfileRegistry();
+  if (!registryResult.ok) return registryResult;
+  const configPath = path.join(repoPath, "docs/config/ctx-aide.profile.json");
+  const checked = readJsonIfExists(configPath);
+  if (checked.exists && !checked.ok) {
+    return { ok: false, errors: [{ file: displayPath(configPath), message: `invalid profile config JSON: ${checked.error}` }] };
+  }
+  const checkedId = checked.value?.profile ?? null;
+  if (checked.exists && checked.value?.config_version !== 2) {
+    return { ok: false, errors: [{ file: displayPath(configPath), message: `unsupported profile config_version: ${checked.value?.config_version}` }] };
+  }
+  if (explicitProfile !== "auto" && checkedId && checkedId !== explicitProfile) {
+    return { ok: false, errors: [{ file: displayPath(configPath), message: `explicit profile ${explicitProfile} conflicts with checked-in profile ${checkedId}` }] };
+  }
+  const profileId = explicitProfile !== "auto"
+    ? explicitProfile
+    : (checkedId ?? detectProfileId(repoPath, registryResult.registry));
+  const packageProfile = registryResult.registry.profiles[profileId];
+  if (!packageProfile) {
+    return { ok: false, errors: [{ file: displayPath(configPath), message: `unknown adoption profile: ${profileId}` }] };
+  }
+  const profile = {
+    ...packageProfile,
+    ...(checked.exists ? checked.value : {}),
+    profile: profileId,
+  };
+  if (profile.package_manager === "auto") profile.package_manager = detectPackageManager(repoPath, readPackageJson(repoPath));
+  const errors = validateResolvedProfile(repoPath, profile, registryResult.registry);
+  if (errors.length > 0) return { ok: false, errors };
+  const semanticProfile = Object.fromEntries(
+    Object.keys(packageProfile).map((key) => [key, profile[key]]),
+  );
+  const digest = sha256(canonicalJson(semanticProfile));
+  return {
+    ok: true,
+    repo: repoPath,
+    profile,
+    source: checked.exists
+      ? (explicitProfile !== "auto" ? "explicit+repo-config" : "repo-config")
+      : (explicitProfile !== "auto" ? "explicit-package-profile" : (profileId === "default" ? "default-package-profile" : "detected-package-profile")),
+    config: {
+      path: displayPath(configPath),
+      exists: checked.exists,
+    },
+    digest,
+    registry: {
+      version: registryResult.registry.registry_version,
+      digest: registryResult.digest,
+      schema: registryResult.schema,
+      available_profiles: Object.keys(registryResult.registry.profiles).sort(),
+    },
+    errors: [],
+  };
 }
 
 function detectAdoptionProfile(repoPath, explicitProfile = "auto") {
-  const base = path.basename(repoPath);
-  const hasAstrotechneWebTickets = fs.existsSync(path.join(repoPath, "docs/domain-redesign/tickets"));
-  const hasCargoWorkspace = fs.existsSync(path.join(repoPath, "Cargo.toml"));
-  const profile = explicitProfile === "auto"
-    ? (hasAstrotechneWebTickets
-        ? "astrotechne-web"
-        : (base.includes("astrotechne-engine") || (base.includes("astrotechne") && hasCargoWorkspace)
-            ? "astrotechne-engine"
-            : (base.includes("wetware") ? "wetware" : "default")))
-    : explicitProfile;
-  const pkg = readPackageJson(repoPath);
-  const profiles = {
-    default: {
-      profile: "default",
-      ticket_root: "docs/tickets",
-      pack_style: "markdown-file",
-      ticket_status_command: null,
-      package_manager: detectPackageManager(repoPath, pkg),
-      recommended_validation: [],
-      preserved_ticket_system: "ctx-aide target tickets",
-    },
-    wetware: {
-      profile: "wetware",
-      ticket_root: "docs/tickets",
-      pack_style: "markdown-file",
-      ticket_status_command: null,
-      package_manager: "pnpm",
-      recommended_validation: [
-        "npx pnpm@10.34.4 test",
-        "npx pnpm@10.34.4 typecheck",
-        "npx pnpm@10.34.4 lint",
-        "npx pnpm@10.34.4 build",
-      ],
-      preserved_ticket_system: "flat Wetware docs/tickets markdown",
-    },
-    "astrotechne-web": {
-      profile: "astrotechne-web",
-      ticket_root: "docs/domain-redesign/tickets",
-      pack_style: "directory-readme",
-      ticket_status_command: "npm run tickets:status",
-      package_manager: "npm",
-      recommended_validation: ["npm run tickets:status", "npx biome check", "npm run build"],
-      preserved_ticket_system: "Astrotechne domain-redesign ticket tree",
-    },
-    "astrotechne-engine": {
-      profile: "astrotechne-engine",
-      ticket_root: "docs/tickets",
-      pack_style: "markdown-file",
-      ticket_status_command: null,
-      package_manager: "cargo+npm",
-      recommended_validation: [
-        "cargo fmt --all --check",
-        "cargo test --workspace",
-        "npm run validate:traditional-semantic-map",
-      ],
-      preserved_ticket_system: "Astrotechne engine docs/tickets markdown",
-    },
+  if (runtimeProfileResolution?.ok
+      && path.resolve(runtimeProfileResolution.repo) === path.resolve(repoPath)
+      && (explicitProfile === "auto" || explicitProfile === runtimeProfileResolution.profile.profile)) {
+    return runtimeProfileResolution.profile;
+  }
+  const resolved = resolveAdoptionProfile(repoPath, explicitProfile);
+  return resolved.ok ? resolved.profile : {
+    profile: explicitProfile,
+    invalid: true,
+    errors: resolved.errors,
+    ticket_root: "docs/tickets",
+    context_root: "docs/context",
+    pack_root: "docs/ticket-packs",
+    workflow_root: "docs/workflows",
+    generated_root: "docs/context/generated",
+    recommended_validation: [],
   };
-  return profiles[profile] ?? { ...profiles.default, profile };
+}
+
+function profileContractSummary(resolution = runtimeProfileResolution) {
+  if (!resolution?.ok) return null;
+  const profile = resolution.profile;
+  return {
+    schema_id: resolution.registry.schema.id,
+    schema_digest: resolution.registry.schema.digest,
+    registry_version: resolution.registry.version,
+    registry_digest: resolution.registry.digest,
+    profile: profile.profile,
+    source: resolution.source,
+    digest: resolution.digest,
+    config_path: resolution.config.path,
+    config_exists: resolution.config.exists,
+    roots: {
+      context: profile.context_root,
+      tickets: profile.ticket_root,
+      specs: profile.spec_root,
+      packs: profile.pack_root,
+      workflows: profile.workflow_root,
+      generated: profile.generated_root,
+    },
+    ticket_layout: profile.ticket_layout,
+    ticket_format: profile.ticket_format,
+    source_reference_mode: profile.source_reference_mode,
+    normative_spec_files: profile.normative_spec_files,
+  };
+}
+
+function profileCommandDecision(commandId, resolution = runtimeProfileResolution) {
+  if (!resolution?.ok || !commandId) return { allowed: true, reason: "no resolved command policy" };
+  const policy = resolution.profile.command_policy;
+  if (policy.deny.includes(commandId)) {
+    return { allowed: false, code: "command_disabled", reason: `profile ${resolution.profile.profile} denies ${commandId}` };
+  }
+  const featureId = policy.feature_gated[commandId];
+  if (featureId) {
+    const settings = readCtxAideSettings(resolution.repo);
+    const enabled = settings.ok && settings.settings.features?.[featureId]?.enabled === true;
+    return enabled
+      ? { allowed: true, reason: `feature ${featureId} is enabled`, feature: featureId }
+      : { allowed: false, code: "command_feature_disabled", reason: `profile feature ${featureId} is disabled`, feature: featureId };
+  }
+  if (policy.mode === "allowlist" && !policy.allow.includes(commandId)) {
+    return { allowed: false, code: "command_disabled", reason: `profile ${resolution.profile.profile} does not allow ${commandId}` };
+  }
+  return { allowed: true, reason: policy.mode === "all" ? "profile permits all package commands" : "command is allowlisted" };
+}
+
+function packagedSchemaRows() {
+  const definitions = [
+    ["ctxa.adoption-profile/v2", "adoption-profile-registry.schema.json"],
+    ["ctxa.context-entry/v1", "context-entry.schema.json"],
+    ["ctxa.feedback-entry/v1", "feedback-entry.schema.json"],
+  ];
+  return definitions.map(([id, filename]) => {
+    const filePath = path.join(toolRoot, "docs/context/schema", filename);
+    const raw = fs.readFileSync(filePath, "utf8");
+    return {
+      id,
+      filename,
+      path: displayPath(filePath),
+      sha256: sha256(raw),
+      bytes: Buffer.byteLength(raw),
+      schema: JSON.parse(raw),
+    };
+  });
+}
+
+function schemaList() {
+  const schemas = packagedSchemaRows().map(({ schema, ...row }) => row);
+  return { ok: true, scope: "schema list", schema_set_version: 1, count: schemas.length, schemas, errors: [] };
+}
+
+function schemaGet(schemaId) {
+  const row = packagedSchemaRows().find((entry) => entry.id === schemaId || entry.filename === schemaId);
+  if (!row) {
+    return {
+      ok: false,
+      scope: "schema get",
+      schema_id: schemaId,
+      errors: [{ file: "docs/context/schema", code: "unknown-schema", message: `unknown schema: ${schemaId}` }],
+    };
+  }
+  return { ok: true, scope: "schema get", schema_set_version: 1, ...row, errors: [] };
 }
 
 function readJsonIfExists(filePath) {
@@ -3785,6 +4047,16 @@ function settingsSet() {
       supported_features: [SCREENSHOT_REVIEW_UI_FEATURE_ID],
     };
   }
+  const profile = activeProfile();
+  const gatedFeatures = new Set(Object.values(profile?.command_policy?.feature_gated ?? {}));
+  if (profile?.command_policy?.mode === "allowlist" && !gatedFeatures.has(featureId)) {
+    return {
+      ok: false,
+      scope: "settings set",
+      errors: [{ file: "settings set", code: "feature-not-declared", message: `profile ${profile.profile} does not declare feature ${featureId}` }],
+      supported_features: [...gatedFeatures].sort(),
+    };
+  }
   const settingsResult = readCtxAideSettings(repoPath);
   if (!settingsResult.ok) {
     return {
@@ -3851,7 +4123,7 @@ function targetPackRows(repoPath, profile) {
       .filter((pack) => pack.exists)
       .sort((a, b) => a.slug.localeCompare(b.slug));
   }
-  const packRoot = path.join(repoPath, "docs/ticket-packs");
+  const packRoot = path.join(repoPath, profile.pack_root);
   if (!fs.existsSync(packRoot)) return [];
   return walk(packRoot)
     .filter((file) => file.endsWith(".md") && !file.includes("/templates/"))
@@ -3877,9 +4149,9 @@ function adoptionStatusFor(repoPath, profileArg = "auto") {
     ? agentToolsPolicyErrors(toolsPolicyResult, targetWorkflowIds(repoPath))
     : [];
   const requiredPaths = [
-    ...adoptionContextDirs,
+    ...adoptionDirsForProfile(profile),
     profile.ticket_root,
-    "docs/context/README.md",
+    path.join(profile.context_root, "README.md"),
     "docs/config/ctx-aide.profile.json",
     "docs/config/ctx-aide.settings.json",
     "docs/config/ctx-aide.tools.json",
@@ -3891,9 +4163,9 @@ function adoptionStatusFor(repoPath, profileArg = "auto") {
   const contextEntries = targetContextEntries(repoPath);
   const packs = targetPackRows(repoPath, profile);
   const generated = {
-    manifest: fs.existsSync(path.join(repoPath, "docs/context/generated/context-manifest.json")),
-    codex_pack: fs.existsSync(path.join(repoPath, "docs/context/generated/agent-pack.codex.md")),
-    claude_pack: fs.existsSync(path.join(repoPath, "docs/context/generated/agent-pack.claude.md")),
+    manifest: fs.existsSync(path.join(repoPath, profile.generated_root, "context-manifest.json")),
+    codex_pack: fs.existsSync(path.join(repoPath, profile.generated_root, "agent-pack.codex.md")),
+    claude_pack: fs.existsSync(path.join(repoPath, profile.generated_root, "agent-pack.claude.md")),
   };
   const blockers = [];
   if (!config.exists) blockers.push("missing docs/config/ctx-aide.profile.json; run adoption bootstrap with --write");
@@ -3909,15 +4181,15 @@ function adoptionStatusFor(repoPath, profileArg = "auto") {
   for (const error of toolsPolicyErrors) {
     blockers.push(`invalid tools policy: ${error.message}`);
   }
-  for (const row of pathRows.filter((row) => !row.exists && row.path !== "docs/context/generated")) {
+  for (const row of pathRows.filter((row) => !row.exists && row.path !== profile.generated_root)) {
     blockers.push(`missing ${row.path}`);
   }
-  if (contextEntries.length === 0) blockers.push("no target context entries found under docs/context");
+  if (contextEntries.length === 0) blockers.push(`no target context entries found under ${profile.context_root}`);
   const git = gitStatusSummary(repoPath);
   const warnings = [];
   if (!git.available) warnings.push(`git status unavailable: ${git.warning}`);
   if (git.dirty) warnings.push(`target worktree has ${git.changed_count} changed path(s)`);
-  if (!generated.manifest) warnings.push("generated context manifest is missing; run ctxa scan in the target repo after seeding context");
+  if (!generated.manifest) warnings.push(`generated context manifest is missing under ${profile.generated_root}; run ctxa scan after seeding context`);
   const uniqueBlockers = unique(blockers);
   return {
     ok: uniqueBlockers.length === 0,
@@ -3987,6 +4259,29 @@ const adoptionContextDirs = [
   "docs/workflows",
 ];
 
+function adoptionDirsForProfile(profile) {
+  const contextRoot = profile.context_root ?? "docs/context";
+  const genericContextDirs = [
+    "routes",
+    "files",
+    "dirs",
+    "components",
+    "flows",
+    "design",
+    "architecture",
+    "feedback",
+    "schema",
+  ].map((directory) => path.join(contextRoot, directory));
+  return unique([
+    ...genericContextDirs,
+    profile.generated_root,
+    profile.pack_root,
+    profile.workflow_root,
+    "docs/config",
+    ...(profile.spec_root ? [profile.spec_root] : []),
+  ]);
+}
+
 function writeFileIfAllowed(repoPath, relativePath, text, options) {
   const resolved = resolveRepoWritePath(repoPath, relativePath, {
     allowOutsideRepo: Boolean(options.allowOutsideRepo),
@@ -3997,8 +4292,7 @@ function writeFileIfAllowed(repoPath, relativePath, text, options) {
     return { action: "skipped", file: relativePath, reason: "exists" };
   }
   if (options.write) {
-    fs.mkdirSync(path.dirname(full), { recursive: true });
-    fs.writeFileSync(full, text);
+    atomicWriteFileSync(full, text);
   }
   return { action: options.write ? "created" : "planned", file: relativePath };
 }
@@ -4026,7 +4320,7 @@ function writeAdoptionSettings(repoPath, options) {
       enabled: true,
     };
     settings.updated = todayDate();
-    if (write) fs.writeFileSync(fullPath, `${JSON.stringify(settings, null, 2)}\n`);
+    if (write) atomicWriteFileSync(fullPath, `${JSON.stringify(settings, null, 2)}\n`);
     return { action: write ? "updated" : "planned", file: relativePath };
   }
   const settings = defaultCtxAideSettings({
@@ -4047,7 +4341,7 @@ function adoptionBootstrapFor(repoPath, profileArg = "auto", options = {}) {
   const profile = detectAdoptionProfile(repoPath, profileArg);
   const enableScreenshotFeedbackUi = Boolean(options.enableScreenshotFeedbackUi);
   const changes = [];
-  for (const dir of [...adoptionContextDirs, profile.ticket_root]) {
+  for (const dir of [...adoptionDirsForProfile(profile), profile.ticket_root]) {
     const full = path.join(repoPath, dir);
     if (fs.existsSync(full)) changes.push({ action: "skipped", file: dir, reason: "exists" });
     else {
@@ -4056,14 +4350,9 @@ function adoptionBootstrapFor(repoPath, profileArg = "auto", options = {}) {
     }
   }
   const config = {
-    config_version: 1,
+    ...profile,
+    config_version: 2,
     generated_by: "ctxa adoption bootstrap",
-    profile: profile.profile,
-    ticket_root: profile.ticket_root,
-    ticket_status_command: profile.ticket_status_command,
-    package_manager: profile.package_manager,
-    recommended_validation: profile.recommended_validation,
-    preserved_ticket_system: profile.preserved_ticket_system,
     context_loading: {
       default: "explicit",
       command: "ctxa adoption implementation-plan --repo <repo> --ticket <ticket> --json",
@@ -4080,7 +4369,7 @@ function adoptionBootstrapFor(repoPath, profileArg = "auto", options = {}) {
   ));
   changes.push(writeFileIfAllowed(
     repoPath,
-    "docs/context/README.md",
+    path.join(profile.context_root, "README.md"),
     "# CTX Aide\n\nRepo-local context is loaded explicitly with `ctxa adoption implementation-plan` or targeted queries. Do not bulk-load this directory by default.\n",
     { write, force },
   ));
@@ -4217,6 +4506,7 @@ function adoptionContext() {
   if (!fs.existsSync(repoPath)) {
     return { ok: false, scope: "adoption context", errors: [{ file: argValue("--repo", "."), message: "repo path does not exist" }] };
   }
+  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
   const kind = argValue("--kind", "flow");
   const folderByKind = { route: "routes", file: "files", dir: "dirs", component: "components", flow: "flows", design: "design", architecture: "architecture" };
   if (!Object.hasOwn(folderByKind, kind)) {
@@ -4231,7 +4521,7 @@ function adoptionContext() {
   const positiveRules = argValues("--positive-rule");
   const negativeRules = argValues("--negative-rule");
   const id = `${kind}.${slug}`;
-  const relativePath = `docs/context/${folderByKind[kind]}/${slug}.md`;
+  const relativePath = path.join(profile.context_root, folderByKind[kind], `${slug}.md`);
   const positive = positiveRules.length > 0 ? positiveRules : ["Load this context only when the task or scoped files match."];
   const negative = negativeRules.length > 0 ? negativeRules : ["Do not bulk-load unrelated context entries."];
   const text = `---\nid: ${id}\nkind: ${kind}\ncontext_scan: true\nstatus: active\ntitle: ${title}\n${yamlKeyList("routes", routes)}\n${yamlKeyList("files", paths)}\n${yamlKeyList("components", components)}\n${yamlKeyList("flows", kind === "flow" ? [id] : [])}\ntags:\n  - ctx-aide-adoption\n${yamlKeyList("positive_rules", positive)}\n${yamlKeyList("negative_rules", negative)}\nload_when:\n${yamlKeyList("path_matches", paths, "  ")}\n${yamlKeyList("task_terms", taskTerms, "  ")}\nupdated: ${todayDate()}\n---\n\n# ${title}\n\n## Purpose\n\nCapture repo-local context for ${argValue("--task", title)}.\n\n## Current Decisions\n\n- Context is loaded explicitly for matching tickets or implementation plans.\n\n## Positive Rules\n\n${positive.map((rule) => `- ${rule}`).join("\n")}\n\n## Negative Rules\n\n${negative.map((rule) => `- ${rule}`).join("\n")}\n\n## Implementation Rules\n\n- Use this entry as bounded guidance for tickets that cite \`${id}\`.\n- Run \`ctxa adoption implementation-plan\` before implementation to hydrate only relevant context.\n`;
@@ -4251,7 +4541,8 @@ function adoptionPackPath(profile, slug) {
   if (profile.pack_style === "directory-readme") {
     return path.join(profile.ticket_root, slug, "README.md");
   }
-  return path.join("docs/ticket-packs/draft", `${slug}.md`);
+  if (profile.pack_style === "flat-markdown-file") return path.join(profile.pack_root, `${slug}.md`);
+  return path.join(profile.pack_root, "draft", `${slug}.md`);
 }
 
 function adoptionPackMarkdown(profile, options) {
@@ -4317,6 +4608,10 @@ function adoptionTicketPath(profile, ticketSlug, packSlug) {
   return path.join(profile.ticket_root, `${ticketSlug}.md`);
 }
 
+function vakosTicketMarkdown(options) {
+  return `---\nid: ${options.id}\nstatus: ready\ntitle: ${options.title}\nwork_type: ${options.workType}\nsource_specs:\n${options.sourceSpecs.map((file) => `  - ${file}`).join("\n")}\n${yamlKeyList("source_spec_sections", options.sourceSpecSections)}\n${yamlKeyList("depends_on", options.dependsOn)}\n${yamlKeyList("blocks", options.blocks)}\nparallel_group: ${options.parallelGroup}\nscope:\n${yamlKeyList("routes", options.routes, "  ")}\n${yamlKeyList("files", options.files, "  ")}\n${yamlKeyList("directories", options.directories, "  ")}\n${yamlKeyList("components", options.components, "  ")}\n${yamlKeyList("flows", options.flows, "  ")}\ncontext_query:\n  task: "${options.task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", options.contexts, "  ")}\ncapability_policy:\n  workflow: ${options.capabilityWorkflow || "null"}\n  step: ${options.capabilityStep || "null"}\n${yamlKeyList("required", options.capabilityRequired, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\n  - axiom.capability-policy-deny-wins\nvalidation:\n${yamlKeyList("automated", options.validations, "  ")}\n  smoke: []\n  screenshots: []\n  vm: []\n  physical_device: []\ncompletion:\n  commit: pending\n  completed_at: null\n  verification_evidence: []\n---\n\n# ${options.title}\n\n## Outcome\n\n${options.outcome}\n\n## Context\n\nNormative sources: ${options.sourceSpecs.map((file) => `\`${file}\``).join(", ")}. Load bounded context with \`ctxa adoption implementation-plan\` before implementation.\n\n## Positive Rules\n\n- Preserve vakOS root specifications and flat ticket paths.\n- Use only the cited context and normative sources for this task.\n\n## Negative Rules\n\n- Do not copy normative root specifications under docs.\n- Do not broaden the ticket or use a denied capability.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: vakOS root specs and tickets remain canonical.\n- \`axiom.ticket-done-requires-commit\`: completion needs Git-backed evidence.\n- \`axiom.explicit-context-loading\`: context is loaded by command.\n- \`axiom.capability-policy-deny-wins\`: profile denial overrides package availability.\n\n## Frozen Decisions\n\n- Ticket ID: \`${options.id}\`.\n- Ticket root: \`tickets/\`.\n- Normative sources: ${options.sourceSpecs.map((file) => `\`${file}\``).join(", ")}.\n\n## Implementation Rules\n\n- Implement only the declared scope and validation.\n- Stop if a missing product, architecture, design, security, or infrastructure decision would change the result.\n\n## Scope\n\n- In: ${options.files.concat(options.directories, options.routes).join(", ") || options.task}.\n- Out: unrelated refactors and unapproved infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete and source-backed.\n- Every declared validation class is reported independently.\n\n## Validation\n\n${options.validations.map((item) => `- \`${item}\``).join("\n") || "- Add a scoped validation command before implementation."}\n\n## Completion\n\n- Status: ready.\n- Commit: pending.\n- Verification evidence: pending.\n`;
+}
+
 function adoptionTicket() {
   const repoPath = targetRepoPath();
   const write = args.includes("--write");
@@ -4331,6 +4626,7 @@ function adoptionTicket() {
   const packSlug = slugify(argValue("--pack-slug", ""));
   const contexts = unique([...argValues("--context"), ...argValues("--context-id")]);
   const files = unique([...argValues("--file"), ...argValues("--path")]);
+  const directories = unique(argValues("--directory"));
   const routes = argValues("--route");
   const components = argValues("--component");
   const flows = argValues("--flow");
@@ -4338,6 +4634,10 @@ function adoptionTicket() {
   const capabilityWorkflow = argValue("--capability-workflow", argValue("--workflow", ""));
   const capabilityStep = argValue("--capability-step", argValue("--step", ""));
   const capabilityRequired = unique(argValues("--capability"));
+  const sourceSpecs = unique(argValues("--source-spec"));
+  const sourceSpecSections = unique(argValues("--source-spec-section"));
+  const dependsOn = unique(argValues("--depends-on"));
+  const blocks = unique(argValues("--blocks"));
   if (packSlug && profile.pack_style === "directory-readme") {
     const packReadme = adoptionPackPath(profile, packSlug);
     if (!fs.existsSync(path.join(repoPath, packReadme))) {
@@ -4352,7 +4652,51 @@ function adoptionTicket() {
     }
   }
   const relativePath = adoptionTicketPath(profile, slug, packSlug);
-  const text = `---\nid: ${argValue("--id", `ticket.${slug}`)}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\ncapability_policy:\n  workflow: ${capabilityWorkflow || "null"}\n  step: ${capabilityStep || "null"}\n${yamlKeyList("required", capabilityRequired, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\n  - axiom.capability-policy-deny-wins\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctxa adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Check the returned capability policy before using optional tools, connectors, or skills.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not use a denied capability without updating target policy and ticket metadata first.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n- \`axiom.capability-policy-deny-wins\`: Deny entries override allow entries at every policy layer.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n- Capability workflow: ${capabilityWorkflow || "global policy only"}\n- Capability step: ${capabilityStep || "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Capability policy: follow the implementation-plan \`capability_policy\` response and use \`ctxa tools check\` before optional high-risk tools.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
+  let ticketId = argValue("--id", `ticket.${slug}`);
+  let text;
+  if (profile.ticket_format === "canonical-frontmatter-vakos-v1") {
+    const numericId = slug.match(/^(\d{4,})(?:-|$)/)?.[1] ?? null;
+    ticketId = argValue("--id", numericId ? `ticket.vakos.${numericId}` : "");
+    const invalidSources = sourceSpecs.filter((file) => !profile.normative_spec_files.includes(file));
+    if (!/^ticket\.vakos\.\d{4,}$/.test(ticketId) || sourceSpecs.length === 0 || invalidSources.length > 0) {
+      return {
+        ok: false,
+        scope: "adoption ticket",
+        repo: displayPath(repoPath),
+        write,
+        profile,
+        errors: [
+          ...(!/^ticket\.vakos\.\d{4,}$/.test(ticketId) ? [{ file: "adoption ticket", message: "vakOS tickets require --id ticket.vakos.<four-or-more digits> or a numeric slug" }] : []),
+          ...(sourceSpecs.length === 0 ? [{ file: "adoption ticket", message: "vakOS tickets require at least one --source-spec" }] : []),
+          ...invalidSources.map((file) => ({ file, message: "source spec is not in the profile normative allowlist" })),
+        ],
+      };
+    }
+    text = vakosTicketMarkdown({
+      id: ticketId,
+      title,
+      task,
+      workType: argValue("--work-type", "implementation"),
+      sourceSpecs,
+      sourceSpecSections,
+      dependsOn,
+      blocks,
+      parallelGroup: argValue("--parallel-group", "default"),
+      contexts,
+      files,
+      directories,
+      routes,
+      components,
+      flows,
+      validations,
+      capabilityWorkflow,
+      capabilityStep,
+      capabilityRequired,
+      outcome: argValue("--outcome", `Deliver ${task} without inventing missing vakOS decisions.`),
+    });
+  } else {
+    text = `---\nid: ${ticketId}\nstatus: ready\ntitle: ${title}\nwork_type: ${argValue("--work-type", "implementation")}\nticket_pack: ${argValue("--pack", `pack.${profile.profile}.${todayDate().slice(0, 7)}.adoption`)}\nmilestones:\n  - ${argValue("--milestone", `milestone.${profile.profile}.adoption`)}\nsource_spec: null\nsource_feedback: []\nimplementation_agent: codex\nplanning_agents:\n  - codex-high-effort\nui_review_agent: claude-high-effort\nparallel_group: ${argValue("--parallel-group", "default")}\ndepends_on: []\nblocks: []\nscope:\n${yamlKeyList("routes", routes, "  ")}\n${yamlKeyList("files", files, "  ")}\n  directories: []\n${yamlKeyList("components", components, "  ")}\n${yamlKeyList("flows", flows, "  ")}\ncontext_query:\n  task: "${task.replace(/"/g, "'")}"\n  generated_at: ${todayDate()}\n${yamlKeyList("context_ids", contexts, "  ")}\ncapability_policy:\n  workflow: ${capabilityWorkflow || "null"}\n  step: ${capabilityStep || "null"}\n${yamlKeyList("required", capabilityRequired, "  ")}\naxioms:\n  - axiom.markdown-source-of-truth\n  - axiom.ticket-done-requires-commit\n  - axiom.explicit-context-loading\n  - axiom.capability-policy-deny-wins\nvalidation:\n${yamlKeyList("automated", validations, "  ")}\n  smoke: []\n  screenshots: []\ncompletion:\n  commit: pending\n  completed_at: null\n---\n\n# ${title}\n\n## Outcome\n\n${argValue("--outcome", `Deliver ${task} without making uncaptured product, design, architecture, or security decisions during implementation.`)}\n\n## Context\n\nRun \`ctxa adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json\` before implementation. Load only the returned context entries unless the ticket is blocked.\n\n## Positive Rules\n\n- Use the cited context ids and scoped files as the implementation boundary.\n- Check the returned capability policy before using optional tools, connectors, or skills.\n- Preserve repo-local ticket and validation conventions for the ${profile.profile} profile.\n\n## Negative Rules\n\n- Do not bulk-load unrelated docs or infer missing product/design decisions.\n- Do not use a denied capability without updating target policy and ticket metadata first.\n- Do not mark complete without commit metadata and validation evidence.\n\n## Axioms\n\n- \`axiom.markdown-source-of-truth\`: Markdown remains the canonical planning artifact.\n- \`axiom.ticket-done-requires-commit\`: Each completed ticket should have a clean commit.\n- \`axiom.explicit-context-loading\`: Context is loaded by command, not by scanning every markdown file into the prompt.\n- \`axiom.capability-policy-deny-wins\`: Deny entries override allow entries at every policy layer.\n\n## Frozen Decisions\n\n- Profile: ${profile.profile}\n- Ticket root: ${profile.ticket_root}\n- Context ids: ${contexts.length > 0 ? contexts.map((item) => `\`${item}\``).join(", ") : "none"}\n- Capability workflow: ${capabilityWorkflow || "global policy only"}\n- Capability step: ${capabilityStep || "none"}\n\n## Implementation Rules\n\n- Required approach: implement only the scoped task and update this ticket when complete.\n- Existing components/helpers to use: read from the implementation-plan output.\n- Capability policy: follow the implementation-plan \`capability_policy\` response and use \`ctxa tools check\` before optional high-risk tools.\n- Stop and escalate if: the implementation needs a decision absent from this ticket or returned context.\n\n## Scope\n\n- In: ${files.concat(routes).join(", ") || task}\n- Out: unrelated refactors, broad dependency changes, hidden infrastructure changes.\n\n## Acceptance Criteria\n\n- The scoped behavior is complete.\n- Validation commands pass or failures are documented with exact blockers.\n\n## Validation\n\n${validations.map((item) => `- \`${item}\``).join("\n") || "- Add the repo-appropriate validation command before implementation."}\n\n## Completion\n\n- Status: ready\n- Commit: pending\n- Verification evidence: pending\n`;
+  }
   const change = writeFileIfAllowed(repoPath, relativePath, text, { write, force });
   return {
     ok: change.action !== "skipped" || !write,
@@ -4360,7 +4704,7 @@ function adoptionTicket() {
     repo: repoPath,
     write,
     profile,
-    ticket: { id: argValue("--id", `ticket.${slug}`), title, file: relativePath, status: "ready" },
+    ticket: { id: ticketId, title, file: relativePath, status: "ready" },
     changes: [change],
     next_commands: [`ctxa adoption implementation-plan --repo ${repoPath} --ticket ${relativePath} --json`],
     errors: change.action === "skipped" && write ? [{ file: relativePath, message: "ticket file exists; pass --force to overwrite" }] : [],
@@ -4368,7 +4712,7 @@ function adoptionTicket() {
 }
 
 function targetContextEntries(repoPath) {
-  const contextRoot = path.join(repoPath, "docs/context");
+  const contextRoot = path.join(repoPath, activeProfile()?.context_root ?? "docs/context");
   if (!fs.existsSync(contextRoot)) return [];
   return walk(contextRoot)
     .filter((file) => file.endsWith(".md") && !file.includes("/schema/") && !file.includes("/generated/"))
@@ -4489,6 +4833,7 @@ function implementationCapabilityPolicy(repoPath, doc) {
 
 function implementationPlan() {
   const repoPath = targetRepoPath();
+  const profile = detectAdoptionProfile(repoPath, argValue("--profile", "auto"));
   const ticketArg = argValue("--ticket", args[2] && !args[2].startsWith("--") ? args[2] : "");
   const includeBody = args.includes("--include-body");
   if (!fs.existsSync(repoPath)) {
@@ -4498,6 +4843,12 @@ function implementationPlan() {
     return { ok: false, scope: "adoption implementation-plan", errors: [{ file: "adoption implementation-plan", message: "missing --ticket <path>" }] };
   }
   const ticketPath = path.isAbsolute(ticketArg) ? path.relative(repoPath, ticketArg) : ticketArg;
+  const ticketPathError = validateProfilePath(repoPath, ticketPath);
+  const ticketRootPath = path.resolve(repoPath, profile.ticket_root);
+  const fullTicketPath = path.resolve(repoPath, ticketPath);
+  if (ticketPathError || !pathInside(ticketRootPath, fullTicketPath)) {
+    return { ok: false, scope: "adoption implementation-plan", errors: [{ file: ticketArg, message: ticketPathError ?? `ticket must be under ${profile.ticket_root}` }] };
+  }
   if (!fs.existsSync(path.join(repoPath, ticketPath))) {
     return { ok: false, scope: "adoption implementation-plan", errors: [{ file: ticketArg, message: "ticket file does not exist" }] };
   }
@@ -4513,6 +4864,7 @@ function implementationPlan() {
     ...nestedFrontmatterList(doc, "scope", "directories"),
     ...nestedFrontmatterList(doc, "scope", "routes"),
     ...(Array.isArray(doc.frontmatter.source_docs) ? doc.frontmatter.source_docs : []),
+    ...(Array.isArray(doc.frontmatter.source_specs) ? doc.frontmatter.source_specs : []),
   ]);
   const entries = targetContextEntries(repoPath)
     .map((entry) => {
@@ -4575,6 +4927,8 @@ function implementationPlan() {
       status: doc.frontmatter.status ?? null,
       work_type: doc.frontmatter.work_type ?? null,
     },
+    normative_sources: (Array.isArray(doc.frontmatter.source_specs) ? doc.frontmatter.source_specs : [])
+      .map((file) => ({ file, allowed: profile.normative_spec_files.includes(file) })),
     task,
     target_paths: targetPaths,
     context_ids: entries.map((entry) => entry.id),
@@ -4601,7 +4955,7 @@ function doctor() {
   const packs = validatePacks(errors, tickets, specs);
   validateRuns(errors);
   validateFutureWork(errors, tickets, packs, specs);
-  const generatedManifest = path.join(root, "docs/context/generated/context-manifest.json");
+  const generatedManifest = path.join(root, profileRoot("generated_root", "docs/context/generated"), "context-manifest.json");
   return {
     ok: errors.length === 0,
     scope: "doctor",
@@ -4636,7 +4990,7 @@ function packStatus(packId) {
       ok: false,
       scope: "pack status",
       pack: requestedPackId,
-      errors: [{ file: "docs/ticket-packs", message: `unknown pack: ${requestedPackId}` }],
+      errors: [{ file: profileRoot("pack_root", "docs/ticket-packs"), message: `unknown pack: ${requestedPackId}` }],
     };
   }
   const ticketRows = (Array.isArray(pack.frontmatter.tickets) ? pack.frontmatter.tickets : []).map((ticketId) => {
@@ -4771,13 +5125,18 @@ Use \`docs/context\`, \`docs/specs\`, \`docs/tickets\`, and \`docs/ticket-packs\
 }
 
 function validateDirs(errors) {
-  for (const dir of requiredDirs) {
+  const profile = activeProfile();
+  const dirs = profile?.profile === "vakos"
+    ? unique([...adoptionDirsForProfile(profile), profile.ticket_root])
+    : requiredDirs;
+  for (const dir of dirs) {
     assert(fs.existsSync(path.join(root, dir)), errors, dir, "required directory is missing");
   }
 }
 
 function validateContextEntries(errors) {
-  const files = markdownFiles("docs/context").filter(
+  const contextRoot = profileRoot("context_root", "docs/context");
+  const files = markdownFiles(contextRoot).filter(
     (file) => !file.includes("/schema/") && !file.includes("/generated/"),
   );
   const ids = new Map();
@@ -4799,7 +5158,7 @@ function validateContextEntries(errors) {
       assert(!ids.has(fm.id), errors, file, `duplicate context id: ${fm.id}`);
       ids.set(fm.id, file);
     }
-    const folder = folderAfter(file, "docs/context");
+    const folder = folderAfter(file, contextRoot);
     const expectedKind = expectedKindByFolder[folder];
     assert(Boolean(expectedKind), errors, file, `unsupported context folder: ${folder}`);
     assert(fm.kind === expectedKind, errors, file, `context kind ${fm.kind} does not match folder ${folder}`);
@@ -4830,8 +5189,17 @@ function validateContextEntries(errors) {
 }
 
 function validateSpecs(errors) {
-  const files = markdownFiles("docs/specs");
+  const profile = activeProfile();
   const specs = new Map();
+  if (profile?.source_reference_mode === "repo-relative-normative-file") {
+    for (const file of profile.normative_spec_files) {
+      const fullPath = path.join(root, file);
+      assert(fs.existsSync(fullPath), errors, file, "normative source file is missing");
+      if (fs.existsSync(fullPath)) specs.set(file, { file, frontmatter: {}, body: fs.readFileSync(fullPath, "utf8"), normative: true });
+    }
+    return specs;
+  }
+  const files = markdownFiles(profile?.spec_root ?? "docs/specs");
   for (const file of files) {
     const doc = readDoc(file);
     if (doc.ignored) continue;
@@ -4853,34 +5221,102 @@ function validateSpecs(errors) {
   return specs;
 }
 
+function legacyVakosTicket(file, doc) {
+  const filename = path.basename(file);
+  const number = filename.match(/^(\d{4,})-/)?.[1] ?? doc.body.match(/^# Ticket\s+(\d{4,})/m)?.[1] ?? null;
+  const statusValue = doc.body.match(/^Status:\s*([A-Za-z-]+)/m)?.[1]?.toLowerCase() ?? null;
+  const title = doc.body.match(/^# Ticket\s+\d+:\s*(.+)$/m)?.[1]?.trim() ?? path.basename(file, ".md");
+  return {
+    id: number ? `ticket.vakos.${number}` : null,
+    status: statusValue === "complete" ? "done" : statusValue,
+    title,
+    legacy: true,
+  };
+}
+
+function gitCommitExists(repoPath, commit) {
+  const result = spawnSync("git", ["-C", repoPath, "cat-file", "-e", `${commit}^{commit}`], { stdio: "ignore" });
+  return result.status === 0;
+}
+
+function validateVakosCompletion(file, doc, errors) {
+  const commit = nestedFrontmatterValue(doc, "completion", "commit");
+  const completedAt = nestedFrontmatterValue(doc, "completion", "completed_at");
+  assert(Boolean(commit && commit !== "pending"), errors, file, "done ticket must record completion commit");
+  assert(Boolean(completedAt && completedAt !== "null"), errors, file, "done ticket must record completed_at");
+  if (!commit || commit === "pending") return;
+  if (commit === "self") {
+    const history = spawnSync("git", ["-C", root, "log", "-1", "--format=%H", "--", file], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const resolved = history.status === 0 ? history.stdout.trim() : "";
+    assert(Boolean(resolved), errors, file, "self completion cannot be resolved from Git history");
+    if (resolved) {
+      const recorded = spawnSync("git", ["-C", root, "show", `${resolved}:${file}`], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      assert(recorded.status === 0 && /\bcommit:\s*self\b/.test(recorded.stdout), errors, file, "self completion is not recorded in the resolving commit");
+    }
+  } else {
+    assert(/^[0-9a-f]{7,40}$/.test(String(commit)) && gitCommitExists(root, String(commit)), errors, file, `completion commit does not resolve: ${commit}`);
+  }
+}
+
 function validateTickets(errors, specs = new Map()) {
-  const files = markdownFiles("docs/tickets").filter((file) => !file.includes("/templates/"));
+  const profile = activeProfile();
+  const ticketRoot = profile?.ticket_root ?? "docs/tickets";
+  const vakosFormat = profile?.ticket_format === "canonical-frontmatter-vakos-v1";
+  const files = markdownFiles(ticketRoot).filter((file) => !file.includes("/templates/"));
   const tickets = new Map();
   for (const file of files) {
     const doc = readDoc(file);
     if (doc.ignored) continue;
     const fm = doc.frontmatter;
+    if (vakosFormat && typeof fm.id !== "string" && profile.legacy_ticket_reader === "vakos-body-status-v1") {
+      const legacy = legacyVakosTicket(file, doc);
+      assert(Boolean(legacy.id), errors, file, "legacy vakOS ticket needs a four-or-more digit filename or heading ID");
+      assert(legacy.status === "done", errors, file, `unsupported legacy vakOS ticket status: ${legacy.status}`);
+      if (legacy.id) {
+        assert(!tickets.has(legacy.id), errors, file, `duplicate ticket id: ${legacy.id}`);
+        tickets.set(legacy.id, { file, frontmatter: legacy, body: doc.body, legacy: true });
+      }
+      continue;
+    }
     if (typeof fm.id === "string") {
       assert(!tickets.has(fm.id), errors, file, `duplicate ticket id: ${fm.id}`);
       tickets.set(fm.id, { file, frontmatter: fm, body: doc.body });
     }
-    assert(/^ticket\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "ticket id must start with ticket.");
+    assert(vakosFormat ? /^ticket\.vakos\.\d{4,}$/.test(fm.id ?? "") : /^ticket\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, vakosFormat ? "ticket id must match ticket.vakos.<four-or-more digits>" : "ticket id must start with ticket.");
     assert(ticketStatuses.has(fm.status), errors, file, `invalid ticket status: ${fm.status}`);
-    const folderStatus = folderAfter(file, "docs/tickets");
-    if (folderStatus && ticketStatuses.has(folderStatus)) {
+    const folderStatus = folderAfter(file, ticketRoot);
+    if (!vakosFormat && folderStatus && ticketStatuses.has(folderStatus)) {
       assert(fm.status === folderStatus, errors, file, `ticket status ${fm.status} does not match folder ${folderStatus}`);
     }
-    for (const key of ["title", "ticket_pack", "milestones", "source_spec", "implementation_agent", "parallel_group", "scope", "context_query", "axioms", "validation", "completion"]) {
+    if (vakosFormat) assert(path.dirname(file) === ticketRoot, errors, file, "vakOS canonical tickets must remain directly under the flat ticket root");
+    const requiredKeys = vakosFormat
+      ? ["title", "source_specs", "depends_on", "blocks", "parallel_group", "scope", "context_query", "capability_policy", "validation", "completion"]
+      : ["title", "ticket_pack", "milestones", "source_spec", "implementation_agent", "parallel_group", "scope", "context_query", "axioms", "validation", "completion"];
+    for (const key of requiredKeys) {
       assert(Object.hasOwn(fm, key), errors, file, `missing canonical ticket frontmatter: ${key}`);
     }
-    if (typeof fm.source_spec === "string") {
+    if (vakosFormat) {
+      assert(Array.isArray(fm.source_specs) && fm.source_specs.length > 0, errors, file, "vakOS ticket source_specs must be a non-empty array");
+      for (const sourceFile of Array.isArray(fm.source_specs) ? fm.source_specs : []) {
+        assert(specs.has(sourceFile), errors, file, `ticket references non-normative source: ${sourceFile}`);
+      }
+    } else if (typeof fm.source_spec === "string") {
       assert(specs.has(fm.source_spec), errors, file, `ticket references missing spec: ${fm.source_spec}`);
     }
     if (fm.status === "done") {
-      const commit = nestedFrontmatterValue(doc, "completion", "commit");
-      const completedAt = nestedFrontmatterValue(doc, "completion", "completed_at");
-      assert(Boolean(commit && commit !== "pending"), errors, file, "done ticket must record completion commit");
-      assert(Boolean(completedAt && completedAt !== "null"), errors, file, "done ticket must record completed_at");
+      if (vakosFormat) validateVakosCompletion(file, doc, errors);
+      else {
+        const commit = nestedFrontmatterValue(doc, "completion", "commit");
+        const completedAt = nestedFrontmatterValue(doc, "completion", "completed_at");
+        assert(Boolean(commit && commit !== "pending"), errors, file, "done ticket must record completion commit");
+        assert(Boolean(completedAt && completedAt !== "null"), errors, file, "done ticket must record completed_at");
+      }
       if (isDependencyUpgradeTicket(doc)) {
         const completion = allNestedFrontmatterValues(doc, "completion");
         assert(completion.dependency_audit === "cleared", errors, file, "done dependency-upgrade ticket must record completion.dependency_audit: cleared");
@@ -4893,11 +5329,33 @@ function validateTickets(errors, specs = new Map()) {
     }
     assert(!hasPlaceholder(doc.body + JSON.stringify(fm)), errors, file, "ticket still contains template placeholder text");
   }
+  if (vakosFormat) {
+    const visiting = new Set();
+    const visited = new Set();
+    const visit = (id) => {
+      if (visited.has(id)) return;
+      if (visiting.has(id)) {
+        errors.push({ file: tickets.get(id)?.file ?? ticketRoot, message: `ticket dependency cycle includes ${id}` });
+        return;
+      }
+      visiting.add(id);
+      const ticket = tickets.get(id);
+      for (const dependency of Array.isArray(ticket?.frontmatter.depends_on) ? ticket.frontmatter.depends_on : []) {
+        assert(tickets.has(dependency), errors, ticket.file, `ticket references missing dependency: ${dependency}`);
+        if (tickets.has(dependency)) visit(dependency);
+      }
+      visiting.delete(id);
+      visited.add(id);
+    };
+    for (const id of tickets.keys()) visit(id);
+  }
   return tickets;
 }
 
 function validatePacks(errors, tickets, specs = new Map()) {
-  const files = markdownFiles("docs/ticket-packs").filter((file) => !file.includes("/templates/"));
+  const profile = activeProfile();
+  const packRoot = profile?.pack_root ?? "docs/ticket-packs";
+  const files = markdownFiles(packRoot).filter((file) => !file.includes("/templates/"));
   const packs = new Map();
   const allowedFolderStatuses = {
     draft: new Set(["draft"]),
@@ -4916,7 +5374,7 @@ function validatePacks(errors, tickets, specs = new Map()) {
     }
     assert(/^pack\.[A-Za-z0-9_.-]+$/.test(fm.id ?? ""), errors, file, "pack id must start with pack.");
     assert(packStatuses.has(fm.status), errors, file, `invalid pack status: ${fm.status}`);
-    const folderStatus = folderAfter(file, "docs/ticket-packs");
+    const folderStatus = folderAfter(file, packRoot);
     if (folderStatus && allowedFolderStatuses[folderStatus]) {
       assert(allowedFolderStatuses[folderStatus].has(fm.status), errors, file, `pack status ${fm.status} does not belong in folder ${folderStatus}`);
     }
@@ -4946,6 +5404,7 @@ function validatePacks(errors, tickets, specs = new Map()) {
     }
   }
   for (const [id, ticket] of tickets) {
+    if (ticket.legacy) continue;
     const packId = ticket.frontmatter.ticket_pack;
     if (typeof packId !== "string") continue;
     assert(packs.has(packId), errors, ticket.file, `ticket references missing pack: ${packId}`);
@@ -5107,7 +5566,7 @@ function agentToolsPolicyErrors(configResult, knownWorkflowIds = new Set()) {
 }
 
 function targetWorkflowIds(repoPath) {
-  const workflowRoot = path.join(repoPath, "docs/workflows");
+  const workflowRoot = path.join(repoPath, activeProfile()?.workflow_root ?? "docs/workflows");
   if (!fs.existsSync(workflowRoot)) return new Set();
   return new Set(walk(workflowRoot)
     .filter((file) => file.endsWith(".md"))
@@ -5266,19 +5725,86 @@ function writeDiscoveryResult(result, out) {
 }
 
 function printResult(result) {
+  const enriched = runtimeProfileResolution?.ok
+    ? {
+        ...result,
+        profile_contract: profileContractSummary(),
+        command_policy: invocation?.command
+          ? profileCommandDecision(invocation.command.id)
+          : undefined,
+      }
+    : result;
   if (json) {
-    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-  } else if (result.ok) {
+    process.stdout.write(`${JSON.stringify(enriched, null, 2)}\n`);
+  } else if (enriched.ok) {
     process.stdout.write("ok\n");
   } else {
-    for (const error of result.errors) {
+    for (const error of enriched.errors) {
       process.stderr.write(`${error.file}: ${error.message}\n`);
     }
   }
-  process.exitCode = result.ok ? 0 : 1;
+  process.exitCode = enriched.ok ? 0 : 1;
 }
 
 const invocation = validateInvocation(args);
+const rootScopedCommandIds = new Set([
+  "lint",
+  "scan",
+  "query",
+  "export-agent",
+  "impact",
+  "ticket.check",
+  "ticket.hydrate",
+  "pack.check",
+  "pack.status",
+  "spec.check",
+  "future.check",
+]);
+const adoptionProfileOptionCommandIds = new Set([
+  "command.manifest",
+  "schema.list",
+  "schema.get",
+  "lint",
+  "scan",
+  "query",
+  "export-agent",
+  "impact",
+  "tools.list",
+  "tools.policy",
+  "tools.check",
+  "settings.get",
+  "settings.set",
+  "feedback.plan",
+  "feedback.review",
+  "feedback.review-ui",
+  "feedback.capture",
+  "feedback.promote",
+  "setup",
+  "adoption.status",
+  "adoption.bootstrap",
+  "adoption.pack",
+  "adoption.context",
+  "adoption.ticket",
+  "adoption.implementation-plan",
+  "ticket.check",
+  "ticket.hydrate",
+  "pack.check",
+  "pack.status",
+  "spec.check",
+  "future.check",
+]);
+if (invocation.ok && invocation.command) {
+  const requestedProfile = adoptionProfileOptionCommandIds.has(invocation.command.id)
+    ? argValue("--profile", "auto")
+    : "auto";
+  runtimeProfileResolution = resolveAdoptionProfile(invocationTargetRepoPath, requestedProfile);
+  if (runtimeProfileResolution.ok && rootScopedCommandIds.has(invocation.command.id)) {
+    root = invocationTargetRepoPath;
+  }
+}
+const commandPolicyDecision = invocation.command && runtimeProfileResolution?.ok
+  ? profileCommandDecision(invocation.command.id)
+  : { allowed: true };
 
 if (!invocation.ok) {
   printResult({
@@ -5286,6 +5812,26 @@ if (!invocation.ok) {
     scope: "invocation",
     command: invocation.command?.id ?? null,
     errors: invocation.errors.map((error) => ({ file: "argv", ...error })),
+  });
+} else if (runtimeProfileResolution && !runtimeProfileResolution.ok) {
+  printResult({
+    ok: false,
+    scope: "profile resolution",
+    command: invocation.command?.id ?? null,
+    errors: runtimeProfileResolution.errors.map((error) => ({ code: "invalid-profile", ...error })),
+  });
+} else if (!commandPolicyDecision.allowed) {
+  printResult({
+    ok: false,
+    scope: "command policy",
+    command: invocation.command?.id ?? null,
+    profile: runtimeProfileResolution.profile.profile,
+    errors: [{
+      file: runtimeProfileResolution.config.path,
+      code: commandPolicyDecision.code,
+      feature: commandPolicyDecision.feature ?? null,
+      message: commandPolicyDecision.reason,
+    }],
   });
 } else if (command === "lint") {
   printResult(runChecks("lint"));
@@ -5300,7 +5846,14 @@ if (!invocation.ok) {
 } else if (command === "export-agent") {
   printResult(exportAgent());
 } else if (command === "command" && subcommand === "manifest") {
-  printResult(commandManifestResult());
+  printResult({
+    ...commandManifestResult(),
+    profile_registry: runtimeProfileResolution?.registry ?? null,
+  });
+} else if (command === "schema" && subcommand === "list") {
+  printResult(schemaList());
+} else if (command === "schema" && subcommand === "get") {
+  printResult(schemaGet(args[2] ?? ""));
 } else if (command === "components" && subcommand === "list") {
   printResult(componentsList());
 } else if (command === "components" && subcommand === "get") {

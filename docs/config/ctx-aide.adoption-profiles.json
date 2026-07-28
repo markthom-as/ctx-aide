@@ -1,0 +1,219 @@
+{
+  "$schema": "../context/schema/adoption-profile-registry.schema.json",
+  "registry_version": 1,
+  "schema_id": "ctxa.adoption-profile/v2",
+  "profiles": {
+    "default": {
+      "config_version": 2,
+      "profile": "default",
+      "context_root": "docs/context",
+      "ticket_root": "docs/tickets",
+      "ticket_layout": "status-directories",
+      "ticket_format": "ctxa-canonical-v1",
+      "legacy_ticket_reader": null,
+      "source_reference_mode": "ctxa-spec-id",
+      "spec_root": "docs/specs",
+      "pack_root": "docs/ticket-packs",
+      "pack_style": "markdown-file",
+      "workflow_root": "docs/workflows",
+      "generated_root": "docs/context/generated",
+      "allow_outside_repo": true,
+      "package_manager": "auto",
+      "ticket_status_command": null,
+      "recommended_validation": [],
+      "preserved_ticket_system": "ctx-aide target tickets",
+      "normative_spec_files": [],
+      "command_policy": {
+        "mode": "all",
+        "allow": [],
+        "feature_gated": {},
+        "deny": []
+      }
+    },
+    "wetware": {
+      "config_version": 2,
+      "profile": "wetware",
+      "context_root": "docs/context",
+      "ticket_root": "docs/tickets",
+      "ticket_layout": "flat",
+      "ticket_format": "ctxa-canonical-v1",
+      "legacy_ticket_reader": null,
+      "source_reference_mode": "ctxa-spec-id",
+      "spec_root": "docs/specs",
+      "pack_root": "docs/ticket-packs",
+      "pack_style": "markdown-file",
+      "workflow_root": "docs/workflows",
+      "generated_root": "docs/context/generated",
+      "allow_outside_repo": true,
+      "package_manager": "pnpm",
+      "ticket_status_command": null,
+      "recommended_validation": [
+        "npx pnpm@10.34.4 test",
+        "npx pnpm@10.34.4 typecheck",
+        "npx pnpm@10.34.4 lint",
+        "npx pnpm@10.34.4 build"
+      ],
+      "preserved_ticket_system": "flat Wetware docs/tickets markdown",
+      "normative_spec_files": [],
+      "command_policy": {
+        "mode": "all",
+        "allow": [],
+        "feature_gated": {},
+        "deny": []
+      }
+    },
+    "astrotechne-web": {
+      "config_version": 2,
+      "profile": "astrotechne-web",
+      "context_root": "docs/context",
+      "ticket_root": "docs/domain-redesign/tickets",
+      "ticket_layout": "pack-directories",
+      "ticket_format": "ctxa-canonical-v1",
+      "legacy_ticket_reader": null,
+      "source_reference_mode": "ctxa-spec-id",
+      "spec_root": "docs/specs",
+      "pack_root": "docs/domain-redesign/tickets",
+      "pack_style": "directory-readme",
+      "workflow_root": "docs/workflows",
+      "generated_root": "docs/context/generated",
+      "allow_outside_repo": true,
+      "package_manager": "npm",
+      "ticket_status_command": "npm run tickets:status",
+      "recommended_validation": [
+        "npm run tickets:status",
+        "npx biome check",
+        "npm run build"
+      ],
+      "preserved_ticket_system": "Astrotechne domain-redesign ticket tree",
+      "normative_spec_files": [],
+      "command_policy": {
+        "mode": "all",
+        "allow": [],
+        "feature_gated": {},
+        "deny": []
+      }
+    },
+    "astrotechne-engine": {
+      "config_version": 2,
+      "profile": "astrotechne-engine",
+      "context_root": "docs/context",
+      "ticket_root": "docs/tickets",
+      "ticket_layout": "status-directories",
+      "ticket_format": "ctxa-canonical-v1",
+      "legacy_ticket_reader": null,
+      "source_reference_mode": "ctxa-spec-id",
+      "spec_root": "docs/specs",
+      "pack_root": "docs/ticket-packs",
+      "pack_style": "markdown-file",
+      "workflow_root": "docs/workflows",
+      "generated_root": "docs/context/generated",
+      "allow_outside_repo": true,
+      "package_manager": "cargo+npm",
+      "ticket_status_command": null,
+      "recommended_validation": [
+        "cargo fmt --all --check",
+        "cargo test --workspace",
+        "npm run validate:traditional-semantic-map"
+      ],
+      "preserved_ticket_system": "Astrotechne engine docs/tickets markdown",
+      "normative_spec_files": [],
+      "command_policy": {
+        "mode": "all",
+        "allow": [],
+        "feature_gated": {},
+        "deny": []
+      }
+    },
+    "vakos": {
+      "config_version": 2,
+      "profile": "vakos",
+      "context_root": "docs/context",
+      "ticket_root": "tickets",
+      "ticket_layout": "flat",
+      "ticket_format": "canonical-frontmatter-vakos-v1",
+      "legacy_ticket_reader": "vakos-body-status-v1",
+      "source_reference_mode": "repo-relative-normative-file",
+      "spec_root": null,
+      "pack_root": "docs/ticket-packs",
+      "pack_style": "flat-markdown-file",
+      "workflow_root": "docs/workflows",
+      "generated_root": "docs/context/generated",
+      "allow_outside_repo": false,
+      "package_manager": "cargo+npm",
+      "ticket_status_command": "ctxa ticket check --repo . --profile vakos --json",
+      "recommended_validation": [
+        "cargo fmt --all -- --check",
+        "cargo test --workspace --all-targets",
+        "cargo clippy --workspace --all-targets -- -D warnings",
+        "npm --prefix apps/shell/ui run build",
+        "nix flake check --no-write-lock-file",
+        "git diff --check"
+      ],
+      "preserved_ticket_system": "vakOS flat root tickets with read-only legacy support",
+      "normative_spec_files": [
+        "PROJECT_BRIEF.md",
+        "ARCHITECTURE.md",
+        "ALPHA_SPEC.md",
+        "MOTION_SPEC.md",
+        "COMPOSITOR_SPEC.md",
+        "SYSTEM_INTEGRATION_SPEC.md",
+        "CTX_AIDE_SPEC.md"
+      ],
+      "command_policy": {
+        "mode": "allowlist",
+        "allow": [
+          "command.manifest",
+          "schema.list",
+          "schema.get",
+          "adoption.status",
+          "adoption.bootstrap",
+          "adoption.context",
+          "adoption.ticket",
+          "adoption.implementation-plan",
+          "lint",
+          "scan",
+          "query",
+          "impact",
+          "export-agent",
+          "tools.policy",
+          "tools.check",
+          "ticket.check",
+          "pack.check",
+          "settings.set"
+        ],
+        "feature_gated": {
+          "feedback.plan": "screenshot_feedback_review_ui",
+          "feedback.review": "screenshot_feedback_review_ui",
+          "feedback.review-ui": "screenshot_feedback_review_ui",
+          "feedback.capture": "screenshot_feedback_review_ui"
+        },
+        "deny": [
+          "credentials.check",
+          "credentials.import-browser-state",
+          "dependency.audit",
+          "pr.preflight"
+        ]
+      }
+    }
+  },
+  "detection": [
+    {
+      "profile": "vakos",
+      "required_paths": ["CTX_AIDE_SPEC.md", "flake.nix", "tickets"]
+    },
+    {
+      "profile": "astrotechne-web",
+      "required_paths": ["docs/domain-redesign/tickets"]
+    },
+    {
+      "profile": "astrotechne-engine",
+      "basename_includes": "astrotechne",
+      "required_paths": ["Cargo.toml"]
+    },
+    {
+      "profile": "wetware",
+      "basename_includes": "wetware",
+      "required_paths": []
+    }
+  ]
+}
