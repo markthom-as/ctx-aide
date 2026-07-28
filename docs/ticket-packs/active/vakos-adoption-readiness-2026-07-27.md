@@ -53,7 +53,8 @@ are bounded and revision-linked.
 
 ## Tickets
 
-- `ticket.context.084`: ready.
+- `ticket.context.084`: done; command contracts, strict argv, pipe-safe output,
+  and atomic explicit generated writes are implemented.
 - `ticket.context.085`: ready; follows 084.
 - `ticket.context.086`: ready; follows 085.
 
@@ -88,7 +89,6 @@ are bounded and revision-linked.
 
 ## Completion
 
-- Completed tickets: none.
-- Remaining tickets: `ticket.context.084`, `ticket.context.085`,
-  `ticket.context.086`.
+- Completed tickets: `ticket.context.084`.
+- Remaining tickets: `ticket.context.085`, `ticket.context.086`.
 - Final validation: pending.

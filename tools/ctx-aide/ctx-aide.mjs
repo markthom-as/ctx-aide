@@ -17,6 +17,7 @@ import {
   formatTopLevelHelp,
   groupHelpResult,
   topLevelHelpResult,
+  validateInvocation,
 } from "./command-catalog.mjs";
 
 const root = process.cwd();
@@ -409,6 +410,20 @@ function resolveRepoWritePath(repoPath, candidate, options = {}) {
     };
   }
   return { ok: true, path: resolved };
+}
+
+function atomicWriteFileSync(targetPath, contents) {
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  const temporaryPath = path.join(
+    path.dirname(targetPath),
+    `.${path.basename(targetPath)}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`,
+  );
+  try {
+    fs.writeFileSync(temporaryPath, contents, { flag: "wx" });
+    fs.renameSync(temporaryPath, targetPath);
+  } finally {
+    fs.rmSync(temporaryPath, { force: true });
+  }
 }
 
 function parseCommandLine(commandText) {
@@ -2835,11 +2850,10 @@ function manifestFor(entries) {
   };
 }
 
-function writeGeneratedManifest(manifest) {
+function writeGeneratedManifest(manifest, options = {}) {
   const outDir = path.join(root, "docs/context/generated");
-  fs.mkdirSync(outDir, { recursive: true });
   const outPath = path.join(outDir, "context-manifest.json");
-  fs.writeFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  if (options.write) atomicWriteFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
   return path.relative(root, outPath);
 }
 
@@ -2852,14 +2866,18 @@ function sqlJson(value) {
   return sqlString(JSON.stringify(value));
 }
 
-function writeSqliteIndex(entries) {
+function writeSqliteIndex(entries, options = {}) {
   if (!commandExists("sqlite3")) {
     return { path: null, warning: "sqlite3 is unavailable; skipped SQLite index generation" };
   }
   const outDir = path.join(root, "docs/context/generated");
-  fs.mkdirSync(outDir, { recursive: true });
   const dbPath = path.join(outDir, "context.sqlite");
-  fs.rmSync(dbPath, { force: true });
+  if (!options.write) return { path: path.relative(root, dbPath), warning: null };
+  fs.mkdirSync(outDir, { recursive: true });
+  const temporaryPath = path.join(
+    outDir,
+    `.context.sqlite.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`,
+  );
   const statements = [
     "pragma journal_mode = delete;",
     "create table context_entries (id text primary key, kind text not null, status text not null, title text not null, markdown_path text not null, summary text, updated text, frontmatter_json text not null);",
@@ -2912,22 +2930,30 @@ function writeSqliteIndex(entries) {
       `insert into context_fts (id, title, kind, body, tags) values (${sqlString(entry.id)}, ${sqlString(entry.title)}, ${sqlString(entry.kind)}, ${sqlString(entry.body)}, ${sqlString(entry.tags.join(" "))});`,
     );
   }
-  execFileSync("sqlite3", [dbPath], {
-    input: `${statements.join("\n")}\n`,
-    encoding: "utf8",
-    stdio: ["pipe", "pipe", "pipe"],
-  });
+  try {
+    execFileSync("sqlite3", [temporaryPath], {
+      input: `${statements.join("\n")}\n`,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    fs.renameSync(temporaryPath, dbPath);
+  } finally {
+    fs.rmSync(temporaryPath, { force: true });
+  }
   return { path: path.relative(root, dbPath), warning: null };
 }
 
 function scan() {
+  const write = args.includes("--write");
   const entries = readContextEntries();
   const manifest = manifestFor(entries);
-  const manifestPath = writeGeneratedManifest(manifest);
-  const sqlite = writeSqliteIndex(entries);
+  const manifestPath = writeGeneratedManifest(manifest, { write });
+  const sqlite = writeSqliteIndex(entries, { write });
   return {
     ok: true,
     scope: "scan",
+    write,
+    dry_run: !write,
     manifest_path: manifestPath,
     sqlite_path: sqlite.path,
     entry_count: entries.length,
@@ -3069,6 +3095,7 @@ function agentPackMarkdown(agent, entries) {
 }
 
 function exportAgent() {
+  const write = args.includes("--write");
   const agent = argValue("--agent", "codex");
   const defaultOut = {
     codex: "docs/context/generated/agent-pack.codex.md",
@@ -3093,11 +3120,12 @@ function exportAgent() {
       errors: [{ file: outPath.file, message: outPath.message }],
     };
   }
-  fs.mkdirSync(path.dirname(outPath.path), { recursive: true });
-  fs.writeFileSync(outPath.path, agentPackMarkdown(agent, entries));
+  if (write) atomicWriteFileSync(outPath.path, agentPackMarkdown(agent, entries));
   return {
     ok: true,
     scope: "export-agent",
+    write,
+    dry_run: !write,
     agent,
     out: displayPath(outPath.path),
     entry_count: entries.length,
@@ -5247,10 +5275,19 @@ function printResult(result) {
       process.stderr.write(`${error.file}: ${error.message}\n`);
     }
   }
-  process.exit(result.ok ? 0 : 1);
+  process.exitCode = result.ok ? 0 : 1;
 }
 
-if (command === "lint") {
+const invocation = validateInvocation(args);
+
+if (!invocation.ok) {
+  printResult({
+    ok: false,
+    scope: "invocation",
+    command: invocation.command?.id ?? null,
+    errors: invocation.errors.map((error) => ({ file: "argv", ...error })),
+  });
+} else if (command === "lint") {
   printResult(runChecks("lint"));
 } else if (command === "doctor") {
   printResult(doctor());
@@ -5326,9 +5363,10 @@ if (command === "lint") {
   const result = setupCommand();
   if (result.help && !json) {
     process.stdout.write(result.text);
-    process.exit(0);
+    process.exitCode = 0;
+  } else {
+    printResult(result);
   }
-  printResult(result);
 } else if (command === "adoption" && subcommand === "status") {
   printResult(adoptionStatus());
 } else if (command === "adoption" && subcommand === "bootstrap") {
@@ -5381,5 +5419,5 @@ if (command === "lint") {
   } else {
     process.stderr.write(formatTopLevelHelp());
   }
-  process.exit(result.ok ? 0 : 1);
+  process.exitCode = result.ok ? 0 : 1;
 }

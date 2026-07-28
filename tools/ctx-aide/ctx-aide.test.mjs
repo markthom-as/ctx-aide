@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {
   buildScreenshotReviewState,
@@ -57,6 +57,37 @@ function run(args, options = {}) {
   }
 }
 
+async function pipeJson(args, expectedExitCode) {
+  const producer = spawn(process.execPath, [ctxAide, ...args, "--json"], {
+    cwd: fixture,
+    env: process.env,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const parser = spawn(process.execPath, [
+    "-e",
+    "let s='';process.stdin.setEncoding('utf8');process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const value=JSON.parse(s);process.stdout.write(JSON.stringify({ok:value.ok,scope:value.scope,bytes:Buffer.byteLength(s)}))})",
+  ], { stdio: ["pipe", "pipe", "pipe"] });
+  producer.stdout.pipe(parser.stdin);
+  let producerStderr = "";
+  let parserStdout = "";
+  let parserStderr = "";
+  producer.stderr.setEncoding("utf8");
+  parser.stdout.setEncoding("utf8");
+  parser.stderr.setEncoding("utf8");
+  producer.stderr.on("data", (chunk) => { producerStderr += chunk; });
+  parser.stdout.on("data", (chunk) => { parserStdout += chunk; });
+  parser.stderr.on("data", (chunk) => { parserStderr += chunk; });
+  const [producerExitCode, parserExitCode] = await Promise.all([
+    new Promise((resolve) => producer.on("close", resolve)),
+    new Promise((resolve) => parser.on("close", resolve)),
+  ]);
+  assert.equal(producerExitCode, expectedExitCode, producerStderr);
+  assert.equal(producerStderr, "");
+  assert.equal(parserExitCode, 0, parserStderr);
+  assert.equal(parserStderr, "");
+  return JSON.parse(parserStdout);
+}
+
 const helpOutput = execFileSync(process.execPath, [ctxAide, "--help"], {
   cwd: fixture,
   encoding: "utf8",
@@ -98,12 +129,42 @@ assert.equal(adoptionJsonHelp.scope, "help adoption");
 assert.equal(adoptionJsonHelp.commands.some((entry) => entry.id === "setup" && entry.mutating === true), true);
 const commandManifest = run(["command", "manifest"]);
 assert.equal(commandManifest.ok, true);
-assert.equal(commandManifest.manifest_version, 1);
+assert.equal(commandManifest.manifest_version, 2);
 assert.equal(commandManifest.groups.some((group) => group.id === "adoption"), true);
 assert.equal(commandManifest.groups.some((group) => group.id === "skills"), true);
 assert.equal(commandManifest.commands.some((entry) => entry.id === "command.manifest" && entry.mutating === false), true);
 assert.equal(commandManifest.commands.some((entry) => entry.id === "setup" && entry.required_flags.includes("--repo")), true);
 assert.equal(commandManifest.commands.some((entry) => entry.id === "skills.inventory" && entry.mutating === false), true);
+assert.equal(commandManifest.commands.some((entry) => entry.id === "pr.preflight"), true);
+assert.equal(commandManifest.commands.every((entry) => Array.isArray(entry.options)), true);
+assert.equal(commandManifest.commands.every((entry) => entry.effect && entry.output && entry.bounds), true);
+assert.equal(new Set(commandManifest.commands.map((entry) => entry.id)).size, commandManifest.commands.length);
+assert.equal(commandManifest.commands.every((entry) => new Set(entry.options.map((option) => option.name)).size === entry.options.length), true);
+assert.equal(commandManifest.commands.every((entry) => entry.output.schema_id === `ctxa.${entry.id}/v1`), true);
+const scanManifestEntry = commandManifest.commands.find((entry) => entry.id === "scan");
+assert.equal(scanManifestEntry.effect.requires_write, true);
+assert.equal(scanManifestEntry.options.some((option) => option.name === "--write" && option.kind === "flag"), true);
+
+const pipedManifest = await pipeJson(["command", "manifest"], 0);
+assert.equal(pipedManifest.ok, true);
+assert.equal(pipedManifest.scope, "command manifest");
+assert.equal(pipedManifest.bytes > 65536, true);
+const pipedFailure = await pipeJson(["tools", "policy", "--capability", "tool.ctxa", `--${"x".repeat(70000)}`], 1);
+assert.equal(pipedFailure.ok, false);
+assert.equal(pipedFailure.scope, "invocation");
+assert.equal(pipedFailure.bytes > 65536, true);
+
+const unknownOption = run(["tools", "policy", "--capability", "tool.ctxa", "--definitely-unknown"], { allowFailure: true });
+assert.equal(unknownOption.ok, false);
+assert.equal(unknownOption.errors[0].code, "unknown-option");
+const wrongCommandOption = run(["lint", "--repo", "."], { allowFailure: true });
+assert.equal(wrongCommandOption.errors[0].code, "unknown-option");
+const duplicateOption = run(["tools", "policy", "--capability", "tool.ctxa", "--capability", "tool.ctxa"], { allowFailure: true });
+assert.equal(duplicateOption.errors.some((error) => error.code === "duplicate-option"), true);
+const invalidOptionValue = run(["query", "--path", "src", "--task", "test", "--agent", "other"], { allowFailure: true });
+assert.equal(invalidOptionValue.errors[0].code, "invalid-option-value");
+const missingOptionValue = run(["query", "--path", "src", "--task"], { allowFailure: true });
+assert.equal(missingOptionValue.errors.some((error) => error.code === "missing-option-value"), true);
 
 write("docs/context/routes/context-lab.md", `---
 id: route.context-lab
@@ -164,18 +225,26 @@ write("src/auth.js", "export function authenticateUser() { return true; }\n");
 
 const scan = run(["scan"]);
 assert.equal(scan.ok, true);
+assert.equal(scan.dry_run, true);
 assert.equal(scan.entry_count, 1);
 assert.equal(scan.entries[0].id, "route.context-lab");
+assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/context-manifest.json")), false);
+const writtenScan = run(["scan", "--write"]);
+assert.equal(writtenScan.ok, true);
+assert.equal(writtenScan.write, true);
 assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/context-manifest.json")), true);
 if (commandExists("sqlite3")) {
-  assert.equal(scan.sqlite_path, "docs/context/generated/context.sqlite");
+  assert.equal(writtenScan.sqlite_path, "docs/context/generated/context.sqlite");
   assert.equal(fs.existsSync(path.join(fixture, "docs/context/generated/context.sqlite")), true);
 }
 
-const manifest = JSON.parse(fs.readFileSync(path.join(fixture, scan.manifest_path), "utf8"));
+const manifestContents = fs.readFileSync(path.join(fixture, writtenScan.manifest_path), "utf8");
+const manifest = JSON.parse(manifestContents);
 assert.equal(manifest.entries.length, 1);
 assert.equal(manifest.entries[0].id, "route.context-lab");
 assert.equal(manifest.entries.some((entry) => entry.id === "route.ignored"), false);
+run(["scan", "--write"]);
+assert.equal(fs.readFileSync(path.join(fixture, writtenScan.manifest_path), "utf8"), manifestContents);
 
 const query = run([
   "query",
@@ -212,13 +281,26 @@ assert.equal(fixtureLint.ok, true);
 
 const codexPack = run(["export-agent", "--agent", "codex"]);
 assert.equal(codexPack.ok, true);
+assert.equal(codexPack.dry_run, true);
 assert.equal(codexPack.out, "docs/context/generated/agent-pack.codex.md");
-assert.equal(fs.existsSync(path.join(fixture, codexPack.out)), true);
+assert.equal(fs.existsSync(path.join(fixture, codexPack.out)), false);
+const writtenCodexPack = run(["export-agent", "--agent", "codex", "--write"]);
+assert.equal(writtenCodexPack.write, true);
+assert.equal(fs.existsSync(path.join(fixture, writtenCodexPack.out)), true);
+const codexPackContents = fs.readFileSync(path.join(fixture, writtenCodexPack.out), "utf8");
+run(["export-agent", "--agent", "codex", "--write"]);
+assert.equal(fs.readFileSync(path.join(fixture, writtenCodexPack.out), "utf8"), codexPackContents);
 
 const cursorPack = run(["export-agent", "--agent", "cursor"]);
 assert.equal(cursorPack.ok, true);
 assert.equal(cursorPack.out, ".cursor/rules/generated/ctx-aide.mdc");
+assert.equal(fs.existsSync(path.join(fixture, cursorPack.out)), false);
+run(["export-agent", "--agent", "cursor", "--write"]);
 assert.equal(fs.existsSync(path.join(fixture, cursorPack.out)), true);
+assert.deepEqual(
+  fs.readdirSync(path.join(fixture, "docs/context/generated")).filter((name) => name.endsWith(".tmp")),
+  [],
+);
 
 const componentList = run(["components", "list"]);
 assert.equal(componentList.ok, true);

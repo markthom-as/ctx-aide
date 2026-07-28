@@ -1,6 +1,6 @@
 ---
 id: ticket.context.084
-status: ready
+status: done
 title: Harden the agent command contract
 ticket_pack: pack.vakos-adoption-readiness-2026-07-27
 milestones:
@@ -45,8 +45,8 @@ validation:
     - node tools/ctx-aide/ctx-aide.mjs command manifest --json
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-27
 ---
 
 # Harden The Agent Command Contract
@@ -136,7 +136,10 @@ pipe alive.
 
 ## Completion
 
-- Status: ready.
-- Commit: pending.
-- Verification evidence: pending.
+- Status: done.
+- Commit: current-change.
+- Verification evidence: syntax checks, full CLI regression suite, real
+  producer-to-parser success/failure pipes above 64 KiB, command/spec/ticket/
+  pack checks, dry-run/write assertions, atomic retry assertions, and strict
+  option error assertions all pass.
 - Follow-up tickets: 085 and 086.

@@ -1,6 +1,257 @@
-const commandCatalogVersion = 1;
+const commandCatalogVersion = 2;
+
+const valueOption = (name, valueType = "string", options = {}) => ({
+  name,
+  kind: "value",
+  value_type: valueType,
+  repeatable: false,
+  ...options,
+});
+
+const flagOption = (name, options = {}) => ({
+  name,
+  kind: "flag",
+  repeatable: false,
+  ...options,
+});
+
+const commonOptions = [
+  flagOption("--json"),
+  flagOption("--help"),
+  flagOption("-h"),
+];
+
+const repo = valueOption("--repo", "path");
+const write = flagOption("--write");
+const force = flagOption("--force");
+const allowOutsideRepo = flagOption("--allow-outside-repo");
+const profile = valueOption("--profile");
+
+const commandContracts = {
+  lint: {},
+  doctor: {},
+  init: { options: [force], effect: "repo-scaffold" },
+  scan: { options: [write], effect: "generated-context-index", requires_write: true },
+  query: {
+    options: [
+      valueOption("--path", "path"),
+      valueOption("--task"),
+      valueOption("--agent", "enum", { values: ["codex", "claude", "cursor"] }),
+      valueOption("--budget", "integer", { minimum: 300, maximum: 1000000 }),
+    ],
+    max_result_items: 20,
+  },
+  "export-agent": {
+    options: [
+      valueOption("--agent", "enum", { values: ["codex", "claude", "cursor"] }),
+      valueOption("--out", "path"),
+      allowOutsideRepo,
+      write,
+    ],
+    effect: "generated-agent-pack",
+    requires_write: true,
+  },
+  "command.manifest": {},
+  "components.list": {},
+  "components.get": { positionals: { minimum: 1, maximum: 1, names: ["component-id"] } },
+  impact: { options: [valueOption("--path", "path", { repeatable: true }), valueOption("--changed", "path"), valueOption("--task")] },
+  "run.status": { positionals: { minimum: 1, maximum: 1, names: ["run-file"] } },
+  "idvisor.workflow": {},
+  customize: {
+    options: [
+      profile,
+      flagOption("--dry-run"),
+      write,
+      valueOption("--out", "path"),
+      allowOutsideRepo,
+    ],
+    effect: "profile-config",
+    requires_write: true,
+  },
+  discover: {
+    options: [
+      valueOption("--backend", "enum", { values: ["semble", "ripgrep", "none"] }),
+      valueOption("--task"),
+      repo,
+      valueOption("--limit", "integer", { minimum: 1, maximum: 100 }),
+      valueOption("--out", "path"),
+      allowOutsideRepo,
+    ],
+    effect: "optional-discovery-result",
+  },
+  "dependency.audit": {
+    options: [repo, valueOption("--command"), valueOption("--out", "path"), flagOption("--shell"), allowOutsideRepo],
+    effect: "optional-audit-result",
+  },
+  loc: { options: [repo, valueOption("--config", "path"), valueOption("--limit", "integer", { minimum: 1, maximum: 1000 })] },
+  "loc.check": {
+    options: [
+      repo,
+      valueOption("--config", "path"),
+      valueOption("--limit", "integer", { minimum: 1, maximum: 1000 }),
+      valueOption("--target-id"),
+      valueOption("--path", "path", { repeatable: true }),
+      valueOption("--extension", "string", { repeatable: true }),
+      valueOption("--line-kind", "enum", { values: ["total_lines", "nonblank_lines"] }),
+      valueOption("--min-lines", "integer", { minimum: 0 }),
+      valueOption("--max-lines", "integer", { minimum: 0 }),
+      valueOption("--target-lines", "integer", { minimum: 0 }),
+      valueOption("--tolerance-lines", "integer", { minimum: 0 }),
+    ],
+  },
+  "tools.list": { options: [repo, valueOption("--config", "path"), valueOption("--capability", "string", { repeatable: true })] },
+  "tools.policy": {
+    options: [repo, valueOption("--config", "path"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability")],
+  },
+  "tools.check": {
+    options: [repo, valueOption("--config", "path"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability")],
+  },
+  "workflow.deps": {
+    options: [
+      valueOption("--workflow"),
+      repo,
+      write,
+      flagOption("--init-package"),
+      valueOption("--package-manager", "enum", { values: ["npm", "pnpm", "yarn", "bun"] }),
+      valueOption("--out", "path"),
+      allowOutsideRepo,
+    ],
+    effect: "workflow-dependency-files",
+    requires_write: true,
+  },
+  "workflow.views": { options: [valueOption("--workflow"), repo] },
+  "workflow.validation-plan": { options: [valueOption("--workflow"), repo, valueOption("--config", "path")] },
+  "pr.preflight": { options: [repo, valueOption("--pr"), flagOption("--allow-dirty")] },
+  "settings.get": { options: [repo] },
+  "settings.set": {
+    options: [repo, valueOption("--feature"), valueOption("--enabled", "boolean"), flagOption("--enable"), flagOption("--disable"), write],
+    effect: "settings-file",
+    requires_write: true,
+  },
+  "skills.inventory": { options: [repo] },
+  "skills.check": { options: [repo] },
+  "feedback.plan": {
+    options: [repo, valueOption("--ticket", "path"), valueOption("--body"), valueOption("--feedback"), valueOption("--file", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--artifact", "path", { repeatable: true }), valueOption("--screenshot", "path", { repeatable: true })],
+  },
+  "feedback.review": {
+    options: [repo, valueOption("--ticket", "path"), valueOption("--screenshot", "path", { repeatable: true }), valueOption("--artifact", "path", { repeatable: true }), valueOption("--url", "string", { repeatable: true }), valueOption("--file", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--out", "path"), allowOutsideRepo],
+  },
+  "feedback.review-ui": {
+    options: [
+      repo,
+      valueOption("--run-dir", "path"),
+      valueOption("--summary", "path"),
+      valueOption("--screenshot-dir", "path"),
+      valueOption("--feedback-dir", "path"),
+      valueOption("--ticket-dir", "path"),
+      valueOption("--ticket-pack"),
+      valueOption("--milestone"),
+      valueOption("--port", "integer", { minimum: 0, maximum: 65535 }),
+      flagOption("--allow-beta"),
+      flagOption("--beta"),
+      flagOption("--plan-only"),
+      flagOption("--write-drafts"),
+    ],
+    effect: "local-review-session-or-drafts",
+  },
+  "feedback.capture": {
+    options: [
+      repo,
+      valueOption("--ticket", "path"),
+      valueOption("--title"),
+      valueOption("--body"),
+      valueOption("--feedback"),
+      valueOption("--slug"),
+      valueOption("--id"),
+      valueOption("--severity"),
+      valueOption("--screenshot", "path", { repeatable: true }),
+      valueOption("--artifact", "path", { repeatable: true }),
+      valueOption("--url", "string", { repeatable: true }),
+      valueOption("--route", "string", { repeatable: true }),
+      valueOption("--file", "path", { repeatable: true }),
+      valueOption("--component", "string", { repeatable: true }),
+      valueOption("--flow", "string", { repeatable: true }),
+      valueOption("--out", "path"),
+      valueOption("--promotion-target"),
+      valueOption("--regression-risk"),
+      allowOutsideRepo,
+      write,
+      force,
+    ],
+    effect: "feedback-markdown",
+    requires_write: true,
+  },
+  "feedback.promote": {
+    options: [
+      repo,
+      valueOption("--feedback"),
+      valueOption("--ticket", "path"),
+      valueOption("--mode", "enum", { values: ["acceptance-criteria", "follow-up-ticket"] }),
+      valueOption("--title"),
+      valueOption("--criterion"),
+      valueOption("--status"),
+      valueOption("--slug"),
+      valueOption("--out", "path"),
+      valueOption("--id"),
+      valueOption("--pack"),
+      valueOption("--milestone"),
+      valueOption("--parallel-group"),
+      allowOutsideRepo,
+      write,
+      force,
+    ],
+    effect: "ticket-markdown",
+    requires_write: true,
+  },
+  "credentials.check": {
+    options: [repo, profile, valueOption("--env"), valueOption("--env-file", "path"), valueOption("--storage-state", "path")],
+  },
+  "credentials.import-browser-state": {
+    options: [repo, profile, valueOption("--from", "path"), valueOption("--from-browser-export", "path"), valueOption("--out", "path"), allowOutsideRepo, write, force],
+    effect: "browser-storage-state",
+    requires_write: true,
+  },
+  setup: {
+    options: [repo, profile, flagOption("--no-input"), write, flagOption("--yes"), force, flagOption("--enable-screenshot-feedback-ui")],
+    effect: "adoption-scaffold",
+    requires_write: true,
+  },
+  "adoption.status": { options: [repo, profile] },
+  "adoption.bootstrap": {
+    options: [repo, profile, write, force, flagOption("--enable-screenshot-feedback-ui")],
+    effect: "adoption-scaffold",
+    requires_write: true,
+  },
+  "adoption.pack": {
+    options: [repo, profile, valueOption("--title"), valueOption("--task"), valueOption("--slug"), valueOption("--id"), valueOption("--milestone"), valueOption("--validation", "string", { repeatable: true }), valueOption("--outcome"), valueOption("--scope"), write, force],
+    effect: "ticket-pack-markdown",
+    requires_write: true,
+  },
+  "adoption.context": {
+    options: [repo, profile, valueOption("--kind"), valueOption("--title"), valueOption("--path", "path", { repeatable: true }), valueOption("--task"), valueOption("--id"), valueOption("--slug"), valueOption("--status"), valueOption("--route", "string", { repeatable: true }), valueOption("--file", "path", { repeatable: true }), valueOption("--component", "string", { repeatable: true }), valueOption("--flow", "string", { repeatable: true }), valueOption("--task-term", "string", { repeatable: true }), valueOption("--positive-rule", "string", { repeatable: true }), valueOption("--negative-rule", "string", { repeatable: true }), write, force],
+    effect: "context-markdown",
+    requires_write: true,
+  },
+  "adoption.ticket": {
+    options: [repo, profile, valueOption("--pack"), valueOption("--pack-slug"), valueOption("--title"), valueOption("--task"), valueOption("--slug"), valueOption("--id"), valueOption("--milestone"), valueOption("--work-type"), valueOption("--parallel-group"), valueOption("--context", "string", { repeatable: true }), valueOption("--context-id", "string", { repeatable: true }), valueOption("--file", "path", { repeatable: true }), valueOption("--path", "path", { repeatable: true }), valueOption("--route", "string", { repeatable: true }), valueOption("--component", "string", { repeatable: true }), valueOption("--flow", "string", { repeatable: true }), valueOption("--validation", "string", { repeatable: true }), valueOption("--capability-workflow"), valueOption("--capability-step"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability", "string", { repeatable: true }), valueOption("--outcome"), write, force],
+    effect: "ticket-markdown",
+    requires_write: true,
+  },
+  "adoption.implementation-plan": {
+    options: [repo, valueOption("--ticket", "path"), valueOption("--capability-workflow"), valueOption("--capability-step"), valueOption("--workflow"), valueOption("--step"), valueOption("--capability", "string", { repeatable: true }), valueOption("--tools-config", "path"), valueOption("--limit", "integer", { minimum: 1, maximum: 100 }), flagOption("--include-body")],
+    max_result_items: 100,
+  },
+  "ticket.check": {},
+  "ticket.hydrate": { positionals: { minimum: 1, maximum: 1, names: ["ticket-file"] }, effect: "ticket-hydration" },
+  "pack.check": {},
+  "pack.status": { positionals: { minimum: 1, maximum: 1, names: ["pack-id"] } },
+  "spec.check": {},
+  "future.check": {},
+};
 
 function command(definition) {
+  const contract = commandContracts[definition.id];
+  if (!contract) throw new Error(`missing command contract for ${definition.id}`);
   return {
     json: true,
     mutating: false,
@@ -8,6 +259,27 @@ function command(definition) {
     required_flags: [],
     examples: [definition.usage],
     ...definition,
+    options: [...commonOptions, ...(contract.options ?? [])],
+    positionals: contract.positionals ?? { minimum: 0, maximum: 0, names: [] },
+    effect: {
+      class: contract.effect ?? (definition.mutating ? "declared-mutation" : "read-only"),
+      requires_write: Boolean(contract.requires_write),
+      write_flag: contract.requires_write ? "--write" : null,
+    },
+    bounds: {
+      timeout_ms: contract.timeout_ms ?? null,
+      max_stdout_bytes: contract.max_stdout_bytes ?? null,
+      max_result_items: contract.max_result_items ?? null,
+    },
+    output: {
+      json: definition.json !== false,
+      media_type: "application/json",
+      framing: "single-object-lf",
+      schema_id: `ctxa.${definition.id}/v1`,
+      success_exit_code: 0,
+      failure_exit_code: 1,
+      success_stderr: "empty",
+    },
   };
 }
 
@@ -49,10 +321,10 @@ export const commandGroups = [
       command({
         id: "scan",
         command: "scan",
-        usage: "ctxa scan --json",
+        usage: "ctxa scan --write --json",
         description: "Index markdown context into generated local artifacts.",
         mutating: true,
-        mutation_boundary: "writes generated context manifest and SQLite cache under docs/context/generated",
+        mutation_boundary: "dry-run by default; --write atomically replaces the generated manifest and SQLite cache under docs/context/generated",
       }),
       command({
         id: "query",
@@ -64,10 +336,10 @@ export const commandGroups = [
       command({
         id: "export-agent",
         command: "export-agent",
-        usage: "ctxa export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --json",
+        usage: "ctxa export-agent --agent codex --out docs/context/generated/agent-pack.codex.md --write --json",
         description: "Write generated agent context packs.",
         mutating: true,
-        mutation_boundary: "writes only to repo-contained output paths; outside paths require explicit allow-outside-repo handling where supported",
+        mutation_boundary: "dry-run by default; --write atomically writes only to repo-contained output paths; outside paths require --allow-outside-repo",
         required_flags: ["--agent"],
       }),
     ],
@@ -203,6 +475,12 @@ export const commandGroups = [
         usage: "ctxa workflow validation-plan --workflow workflow.browser-validation --repo . --json",
         description: "Build a validation readiness plan.",
         required_flags: ["--workflow"],
+      }),
+      command({
+        id: "pr.preflight",
+        command: "pr preflight",
+        usage: "ctxa pr preflight --repo . --pr 123 --json",
+        description: "Inspect local and GitHub pull-request readiness.",
       }),
       command({
         id: "settings.get",
@@ -372,7 +650,7 @@ export const commandGroups = [
         description: "Create a target repo implementation ticket.",
         mutating: true,
         mutation_boundary: "dry-run by default; requires --write to create target repo ticket markdown",
-        required_flags: ["--repo", "--title", "--task"],
+        required_flags: ["--repo", "--title"],
       }),
       command({
         id: "adoption.implementation-plan",
@@ -455,6 +733,118 @@ function publicCommand(commandEntry, group) {
     mutation_boundary: commandEntry.mutation_boundary,
     required_flags: commandEntry.required_flags,
     examples: commandEntry.examples,
+    options: commandEntry.options,
+    positionals: commandEntry.positionals,
+    effect: commandEntry.effect,
+    bounds: commandEntry.bounds,
+    output: commandEntry.output,
+  };
+}
+
+function invocationError(commandEntry, code, message, details = {}) {
+  return {
+    code,
+    command_id: commandEntry?.id ?? null,
+    message,
+    usage: commandEntry?.usage ?? "ctxa <command> [options]",
+    ...details,
+  };
+}
+
+function validateOptionValue(commandEntry, option, value) {
+  if (option.value_type === "integer") {
+    if (!/^-?\d+$/.test(value)) {
+      return invocationError(commandEntry, "invalid-option-value", `${option.name} requires an integer`, { option: option.name, value });
+    }
+    const parsed = Number.parseInt(value, 10);
+    if (option.minimum !== undefined && parsed < option.minimum) {
+      return invocationError(commandEntry, "invalid-option-value", `${option.name} must be at least ${option.minimum}`, { option: option.name, value });
+    }
+    if (option.maximum !== undefined && parsed > option.maximum) {
+      return invocationError(commandEntry, "invalid-option-value", `${option.name} must be at most ${option.maximum}`, { option: option.name, value });
+    }
+  }
+  if (option.value_type === "boolean" && !["true", "false", "1", "0", "yes", "no", "on", "off", "enabled", "disabled"].includes(value.toLowerCase())) {
+    return invocationError(commandEntry, "invalid-option-value", `${option.name} requires a boolean value`, { option: option.name, value });
+  }
+  if (option.values && !option.values.includes(value)) {
+    return invocationError(commandEntry, "invalid-option-value", `${option.name} must be one of: ${option.values.join(", ")}`, { option: option.name, value });
+  }
+  return null;
+}
+
+function resolveCommand(argv) {
+  return commandEntries()
+    .map((entry) => ({ entry, words: entry.command.split(" ") }))
+    .sort((left, right) => right.words.length - left.words.length)
+    .find(({ words }) => words.every((word, index) => argv[index] === word)) ?? null;
+}
+
+export function validateInvocation(argv) {
+  if (argv.length === 0 || argv[0] === "--help" || argv[0] === "-h" || argv[0] === "help") {
+    const helpFlags = new Set(["--json", "--help", "-h"]);
+    const unexpected = argv.filter((value, index) => value.startsWith("-") && !helpFlags.has(value));
+    return unexpected.length === 0
+      ? { ok: true, command: null, positionals: argv.filter((value, index) => index > 0 && !value.startsWith("-")), options: {} }
+      : { ok: false, command: null, errors: [invocationError(null, "unknown-option", `unknown option ${unexpected[0]}`, { option: unexpected[0] })] };
+  }
+  const resolved = resolveCommand(argv);
+  if (!resolved) {
+    return { ok: false, command: null, errors: [invocationError(null, "unknown-command", `unknown command: ${argv.filter((value) => !value.startsWith("-")).join(" ") || argv[0]}`)] };
+  }
+  const { entry, words } = resolved;
+  const optionByName = new Map(entry.options.map((option) => [option.name, option]));
+  const seen = new Map();
+  const positionals = [];
+  const errors = [];
+  for (let index = words.length; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (!token.startsWith("-")) {
+      positionals.push(token);
+      continue;
+    }
+    const option = optionByName.get(token);
+    if (!option) {
+      errors.push(invocationError(entry, "unknown-option", `unknown option ${token} for ${entry.command}`, { option: token }));
+      continue;
+    }
+    const count = (seen.get(token) ?? 0) + 1;
+    seen.set(token, count);
+    if (count > 1 && !option.repeatable) {
+      errors.push(invocationError(entry, "duplicate-option", `duplicate option ${token}`, { option: token }));
+    }
+    if (option.kind === "value") {
+      const value = argv[index + 1];
+      if (value === undefined || value.startsWith("--")) {
+        errors.push(invocationError(entry, "missing-option-value", `${token} requires a value`, { option: token }));
+        continue;
+      }
+      index += 1;
+      const valueError = validateOptionValue(entry, option, value);
+      if (valueError) errors.push(valueError);
+    }
+  }
+  if (positionals.length < entry.positionals.minimum || positionals.length > entry.positionals.maximum) {
+    errors.push(invocationError(
+      entry,
+      "invalid-positionals",
+      `expected ${entry.positionals.minimum === entry.positionals.maximum ? entry.positionals.minimum : `${entry.positionals.minimum}-${entry.positionals.maximum}`} positional argument(s), received ${positionals.length}`,
+      { positionals },
+    ));
+  }
+  if (!seen.has("--help") && !seen.has("-h")) {
+    for (const required of entry.required_flags.filter((value) => value.startsWith("--"))) {
+      if (!seen.has(required)) {
+        errors.push(invocationError(entry, "missing-required-option", `missing required option ${required}`, { option: required }));
+      }
+    }
+  }
+  return {
+    ok: errors.length === 0,
+    command: entry,
+    positionals,
+    options: Object.fromEntries(seen),
+    errors,
   };
 }
 
