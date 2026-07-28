@@ -14,6 +14,7 @@ ui_review_agent: claude-high-effort
 parallel_group: distribution
 depends_on:
   - ticket.context.089
+  - ticket.context.090
 blocks: []
 scope:
   routes: []
@@ -59,11 +60,9 @@ the checkout or guessing at license and cache permissions.
 
 ## Context
 
-The active checkout has no Git remote and package metadata declares
-UNLICENSED. vakOS therefore cannot commit a reachable flake input, publish a
-binary cache artifact, or describe shared developer use truthfully. The CLI
-runtime itself is dependency-light and already has the command, profile, and
-provenance behavior required by vakOS.
+The public MIT source and repository now exist. This ticket records an exact
+green revision, its content identity, the tag and cache policy, and the minimal
+runtime inventory so vakOS does not have to infer a distribution contract.
 
 ## Positive Rules
 

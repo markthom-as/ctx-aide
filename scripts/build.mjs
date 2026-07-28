@@ -88,6 +88,23 @@ function runStep(name, command, stepArgs, options = {}) {
 const steps = [];
 const packagePath = path.join(root, "package.json");
 const pkg = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+const expectedPackedPaths = [
+  "LICENSE",
+  "README.md",
+  "docs/config/ctx-aide.adoption-profiles.json",
+  "docs/context/schema/adoption-profile-registry.schema.json",
+  "docs/context/schema/context-entry.schema.json",
+  "docs/context/schema/feedback-entry.schema.json",
+  "docs/context/schema/source-provenance.schema.json",
+  "docs/future-work/templates/future-work.md",
+  "docs/specs/templates/spec.md",
+  "docs/ticket-packs/templates/ticket-pack.md",
+  "docs/tickets/templates/canonical-ticket.md",
+  "package.json",
+  "tools/ctx-aide/command-catalog.mjs",
+  "tools/ctx-aide/ctx-aide.mjs",
+  "tools/ctx-aide/screenshot-review-ui.mjs",
+];
 if (pkg.name !== "ctx-aide") fail("package name must remain ctx-aide", { file: rel(packagePath) });
 if (JSON.stringify(Object.keys(pkg.bin ?? {})) !== JSON.stringify(["ctxa"])) {
   fail("package bin must expose exactly ctxa", { file: rel(packagePath) });
@@ -115,14 +132,22 @@ const packArgs = ["pack", "--json", "--pack-destination", rel(distDir)];
 if (hasArg("--dry-run")) packArgs.splice(1, 0, "--dry-run");
 const packStep = runStep(hasArg("--dry-run") ? "npm pack dry-run" : "npm pack", "npm", packArgs);
 let tarball = null;
+let packedPaths = [];
 if (packStep.stdout) {
   try {
     const parsed = JSON.parse(packStep.stdout);
     const fileName = parsed?.[0]?.filename ?? null;
     if (fileName) tarball = path.join(rel(distDir), fileName);
+    packedPaths = (parsed?.[0]?.files ?? []).map((file) => file.path).sort();
   } catch {
-    tarball = null;
+    fail("npm pack did not return parseable inventory metadata");
   }
+}
+if (JSON.stringify(packedPaths) !== JSON.stringify(expectedPackedPaths)) {
+  fail("npm pack runtime inventory does not match the frozen allowlist", {
+    expected: expectedPackedPaths,
+    actual: packedPaths,
+  });
 }
 
 const output = {
@@ -131,6 +156,7 @@ const output = {
   package: { name: pkg.name, version: pkg.version, bin: pkg.bin },
   artifact: hasArg("--dry-run") ? null : tarball,
   pack_destination: rel(distDir),
+  runtime_inventory: packedPaths,
   steps,
 };
 if (json) process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);

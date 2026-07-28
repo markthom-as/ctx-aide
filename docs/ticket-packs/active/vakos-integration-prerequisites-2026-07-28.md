@@ -7,6 +7,7 @@ milestones:
 source_specs:
   - spec.vakos-adoption-readiness-2026-07-27
 tickets:
+  - ticket.context.090
   - ticket.context.087
   - ticket.context.088
 run_policy:
@@ -17,6 +18,7 @@ run_policy:
 parallel_groups:
   distribution:
     tickets:
+      - ticket.context.090
       - ticket.context.087
   screenshot-security:
     tickets:
@@ -53,6 +55,8 @@ screenshot-feedback lifecycle.
 
 ## Tickets
 
+- ticket.context.090 freezes and tests the minimal alpha runtime package
+  inventory before a source revision is qualified.
 - ticket.context.087 decides and records the source, terms, caching posture, and
   package runtime inventory required for a reproducible Nix pin.
 - ticket.context.088 hardens the optional screenshot review UI before vakOS can
@@ -62,8 +66,9 @@ screenshot-feedback lifecycle.
 
 - The two tickets may proceed independently because their implementation files
   do not overlap materially.
-- Ticket 087 remains needs-questions until the repository owner chooses source
-  reachability and distribution terms.
+- Ticket 090 precedes ticket 087 so the qualified source already contains the
+  frozen runtime inventory.
+- Ticket 087 can proceed because public MIT source authority is now recorded.
 - Ticket 088 may land without waiting for publication or Nix packaging.
 - Keep each completed ticket in one focused commit and rerun full validation
   after both land.
@@ -87,6 +92,6 @@ screenshot-feedback lifecycle.
 
 ## Completion
 
-- Completed tickets: none.
+- Completed tickets: ticket.context.090.
 - Remaining tickets: ticket.context.087 and ticket.context.088.
 - Final validation: pending.

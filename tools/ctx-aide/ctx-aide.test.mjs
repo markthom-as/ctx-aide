@@ -25,7 +25,18 @@ assert.equal(packageJson.bin["ctx-aide"], undefined);
 assert.equal(packageJson.scripts.build, "node scripts/build.mjs");
 assert.equal(packageJson.scripts["install:local"], "node scripts/install-local.mjs");
 assert.equal(packageJson.scripts["install:global"], "node scripts/install-local.mjs --global");
-assert.equal(packageJson.files.includes("scripts/*.mjs"), true);
+assert.deepEqual(packageJson.files, [
+  "docs/config/ctx-aide.adoption-profiles.json",
+  "docs/context/schema/*.json",
+  "docs/future-work/templates/future-work.md",
+  "docs/specs/templates/spec.md",
+  "docs/ticket-packs/templates/ticket-pack.md",
+  "docs/tickets/templates/canonical-ticket.md",
+  "tools/ctx-aide/command-catalog.mjs",
+  "tools/ctx-aide/ctx-aide.mjs",
+  "tools/ctx-aide/screenshot-review-ui.mjs",
+]);
+assert.equal(packageJson.files.some((file) => file.includes("test")), false);
 assert.equal(execFileSync(process.execPath, [buildScript, "--help"], { encoding: "utf8" }).includes("--pack-destination <dir>"), true);
 assert.equal(execFileSync(process.execPath, [installScript, "--help"], { encoding: "utf8" }).includes("--prefix <path>"), true);
 
