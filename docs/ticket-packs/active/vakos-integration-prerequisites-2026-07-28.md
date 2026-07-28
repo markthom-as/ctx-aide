@@ -66,9 +66,8 @@ screenshot-feedback lifecycle.
 
 - The two tickets may proceed independently because their implementation files
   do not overlap materially.
-- Ticket 090 precedes ticket 087 so the qualified source already contains the
-  frozen runtime inventory.
-- Ticket 087 can proceed because public MIT source authority is now recorded.
+- Tickets 090 and 087 are done: the minimal runtime inventory is frozen and the
+  green public revision, tag, hashes, MIT/cache terms, and offline proof are recorded.
 - Ticket 088 may land without waiting for publication or Nix packaging.
 - Keep each completed ticket in one focused commit and rerun full validation
   after both land.
@@ -92,6 +91,6 @@ screenshot-feedback lifecycle.
 
 ## Completion
 
-- Completed tickets: ticket.context.090.
-- Remaining tickets: ticket.context.087 and ticket.context.088.
+- Completed tickets: ticket.context.090 and ticket.context.087.
+- Remaining tickets: ticket.context.088.
 - Final validation: pending.

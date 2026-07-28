@@ -1,6 +1,6 @@
 ---
 id: ticket.context.087
-status: needs-questions
+status: done
 title: Qualify the immutable source and distribution contract
 ticket_pack: pack.vakos-integration-prerequisites-2026-07-28
 milestones:
@@ -46,8 +46,8 @@ validation:
     - Build the package from the chosen immutable source in a clean temporary directory with lifecycle network access disabled.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: self
+  completed_at: 2026-07-28
 ---
 
 # Qualify The Immutable Source And Distribution Contract
@@ -94,15 +94,18 @@ runtime inventory so vakOS does not have to infer a distribution contract.
 - The runtime supports Node 20 or newer and requires no install-time download.
 - Expected infrastructure cost delta is $0/month unless a later, separately
   approved ticket chooses a paid registry or cache.
+- Public source is `markthom-as/ctx-aide` under MIT.
+- The authoritative alpha pin is full commit
+  `d440a524b52a9e5e5b624ffd937331bae659a937`; `v0.1.0-alpha.1` is discovery metadata only.
+- Downstream Nix caches are permitted under MIT, but no hosted cache is required or operated by CTX Aide.
 
 ## Implementation Rules
 
-- Required approach: obtain the owner decision, update authoritative package and
-  licensing metadata, document source/cache access, and freeze a reviewable
-  package runtime-file inventory.
+- Required approach: record the owner decision, immutable source identity,
+  source/cache access, and the reviewable runtime-file inventory.
 - Reuse npm pack dry-run and the current command/schema manifest tests.
-- Stop and escalate before any external publication, visibility change, or
-  license selection not explicitly authorized by the owner.
+- Stop and escalate before any new registry publication, hosted service, paid
+  cache, visibility change, or license change not explicitly authorized by the owner.
 
 ## Scope
 
@@ -133,7 +136,7 @@ runtime inventory so vakOS does not have to infer a distribution contract.
 
 ## Completion
 
-- Status: needs-questions.
-- Commit: pending.
-- Verification evidence: pending owner decision and clean-source proof.
+- Status: done.
+- Commit: self.
+- Verification evidence: the public source commit, tree, annotated tag, raw archive hash, derived package hash, MIT/cache terms, 15-file runtime inventory, green GitHub Actions run `30391660122`, and offline clean-clone build/install probes are recorded in `docs/distribution/ctx-aide-source.md`.
 - Follow-up tickets: vakOS Nix package and development-shell integration.

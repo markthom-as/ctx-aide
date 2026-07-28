@@ -181,6 +181,7 @@ Target repos bootstrapped by CTX Aide get their own config files. The source rep
 - `docs/context/architecture/public-name-decision-2026-07-05.md`: the public name decision.
 - `docs/context/architecture/public-release-safety-audit-2026-07-05.md`: the public-release safety audit.
 - `docs/context/architecture/publication-readiness-2026-07-07.md`: npm, Cargo, package-payload, and public-criticism readiness notes.
+- `docs/distribution/ctx-aide-source.md`: the immutable alpha revision, runtime inventory, license, cache, and Nix-consumption contract.
 - `.github/workflows/ci.yml`: the CI release gate for package, install, markdown, validation, smoke, and diff checks.
 - `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, and `CHANGELOG.md`: MIT licensing and public repository hygiene.
 
