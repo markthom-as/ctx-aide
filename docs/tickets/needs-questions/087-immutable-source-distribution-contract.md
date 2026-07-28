@@ -12,7 +12,8 @@ planning_agents:
   - codex-high-effort
 ui_review_agent: claude-high-effort
 parallel_group: distribution
-depends_on: []
+depends_on:
+  - ticket.context.089
 blocks: []
 scope:
   routes: []

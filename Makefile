@@ -34,10 +34,10 @@ future-check:
 	node tools/ctx-aide/ctx-aide.mjs future check --json
 
 skill-validate:
-	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py skills/ctx-aide
+	node tools/ctx-aide/ctx-aide.mjs skills check --repo . --json
 
 install-skill: skill-validate
 	mkdir -p "$(CODEX_SKILLS_DIR)"
 	rm -rf "$(CODEX_SKILLS_DIR)/ctx-aide"
 	cp -R skills/ctx-aide "$(CODEX_SKILLS_DIR)/ctx-aide"
-	python3 /Users/jove/code/codex-skills/skills/.system/skill-creator/scripts/quick_validate.py "$(CODEX_SKILLS_DIR)/ctx-aide"
+	test -f "$(CODEX_SKILLS_DIR)/ctx-aide/SKILL.md"
