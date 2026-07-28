@@ -10,7 +10,7 @@ files:
   - package-lock.json
   - scripts/build.mjs
   - scripts/install-local.mjs
-  - docs/ticket-packs/active/public-release-2026-07-01.md
+  - docs/ticket-packs/done/public-release-2026-07-01.md
 flows:
   - flow.ctx-aide-dogfood
 tags:
@@ -29,7 +29,7 @@ load_when:
     - README.md
     - package.json
     - package-lock.json
-    - docs/ticket-packs/active/public-release-2026-07-01.md
+    - docs/ticket-packs/done/public-release-2026-07-01.md
   task_terms:
     - publish
     - npm

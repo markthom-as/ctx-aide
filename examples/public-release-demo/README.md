@@ -27,7 +27,7 @@ make smoke
 
 1. `docs/context/architecture/public-name-decision-2026-07-05.md` records a frozen naming decision.
 2. `docs/specs/public-release-2026-07-01.md` records the release goal, affected surfaces, decisions, safeguards, and ticket plan.
-3. `docs/ticket-packs/active/public-release-2026-07-01.md` records the execution policy, dependency order, parallel groups, and current ticket status.
+3. `docs/ticket-packs/done/public-release-2026-07-01.md` records the execution policy, dependency order, parallel groups, and final ticket status.
 4. `docs/tickets/done/040-public-name-decision.md` shows a completed ticket with scope, rules, acceptance criteria, commit metadata, and validation evidence.
 5. `docs/context/generated/context-manifest.json` is a generated artifact from `ctxa scan`; it is useful for agents, but markdown remains canonical.
 

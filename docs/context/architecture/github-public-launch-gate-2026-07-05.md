@@ -6,7 +6,7 @@ status: active
 title: GitHub Public Launch Gate
 files:
   - README.md
-  - docs/ticket-packs/active/public-release-2026-07-01.md
+  - docs/ticket-packs/done/public-release-2026-07-01.md
 flows:
   - flow.ctx-aide-dogfood
 tags:
@@ -22,7 +22,7 @@ negative_rules:
 load_when:
   path_matches:
     - docs/specs/public-release-2026-07-01.md
-    - docs/ticket-packs/active/public-release-2026-07-01.md
+    - docs/ticket-packs/done/public-release-2026-07-01.md
     - README.md
   task_terms:
     - GitHub launch
@@ -51,8 +51,8 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 - Registry posture: no npm or Cargo publication for alpha.
 - Support posture: no SLA; use GitHub issues and private vulnerability reporting
   after launch.
-- Launch status: owner, license, no-Cargo, and no-npm postures are resolved;
-  final cutover waits only for fresh safety validation.
+- Launch status: the local gate passed on 2026-07-28; `ticket.context.070` owns
+  public repository creation, push, metadata verification, and link updates.
 
 ## Positive Rules
 
@@ -84,7 +84,7 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 - Homepage: none until a public docs or project page exists.
 - Visibility: public at final cutover.
 - License: MIT.
-- Public URL: pending owner/org decision and remote creation.
+- Public URL: pending `ticket.context.070` remote creation and verification.
 
 ## Launch Commands After Approval
 
@@ -119,7 +119,7 @@ git push -u origin main
 
 - Verify the MIT license/package metadata before public launch.
 - Update README links only after the public URL is verified.
-- Keep this gate blocked until fresh safety validation is complete.
+- Keep external repository creation and visibility changes in `ticket.context.070`.
 
 ## Validation
 

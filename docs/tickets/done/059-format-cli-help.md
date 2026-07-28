@@ -21,7 +21,7 @@ scope:
   files:
     - tools/ctx-aide/ctx-aide.mjs
     - tools/ctx-aide/ctx-aide.test.mjs
-    - docs/ticket-packs/active/public-release-2026-07-01.md
+    - docs/ticket-packs/done/public-release-2026-07-01.md
   directories: []
   components: []
   flows:

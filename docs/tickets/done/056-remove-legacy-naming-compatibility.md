@@ -21,7 +21,7 @@ scope:
   files:
     - README.md
     - .gitignore
-    - docs/ticket-packs/active/public-release-2026-07-01.md
+    - docs/ticket-packs/done/public-release-2026-07-01.md
   directories:
     - docs
     - tools/ctx-aide

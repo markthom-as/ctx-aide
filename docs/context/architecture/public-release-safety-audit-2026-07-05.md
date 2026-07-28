@@ -20,18 +20,18 @@ positive_rules:
   - Treat generated SQLite as a local cache artifact, not a canonical public artifact.
 negative_rules:
   - Do not make the repository public without rerunning history and working-tree scans after any new sensitive changes.
-  - Do not claim package publishing readiness until a license decision is recorded.
+  - Do not treat the public-source license as approval to publish npm or Cargo packages.
 load_when:
   path_matches:
     - docs/specs/public-release-2026-07-01.md
-    - docs/ticket-packs/active/public-release-2026-07-01.md
+    - docs/ticket-packs/done/public-release-2026-07-01.md
     - docs/tickets/**
   task_terms:
     - public release
     - safety audit
     - secret scan
     - history scan
-updated: 2026-07-08
+updated: 2026-07-28
 ---
 
 # Public Release Safety Audit
@@ -42,9 +42,9 @@ Record public-release safety evidence for credentials, private traces, generated
 
 ## Current Decisions
 
-No credential, private-data, or generated-artifact safety blocker was found for the public-release launch gate after the 2026-07-08 production-hardening refresh.
+No credential, private-data, generated-artifact, dependency, or license blocker was found after the 2026-07-28 prelaunch refresh.
 
-The release still needs explicit license, repository-owner, npm-owner, public-remote, and Cargo-posture decisions before external users should treat the project as open source or package-publishable. Those are launch metadata and distribution blockers, not secret or privacy findings.
+The owner (`markthom-as`), MIT license, no-npm, and no-Cargo alpha postures are resolved. `ticket.context.070` owns the remaining external mutation: create and verify the public repository, push the reviewed source, and update public links.
 
 ## Positive Rules
 
@@ -54,7 +54,7 @@ The release still needs explicit license, repository-owner, npm-owner, public-re
 ## Negative Rules
 
 - Do not make the repository public if a future scan finds real credentials, private client data, or sensitive local workflow traces.
-- Do not claim package publishing or open-source reuse readiness until the license decision is recorded.
+- Do not claim npm or Cargo publication from the public-source license.
 
 ## Commands Run
 
@@ -109,9 +109,18 @@ make smoke
 - No package manifest or lockfile is present, so there is no dependency license surface in this repository today.
 - No `LICENSE`, `COPYING`, or `NOTICE` file is present. The final launch gate should record or add the license decision before public publication.
 
+## 2026-07-28 Prelaunch Refresh
+
+- `gitleaks` scanned 104 commits and about 1.75 MB with zero leaks.
+- A tracked-files-only `detect-secrets` scan reported one reviewed candidate: the deliberate `agent@example.test` redaction fixture in `tools/ctx-aide/ctx-aide.test.mjs`. Its placeholder password and cookie values are asserted absent from command output.
+- `npm audit` reported zero vulnerabilities.
+- The package dry run, isolated local install, `make validate`, `make smoke`, ticket checks, pack checks, and diff checks passed.
+- GitHub authentication resolves to `markthom-as`; `markthom-as/ctx-aide` did not exist at the time of this gate, so the target name is available.
+- The approved alpha posture is public MIT source with no npm publication, no Cargo package, no hosted service, no support SLA, and a `$0` monthly infrastructure delta.
+
 ## Release Guidance
 
-The safety audit clears the current repository contents for the public-release launch gate, subject to the remaining license, owner, npm, Cargo, and public-remote decisions. Before flipping GitHub visibility or publishing a package, rerun history and working-tree scans after all public README/demo/launch metadata changes have landed.
+The safety audit clears the current repository contents for public launch. The local gate is complete; `ticket.context.070` owns public repository creation and verification. Any later npm, Cargo, hosted-service, or paid-infrastructure release requires a separate decision and gate.
 
 ## Implementation Rules
 

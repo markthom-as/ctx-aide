@@ -27,7 +27,7 @@ scope:
     - scripts/install-local.mjs
     - tools/ctx-aide/ctx-aide.test.mjs
     - docs/context/architecture/publication-readiness-2026-07-07.md
-    - docs/ticket-packs/active/public-release-2026-07-01.md
+    - docs/ticket-packs/done/public-release-2026-07-01.md
   directories:
     - scripts
   components: []

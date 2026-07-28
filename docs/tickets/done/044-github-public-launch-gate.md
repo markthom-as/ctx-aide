@@ -1,6 +1,6 @@
 ---
 id: ticket.context.044
-status: blocked
+status: done
 title: Prepare GitHub public launch gate
 ticket_pack: pack.ctx-aide-public-release-2026-07-01
 milestones:
@@ -68,8 +68,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: self
+  completed_at: 2026-07-28
 ---
 
 # Prepare GitHub Public Launch Gate
@@ -106,6 +106,8 @@ This is the final ticket in the public-release pack. It must not run until the n
 
 - Decision: this ticket owns the public visibility gate, not earlier docs or audit tickets.
 - Rationale: visibility should happen only after all release inputs are complete and reviewed.
+- Decision: launch `markthom-as/ctx-aide` as public MIT source.
+- Decision: npm, Cargo, hosted services, paid infrastructure, and support SLA are outside the alpha launch.
 
 ## Implementation Rules
 
@@ -138,7 +140,7 @@ If the user wants the public launch performed in this ticket, confirm owner/org 
 
 ## Completion
 
-- Status: blocked
-- Commit: pending
-- Verification evidence: launch gate prepared in `docs/context/architecture/github-public-launch-gate-2026-07-05.md`; no remote is configured; owner/org and license decisions are required before public visibility changes.
-- Follow-up tickets: none
+- Status: done
+- Commit: self
+- Verification evidence: the 2026-07-28 refresh found zero `gitleaks` findings, one reviewed `detect-secrets` test fixture, zero npm vulnerabilities, and passing package build/install, `make validate`, `make smoke`, ticket, pack, and diff checks. No remote was created in this preparation ticket.
+- Follow-up tickets: `ticket.context.070` owns the external public cutover.

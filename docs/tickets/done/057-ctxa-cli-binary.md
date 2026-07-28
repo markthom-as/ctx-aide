@@ -25,7 +25,7 @@ scope:
     - docs/context/architecture/public-name-decision-2026-07-05.md
     - docs/context/architecture/public-name-generation-2026-07-05.md
     - docs/context/architecture/publication-readiness-2026-07-07.md
-    - docs/ticket-packs/active/public-release-2026-07-01.md
+    - docs/ticket-packs/done/public-release-2026-07-01.md
   directories:
     - docs
     - tools/ctx-aide

@@ -175,7 +175,7 @@ Target repos bootstrapped by CTX Aide get their own config files. The source rep
 - `tools/ctx-aide/ctx-aide.mjs`: the implemented local CLI.
 - `examples/public-release-demo/README.md`: a runnable public-safe walkthrough of scan, query, ticket, pack, and smoke checks.
 - `docs/specs/public-release-2026-07-01.md`: the current public-release spec.
-- `docs/ticket-packs/active/public-release-2026-07-01.md`: the active public-release ticket pack.
+- `docs/ticket-packs/done/public-release-2026-07-01.md`: the completed public-release ticket pack.
 - `docs/context/architecture/public-name-decision-2026-07-05.md`: the public name decision.
 - `docs/context/architecture/public-release-safety-audit-2026-07-05.md`: the public-release safety audit.
 - `docs/context/architecture/publication-readiness-2026-07-07.md`: npm, Cargo, package-payload, and public-criticism readiness notes.
