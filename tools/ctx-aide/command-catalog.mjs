@@ -1,4 +1,4 @@
-const commandCatalogVersion = 3;
+const commandCatalogVersion = 4;
 
 const valueOption = (name, valueType = "string", options = {}) => ({
   name,
@@ -32,7 +32,11 @@ const commandContracts = {
   lint: { options: targetOptions },
   doctor: {},
   init: { options: [force], effect: "repo-scaffold" },
-  scan: { options: [...targetOptions, write], effect: "generated-context-index", requires_write: true },
+  scan: {
+    options: [...targetOptions, valueOption("--source-digest"), write],
+    effect: "generated-context-index",
+    requires_write: true,
+  },
   query: {
     options: [
       ...targetOptions,
@@ -40,6 +44,7 @@ const commandContracts = {
       valueOption("--task"),
       valueOption("--agent", "enum", { values: ["codex", "claude", "cursor"] }),
       valueOption("--budget", "integer", { minimum: 300, maximum: 1000000 }),
+      valueOption("--cursor"),
     ],
     max_result_items: 20,
   },

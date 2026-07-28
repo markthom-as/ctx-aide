@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ctxa.source-provenance/v1",
+  "title": "CTX Aide Source Provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "repository", "profile", "index", "returned_sources"],
+  "properties": {
+    "version": { "const": 1 },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "head", "unborn", "git_available", "relevant_dirty"],
+      "properties": {
+        "root": { "const": "." },
+        "head": { "type": ["string", "null"], "pattern": "^[0-9a-f]{40}$" },
+        "unborn": { "type": ["boolean", "null"] },
+        "git_available": { "type": "boolean" },
+        "relevant_dirty": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dirty", "count", "paths"],
+          "properties": {
+            "dirty": { "type": ["boolean", "null"] },
+            "count": { "type": ["integer", "null"], "minimum": 0 },
+            "paths": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/repoPath" },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "digest"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "digest": { "$ref": "#/$defs/nullableDigest" }
+      }
+    },
+    "index": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["digest", "source_set_digest", "source_count", "entry_count", "generated_cache"],
+      "properties": {
+        "digest": { "$ref": "#/$defs/digest" },
+        "source_set_digest": { "$ref": "#/$defs/digest" },
+        "source_count": { "type": "integer", "minimum": 0 },
+        "entry_count": { "type": "integer", "minimum": 0 },
+        "generated_cache": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "status", "sha256", "source_set_digest"],
+          "properties": {
+            "path": { "$ref": "#/$defs/repoPath" },
+            "status": { "enum": ["missing", "fresh", "stale", "invalid"] },
+            "sha256": { "$ref": "#/$defs/nullableDigest" },
+            "source_set_digest": { "$ref": "#/$defs/nullableDigest" }
+          }
+        }
+      }
+    },
+    "returned_sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nullableDigest": {
+      "anyOf": [
+        { "$ref": "#/$defs/digest" },
+        { "type": "null" }
+      ]
+    },
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "^(?:/|\\.\\.(?:/|$))" }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "bytes"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repoPath" },
+        "sha256": { "$ref": "#/$defs/digest" },
+        "bytes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

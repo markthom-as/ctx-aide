@@ -1,6 +1,6 @@
 ---
 id: spec.vakos-adoption-readiness-2026-07-27
-status: ready
+status: done
 title: vakOS Adoption Readiness
 owner_agent: codex-high-effort
 source_feedback: []

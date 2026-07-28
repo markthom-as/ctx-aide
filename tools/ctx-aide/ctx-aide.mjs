@@ -140,8 +140,32 @@ function profileRoot(field, fallback) {
 
 function contextMarkdownFiles() {
   return markdownFiles(profileRoot("context_root", "docs/context"))
-    .filter((file) => !file.includes("/schema/") && !file.includes("/generated/"))
+    .filter((file) => !excludedContextSourcePath(file))
     .sort();
+}
+
+function normalizedRepoPath(file) {
+  return String(file).split(path.sep).join("/").replace(/^\.\//, "");
+}
+
+function excludedContextSourcePath(file) {
+  const normalized = normalizedRepoPath(file).toLowerCase();
+  const segments = normalized.split("/");
+  const basename = segments.at(-1) ?? "";
+  return segments.some((segment) => [
+    ".git",
+    "generated",
+    "node_modules",
+    "target",
+    "dist",
+    "build",
+    "models",
+    "weights",
+  ].includes(segment))
+    || segments.includes("schema")
+    || /^\.env(?:\.|$)/.test(basename)
+    || /^(?:credentials?|secrets?)(?:\.|$)/.test(basename)
+    || /\.(?:pem|key|p12|pfx|gguf|safetensors)$/.test(basename);
 }
 
 function parseValue(value) {
@@ -1758,7 +1782,7 @@ function agentToolsConfigPath(repoPath, configArg) {
 
 function readAgentToolsConfig(repoPath, configArg = "") {
   const configPath = agentToolsConfigPath(repoPath, configArg);
-  const display = path.relative(root, configPath) || configArg || "docs/config/ctx-aide.tools.json";
+  const display = normalizedRepoPath(path.relative(repoPath, configPath)) || configArg || "docs/config/ctx-aide.tools.json";
   if (!fs.existsSync(configPath)) {
     return {
       ok: true,
@@ -2842,13 +2866,68 @@ function contextEntryFromDoc(file, doc) {
   };
 }
 
+function exactUtf8(buffer, file) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    throw new Error(`${file} is not normalized UTF-8`);
+  }
+}
+
+function contextIndexAt(repoPath, profile = activeProfile()) {
+  const contextRoot = profile?.context_root ?? "docs/context";
+  const fullContextRoot = path.join(repoPath, contextRoot);
+  const files = walk(fullContextRoot)
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => normalizedRepoPath(path.relative(repoPath, file)))
+    .filter((file) => !excludedContextSourcePath(file))
+    .sort();
+  const sources = [];
+  const entries = [];
+  const errors = [];
+  let realRepo = null;
+  try {
+    realRepo = fs.realpathSync(repoPath);
+  } catch (error) {
+    errors.push({ file: ".", code: "source-root-unreadable", message: error.message });
+  }
+  for (const file of files) {
+    const fullPath = path.join(repoPath, file);
+    try {
+      const realPath = fs.realpathSync(fullPath);
+      if (!realRepo || !pathInside(realRepo, realPath)) {
+        errors.push({ file, code: "source-path-escape", message: "context source resolves outside the repository" });
+        continue;
+      }
+      const raw = fs.readFileSync(fullPath);
+      const text = exactUtf8(raw, file);
+      const source = { path: file, sha256: sha256(raw), bytes: raw.length };
+      sources.push(source);
+      const doc = parseDocText(file, text);
+      if (doc.ignored) continue;
+      const entry = contextEntryFromDoc(file, doc);
+      if (typeof entry.id === "string") {
+        entries.push({ ...entry, source_digest: source.sha256, source_bytes: source.bytes });
+      }
+    } catch (error) {
+      errors.push({ file, code: "source-read-failed", message: error.message });
+    }
+  }
+  entries.sort((left, right) => left.id.localeCompare(right.id));
+  return {
+    ok: errors.length === 0,
+    repo: repoPath,
+    context_root: contextRoot,
+    entries,
+    sources,
+    source_set_digest: sha256(canonicalJson(sources)),
+    index_digest: sha256(canonicalJson(entries.map(publicEntry))),
+    errors,
+  };
+}
+
 function readContextEntries() {
-  return contextMarkdownFiles()
-    .map((file) => ({ file, doc: readDoc(file) }))
-    .filter(({ doc }) => !doc.ignored)
-    .map(({ file, doc }) => contextEntryFromDoc(file, doc))
-    .filter((entry) => typeof entry.id === "string")
-    .sort((a, b) => a.id.localeCompare(b.id));
+  return contextIndexAt(root).entries;
 }
 
 function publicEntry(entry) {
@@ -2856,21 +2935,78 @@ function publicEntry(entry) {
   return rest;
 }
 
-function manifestFor(entries) {
+function agentSafeValue(value) {
+  if (typeof value === "string") return agentSafeText(value);
+  if (Array.isArray(value)) return value.map(agentSafeValue);
+  if (plainObject(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, agentSafeValue(item)]));
+  }
+  return value;
+}
+
+function cacheEntry(entry) {
+  return agentSafeValue(publicEntry(entry));
+}
+
+function manifestFor(index) {
   return {
-    schema_version: 1,
+    schema_version: 2,
     generated_by: "tools/ctx-aide/ctx-aide.mjs scan",
     source: "markdown",
-    entry_count: entries.length,
-    entries: entries.map(publicEntry),
+    profile_digest: runtimeProfileResolution?.digest ?? null,
+    source_set_digest: index.source_set_digest,
+    index_digest: index.index_digest,
+    entry_count: index.entries.length,
+    sources: index.sources,
+    entries: index.entries.map(cacheEntry),
   };
+}
+
+function commitGeneratedFileIfFresh(temporaryPath, targetPath, expectedSourceDigest) {
+  const current = contextIndexAt(root);
+  if (!current.ok || current.source_set_digest !== expectedSourceDigest) {
+    fs.rmSync(temporaryPath, { force: true });
+    return {
+      ok: false,
+      action: "rejected-stale",
+      error: {
+        file: normalizedRepoPath(path.relative(root, targetPath)),
+        code: "source-set-changed",
+        message: "context sources changed before generated cache replacement",
+        expected_source_digest: expectedSourceDigest,
+        actual_source_digest: current.source_set_digest,
+      },
+    };
+  }
+  const temporary = fs.readFileSync(temporaryPath);
+  if (fs.existsSync(targetPath)) {
+    const existing = fs.readFileSync(targetPath);
+    if (sha256(existing) === sha256(temporary)) {
+      fs.rmSync(temporaryPath, { force: true });
+      return { ok: true, action: "unchanged", error: null };
+    }
+  }
+  fs.renameSync(temporaryPath, targetPath);
+  return { ok: true, action: "replaced", error: null };
+}
+
+function stageGeneratedFile(targetPath, contents) {
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  const temporaryPath = path.join(
+    path.dirname(targetPath),
+    `.${path.basename(targetPath)}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`,
+  );
+  fs.writeFileSync(temporaryPath, contents, { flag: "wx" });
+  return temporaryPath;
 }
 
 function writeGeneratedManifest(manifest, options = {}) {
   const outDir = path.join(root, profileRoot("generated_root", "docs/context/generated"));
   const outPath = path.join(outDir, "context-manifest.json");
-  if (options.write) atomicWriteFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
-  return path.relative(root, outPath);
+  const relativePath = normalizedRepoPath(path.relative(root, outPath));
+  if (!options.write) return { ok: true, path: relativePath, action: "planned", error: null };
+  const temporaryPath = stageGeneratedFile(outPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  return { path: relativePath, ...commitGeneratedFileIfFresh(temporaryPath, outPath, options.expectedSourceDigest) };
 }
 
 function sqlString(value) {
@@ -2884,11 +3020,12 @@ function sqlJson(value) {
 
 function writeSqliteIndex(entries, options = {}) {
   if (!commandExists("sqlite3")) {
-    return { path: null, warning: "sqlite3 is unavailable; skipped SQLite index generation" };
+    return { ok: true, path: null, action: "skipped", warning: "sqlite3 is unavailable; skipped SQLite index generation", error: null };
   }
   const outDir = path.join(root, profileRoot("generated_root", "docs/context/generated"));
   const dbPath = path.join(outDir, "context.sqlite");
-  if (!options.write) return { path: path.relative(root, dbPath), warning: null };
+  const relativePath = normalizedRepoPath(path.relative(root, dbPath));
+  if (!options.write) return { ok: true, path: relativePath, action: "planned", warning: null, error: null };
   fs.mkdirSync(outDir, { recursive: true });
   const temporaryPath = path.join(
     outDir,
@@ -2901,11 +3038,16 @@ function writeSqliteIndex(entries, options = {}) {
     "create table relationships (from_id text not null, relation text not null, to_id text not null, primary key (from_id, relation, to_id));",
     "create table feedback_items (id text primary key, status text not null, severity text, source text, created text, resolved_at text, markdown_path text not null);",
     "create table component_registry (id text primary key, name text not null, package_path text, import_path text, status text not null, markdown_path text not null);",
+    "create table index_metadata (key text primary key, value text not null);",
     "create virtual table context_fts using fts5(id, title, kind, body, tags);",
+    `insert into index_metadata values ('source_set_digest', ${sqlString(options.expectedSourceDigest)});`,
+    `insert into index_metadata values ('profile_digest', ${sqlString(runtimeProfileResolution?.digest ?? "")});`,
+    `insert into index_metadata values ('index_digest', ${sqlString(options.indexDigest ?? "")});`,
   ];
   for (const entry of entries) {
+    const safeEntry = { ...agentSafeValue(entry), body: agentSafeText(entry.body) };
     statements.push(
-      `insert into context_entries values (${sqlString(entry.id)}, ${sqlString(entry.kind)}, ${sqlString(entry.status)}, ${sqlString(entry.title)}, ${sqlString(entry.markdown_path)}, ${sqlString(entry.summary)}, ${sqlString(entry.updated)}, ${sqlJson(publicEntry(entry))});`,
+      `insert into context_entries values (${sqlString(safeEntry.id)}, ${sqlString(safeEntry.kind)}, ${sqlString(safeEntry.status)}, ${sqlString(safeEntry.title)}, ${sqlString(safeEntry.markdown_path)}, ${sqlString(safeEntry.summary)}, ${sqlString(safeEntry.updated)}, ${sqlJson(publicEntry(safeEntry))});`,
     );
     for (const [scopeType, values] of Object.entries({
       route: entry.routes,
@@ -2918,32 +3060,32 @@ function writeSqliteIndex(entries, options = {}) {
     })) {
       for (const value of values) {
         statements.push(
-          `insert into scope_bindings values (${sqlString(entry.id)}, ${sqlString(scopeType)}, ${sqlString(value)}, 100);`,
+          `insert into scope_bindings values (${sqlString(safeEntry.id)}, ${sqlString(scopeType)}, ${sqlString(agentSafeText(value))}, 100);`,
         );
       }
     }
     for (const component of entry.components) {
       statements.push(
-        `insert or ignore into relationships values (${sqlString(entry.id)}, 'references_component', ${sqlString(component)});`,
+        `insert or ignore into relationships values (${sqlString(safeEntry.id)}, 'references_component', ${sqlString(agentSafeText(component))});`,
       );
     }
     for (const flow of entry.flows) {
       statements.push(
-        `insert or ignore into relationships values (${sqlString(entry.id)}, 'references_flow', ${sqlString(flow)});`,
+        `insert or ignore into relationships values (${sqlString(safeEntry.id)}, 'references_flow', ${sqlString(agentSafeText(flow))});`,
       );
     }
     if (entry.kind === "feedback") {
       statements.push(
-        `insert into feedback_items values (${sqlString(entry.id)}, ${sqlString(entry.status)}, ${sqlString(entry.severity)}, ${sqlString(entry.source)}, ${sqlString(entry.updated)}, null, ${sqlString(entry.markdown_path)});`,
+        `insert into feedback_items values (${sqlString(safeEntry.id)}, ${sqlString(safeEntry.status)}, ${sqlString(safeEntry.severity)}, ${sqlString(safeEntry.source)}, ${sqlString(safeEntry.updated)}, null, ${sqlString(safeEntry.markdown_path)});`,
       );
     }
     if (entry.kind === "component") {
       statements.push(
-        `insert into component_registry values (${sqlString(entry.id)}, ${sqlString(entry.name ?? entry.title)}, ${sqlString(entry.package_path)}, ${sqlString(entry.import_path)}, ${sqlString(entry.status)}, ${sqlString(entry.markdown_path)});`,
+        `insert into component_registry values (${sqlString(safeEntry.id)}, ${sqlString(safeEntry.name ?? safeEntry.title)}, ${sqlString(safeEntry.package_path)}, ${sqlString(safeEntry.import_path)}, ${sqlString(safeEntry.status)}, ${sqlString(safeEntry.markdown_path)});`,
       );
     }
     statements.push(
-      `insert into context_fts (id, title, kind, body, tags) values (${sqlString(entry.id)}, ${sqlString(entry.title)}, ${sqlString(entry.kind)}, ${sqlString(entry.body)}, ${sqlString(entry.tags.join(" "))});`,
+      `insert into context_fts (id, title, kind, body, tags) values (${sqlString(safeEntry.id)}, ${sqlString(safeEntry.title)}, ${sqlString(safeEntry.kind)}, ${sqlString(safeEntry.body)}, ${sqlString(safeEntry.tags.join(" "))});`,
     );
   }
   try {
@@ -2952,34 +3094,64 @@ function writeSqliteIndex(entries, options = {}) {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
     });
-    fs.renameSync(temporaryPath, dbPath);
+    const committed = commitGeneratedFileIfFresh(temporaryPath, dbPath, options.expectedSourceDigest);
+    return { path: relativePath, warning: null, ...committed };
   } finally {
     fs.rmSync(temporaryPath, { force: true });
   }
-  return { path: path.relative(root, dbPath), warning: null };
 }
 
 function scan() {
   const write = args.includes("--write");
-  const entries = readContextEntries();
-  const manifest = manifestFor(entries);
-  const manifestPath = writeGeneratedManifest(manifest, { write });
-  const sqlite = writeSqliteIndex(entries, { write });
+  const index = contextIndexAt(root);
+  if (!index.ok) return { ok: false, scope: "scan", write, dry_run: !write, errors: index.errors };
+  const expectedSourceDigest = argValue("--source-digest", index.source_set_digest);
+  if (expectedSourceDigest !== index.source_set_digest) {
+    return {
+      ok: false,
+      scope: "scan",
+      write,
+      dry_run: !write,
+      errors: [{
+        file: profileRoot("context_root", "docs/context"),
+        code: "stale-source-precondition",
+        message: "--source-digest does not match current context sources",
+        expected_source_digest: expectedSourceDigest,
+        actual_source_digest: index.source_set_digest,
+      }],
+    };
+  }
+  const manifest = manifestFor(index);
+  const manifestResult = writeGeneratedManifest(manifest, { write, expectedSourceDigest });
+  const sqlite = manifestResult.ok
+    ? writeSqliteIndex(index.entries, { write, expectedSourceDigest, indexDigest: index.index_digest })
+    : { ok: false, path: null, action: "skipped", warning: null, error: null };
+  const errors = [manifestResult.error, sqlite.error].filter(Boolean);
   return {
-    ok: true,
+    ok: errors.length === 0,
     scope: "scan",
     write,
     dry_run: !write,
-    manifest_path: manifestPath,
+    manifest_path: manifestResult.path,
     sqlite_path: sqlite.path,
-    entry_count: entries.length,
+    source_set_digest: index.source_set_digest,
+    index_digest: index.index_digest,
+    entry_count: index.entries.length,
+    changes: [
+      { file: manifestResult.path, action: manifestResult.action },
+      ...(sqlite.path ? [{ file: sqlite.path, action: sqlite.action }] : []),
+    ],
     warnings: sqlite.warning ? [sqlite.warning] : [],
-    entries: entries.map((entry) => ({
+    provenance: provenanceEnvelope(index),
+    entries: index.entries.map((entry) => ({
       id: entry.id,
       kind: entry.kind,
       status: entry.status,
       markdown_path: entry.markdown_path,
+      source_digest: entry.source_digest,
+      source_bytes: entry.source_bytes,
     })),
+    errors,
   };
 }
 
@@ -3041,42 +3213,166 @@ function scoreEntry(entry, targetPath, task) {
   return { score, reasons };
 }
 
+function agentSafeText(value) {
+  return redactTokenLikeText(value)
+    .replace(/\bsk-[A-Za-z0-9_-]{12,}\b/g, "[redacted-secret]")
+    .replace(/\bAIza[A-Za-z0-9_-]{20,}\b/g, "[redacted-secret]")
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/-]+=*\b/gi, "Bearer [redacted-secret]")
+    .replace(/-----BEGIN [A-Z ]+PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+PRIVATE KEY-----/g, "[redacted-private-key]");
+}
+
+function queryEntryResult(entry) {
+  return {
+    id: entry.id,
+    kind: entry.kind,
+    status: entry.status,
+    title: agentSafeText(entry.title),
+    markdown_path: entry.markdown_path,
+    source_digest: entry.source_digest,
+    source_bytes: entry.source_bytes,
+    score: entry.score,
+    reasons: entry.reasons.map(agentSafeText),
+    summary: agentSafeText(entry.summary),
+    positive_rules: entry.positive_rules.map(agentSafeText),
+    negative_rules: entry.negative_rules.map(agentSafeText),
+  };
+}
+
+const queryBudgetEstimator = {
+  id: "entry-json-utf8-bytes-div4-ceil",
+  version: 1,
+};
+
+function estimateQueryEntryTokens(entry) {
+  return Math.ceil(Buffer.byteLength(canonicalJson(entry)) / 4);
+}
+
+function queryEntryWithEstimate(entry) {
+  let estimatedTokens = 0;
+  let result = { ...entry, estimated_tokens: estimatedTokens };
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const next = estimateQueryEntryTokens(result);
+    if (next === estimatedTokens) break;
+    estimatedTokens = next;
+    result = { ...entry, estimated_tokens: estimatedTokens };
+  }
+  return result;
+}
+
+function encodeQueryCursor(payload) {
+  const integrity = sha256(canonicalJson(payload));
+  return Buffer.from(canonicalJson({ payload, integrity }), "utf8").toString("base64url");
+}
+
+function decodeQueryCursor(value) {
+  try {
+    const envelope = JSON.parse(Buffer.from(String(value), "base64url").toString("utf8"));
+    if (!plainObject(envelope.payload) || envelope.integrity !== sha256(canonicalJson(envelope.payload))) {
+      throw new Error("cursor integrity mismatch");
+    }
+    if (envelope.payload.version !== 1 || !Number.isInteger(envelope.payload.offset) || envelope.payload.offset < 0) {
+      throw new Error("unsupported cursor payload");
+    }
+    return { ok: true, payload: envelope.payload, error: null };
+  } catch (error) {
+    return { ok: false, payload: null, error: error.message };
+  }
+}
+
 function query() {
   const targetPath = argValue("--path", "");
   const task = argValue("--task", "");
   const agent = argValue("--agent", "codex");
   const budget = Number.parseInt(argValue("--budget", "6000"), 10);
-  const maxEntries = Math.max(1, Math.min(20, Math.floor((Number.isFinite(budget) ? budget : 6000) / 300)));
-  const entries = readContextEntries()
+  const index = contextIndexAt(root);
+  if (!index.ok) return { ok: false, scope: "query", errors: index.errors };
+  const normalizedQuery = {
+    path: normalizedRepoPath(targetPath),
+    task: task.trim(),
+    agent,
+    budget,
+  };
+  const queryDigest = sha256(canonicalJson({
+    version: 1,
+    query: normalizedQuery,
+    profile_digest: runtimeProfileResolution?.digest ?? null,
+    source_set_digest: index.source_set_digest,
+  }));
+  const cursorValue = argValue("--cursor", "");
+  let offset = 0;
+  if (cursorValue) {
+    const decoded = decodeQueryCursor(cursorValue);
+    if (!decoded.ok) {
+      return {
+        ok: false,
+        scope: "query",
+        errors: [{ file: "--cursor", code: "invalid-cursor", message: decoded.error }],
+      };
+    }
+    const cursor = decoded.payload;
+    const mismatches = [
+      cursor.query_digest !== queryDigest ? "query" : null,
+      cursor.profile_digest !== (runtimeProfileResolution?.digest ?? null) ? "profile" : null,
+      cursor.source_set_digest !== index.source_set_digest ? "source" : null,
+    ].filter(Boolean);
+    if (mismatches.length > 0) {
+      return {
+        ok: false,
+        scope: "query",
+        errors: [{
+          file: "--cursor",
+          code: "stale-cursor",
+          message: `cursor does not match current ${mismatches.join(", ")} digest`,
+          mismatches,
+        }],
+      };
+    }
+    offset = cursor.offset;
+  }
+  const rankedEntries = index.entries
     .map((entry) => {
       const ranked = scoreEntry(entry, targetPath, task);
       return { ...entry, score: ranked.score, reasons: ranked.reasons };
     })
     .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-    .slice(0, maxEntries)
-    .map((entry) => ({
-      id: entry.id,
-      kind: entry.kind,
-      status: entry.status,
-      title: entry.title,
-      markdown_path: entry.markdown_path,
-      score: entry.score,
-      reasons: entry.reasons,
-      summary: entry.summary,
-      positive_rules: entry.positive_rules,
-      negative_rules: entry.negative_rules,
-    }));
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+  const entries = [];
+  let usedBudget = 0;
+  for (const entry of rankedEntries.slice(offset, offset + 20)) {
+    const result = queryEntryWithEstimate(queryEntryResult(entry));
+    const estimatedTokens = result.estimated_tokens;
+    if (usedBudget + estimatedTokens > budget) break;
+    entries.push(result);
+    usedBudget += estimatedTokens;
+  }
+  const nextOffset = offset + entries.length;
+  const remaining = Math.max(0, rankedEntries.length - nextOffset);
+  const nextCursor = remaining > 0 && entries.length > 0
+    ? encodeQueryCursor({
+      version: 1,
+      query_digest: queryDigest,
+      profile_digest: runtimeProfileResolution?.digest ?? null,
+      source_set_digest: index.source_set_digest,
+      offset: nextOffset,
+    })
+    : null;
   return {
     ok: true,
     scope: "query",
-    query: {
-      path: targetPath,
-      task,
-      agent,
-      budget,
+    query: normalizedQuery,
+    query_digest: queryDigest,
+    budget: {
+      estimator: queryBudgetEstimator,
+      requested_tokens: budget,
+      used_tokens: usedBudget,
+      remaining_tokens: budget - usedBudget,
+      omitted_count: remaining,
+      offset,
     },
+    cursor: { current: cursorValue || null, next: nextCursor },
+    provenance: provenanceEnvelope(index, entries),
     entries,
+    errors: [],
   };
 }
 
@@ -3252,7 +3548,9 @@ function impact() {
     .concat(argValue("--changed", "") ? [argValue("--changed", "")] : [])
     .filter(Boolean);
   const task = argValue("--task", "impact regression check");
-  const entries = readContextEntries()
+  const index = contextIndexAt(root);
+  if (!index.ok) return { ok: false, scope: "impact", errors: index.errors };
+  const entries = index.entries
     .map((entry) => {
       const scores = changedPaths.map((changedPath) => scoreEntry(entry, changedPath, task));
       const score = scores.length > 0 ? Math.max(...scores.map((ranked) => ranked.score)) : 0;
@@ -3265,6 +3563,14 @@ function impact() {
     ok: true,
     scope: "impact",
     changed_paths: changedPaths,
+    request_digest: sha256(canonicalJson({
+      version: 1,
+      changed_paths: changedPaths.map(normalizedRepoPath),
+      task: task.trim(),
+      profile_digest: runtimeProfileResolution?.digest ?? null,
+      source_set_digest: index.source_set_digest,
+    })),
+    provenance: provenanceEnvelope(index, entries),
     affected: {
       routes: unique(entries.flatMap((entry) => entry.routes)),
       files: unique(entries.flatMap((entry) => entry.files)),
@@ -3277,6 +3583,8 @@ function impact() {
       kind: entry.kind,
       status: entry.status,
       markdown_path: entry.markdown_path,
+      source_digest: entry.source_digest,
+      source_bytes: entry.source_bytes,
       score: entry.score,
       reasons: entry.reasons,
       positive_rules: entry.positive_rules,
@@ -3672,7 +3980,7 @@ function resolveAdoptionProfile(repoPath, explicitProfile = "auto") {
       ? (explicitProfile !== "auto" ? "explicit+repo-config" : "repo-config")
       : (explicitProfile !== "auto" ? "explicit-package-profile" : (profileId === "default" ? "default-package-profile" : "detected-package-profile")),
     config: {
-      path: displayPath(configPath),
+      path: normalizedRepoPath(path.relative(repoPath, configPath)),
       exists: checked.exists,
     },
     digest,
@@ -3757,6 +4065,7 @@ function profileCommandDecision(commandId, resolution = runtimeProfileResolution
 function packagedSchemaRows() {
   const definitions = [
     ["ctxa.adoption-profile/v2", "adoption-profile-registry.schema.json"],
+    ["ctxa.source-provenance/v1", "source-provenance.schema.json"],
     ["ctxa.context-entry/v1", "context-entry.schema.json"],
     ["ctxa.feedback-entry/v1", "feedback-entry.schema.json"],
   ];
@@ -3833,6 +4142,145 @@ function gitStatusSummary(repoPath) {
     changed_count: lines.length,
     changed_paths: lines.slice(0, 20).map((line) => line.slice(3)),
     truncated: lines.length > 20,
+  };
+}
+
+function gitSourceState(repoPath, sourcePaths) {
+  const headResult = spawnSync("git", ["-C", repoPath, "rev-parse", "--verify", "HEAD"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 5000,
+  });
+  const gitAvailable = headResult.status === 0
+    || spawnSync("git", ["-C", repoPath, "rev-parse", "--git-dir"], { stdio: "ignore", timeout: 5000 }).status === 0;
+  if (!gitAvailable) {
+    return {
+      available: false,
+      head: null,
+      unborn: null,
+      relevant_dirty: { dirty: null, count: null, paths: [] },
+    };
+  }
+  if (sourcePaths.length === 0) {
+    return {
+      available: true,
+      head: headResult.status === 0 ? headResult.stdout.trim() : null,
+      unborn: headResult.status !== 0,
+      relevant_dirty: { dirty: false, count: 0, paths: [] },
+    };
+  }
+  const statusArgs = ["-C", repoPath, "status", "--porcelain=v1", "--untracked-files=all"];
+  statusArgs.push("--", ...sourcePaths);
+  const status = spawnSync("git", statusArgs, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 5000,
+  });
+  const paths = status.status === 0
+    ? unique((status.stdout ?? "")
+      .split("\n")
+      .filter(Boolean)
+      .flatMap((line) => line.slice(3).split(" -> "))
+      .map(normalizedRepoPath))
+      .sort()
+    : [];
+  return {
+    available: true,
+    head: headResult.status === 0 ? headResult.stdout.trim() : null,
+    unborn: headResult.status !== 0,
+    relevant_dirty: {
+      dirty: status.status === 0 ? paths.length > 0 : null,
+      count: status.status === 0 ? paths.length : null,
+      paths,
+    },
+  };
+}
+
+function generatedManifestState(index) {
+  const relativePath = path.join(activeProfile()?.generated_root ?? "docs/context/generated", "context-manifest.json");
+  const fullPath = path.join(index.repo, relativePath);
+  if (!fs.existsSync(fullPath)) {
+    return { path: normalizedRepoPath(relativePath), status: "missing", sha256: null, source_set_digest: null };
+  }
+  try {
+    const raw = fs.readFileSync(fullPath);
+    const manifest = JSON.parse(exactUtf8(raw, normalizedRepoPath(relativePath)));
+    return {
+      path: normalizedRepoPath(relativePath),
+      status: manifest.source_set_digest === index.source_set_digest ? "fresh" : "stale",
+      sha256: sha256(raw),
+      source_set_digest: manifest.source_set_digest ?? null,
+    };
+  } catch {
+    return { path: normalizedRepoPath(relativePath), status: "invalid", sha256: null, source_set_digest: null };
+  }
+}
+
+function sourceRowsForEntries(index, entries, additionalSources = []) {
+  const additionalPaths = additionalSources
+    .map((source) => typeof source === "string" ? source : source.path)
+    .filter(Boolean);
+  const wanted = new Set([
+    ...entries.map((entry) => entry.markdown_path),
+    ...additionalPaths,
+  ].map(normalizedRepoPath));
+  const rows = index.sources.filter((source) => wanted.has(source.path));
+  for (const source of additionalSources.filter((item) => plainObject(item))) {
+    if (!rows.some((row) => row.path === source.path)) rows.push(source);
+  }
+  return rows.sort((left, right) => left.path.localeCompare(right.path));
+}
+
+function provenanceEnvelope(index, entries = [], additionalSources = []) {
+  const additionalPaths = additionalSources
+    .map((source) => typeof source === "string" ? source : source.path)
+    .filter(Boolean);
+  const trackedContext = spawnSync("git", [
+    "-C",
+    index.repo,
+    "ls-files",
+    "--cached",
+    "--others",
+    "--exclude-standard",
+    "--",
+    index.context_root,
+  ], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 5000,
+  });
+  const trackedContextPaths = trackedContext.status === 0
+    ? trackedContext.stdout
+      .split("\n")
+      .map(normalizedRepoPath)
+      .filter((file) => file.endsWith(".md") && !excludedContextSourcePath(file))
+    : [];
+  const git = gitSourceState(index.repo, unique([
+    ...index.sources.map((source) => source.path),
+    ...trackedContextPaths,
+    ...additionalPaths,
+  ]));
+  return {
+    version: 1,
+    repository: {
+      root: ".",
+      head: git.head,
+      unborn: git.unborn,
+      git_available: git.available,
+      relevant_dirty: git.relevant_dirty,
+    },
+    profile: {
+      id: activeProfile()?.profile ?? "default",
+      digest: runtimeProfileResolution?.digest ?? null,
+    },
+    index: {
+      digest: index.index_digest,
+      source_set_digest: index.source_set_digest,
+      source_count: index.sources.length,
+      entry_count: index.entries.length,
+      generated_cache: generatedManifestState(index),
+    },
+    returned_sources: sourceRowsForEntries(index, entries, additionalSources),
   };
 }
 
@@ -4712,18 +5160,49 @@ function adoptionTicket() {
 }
 
 function targetContextEntries(repoPath) {
-  const contextRoot = path.join(repoPath, activeProfile()?.context_root ?? "docs/context");
-  if (!fs.existsSync(contextRoot)) return [];
-  return walk(contextRoot)
-    .filter((file) => file.endsWith(".md") && !file.includes("/schema/") && !file.includes("/generated/"))
-    .map((file) => {
-      const relative = path.relative(repoPath, file);
-      return { file: relative, doc: readDocAt(repoPath, relative) };
-    })
-    .filter(({ doc }) => !doc.ignored)
-    .map(({ file, doc }) => contextEntryFromDoc(file, doc))
-    .filter((entry) => typeof entry.id === "string")
-    .sort((a, b) => a.id.localeCompare(b.id));
+  return contextIndexAt(repoPath, activeProfile()).entries;
+}
+
+function exactRepoSource(repoPath, relativePath) {
+  const file = normalizedRepoPath(relativePath);
+  const fullPath = path.resolve(repoPath, file);
+  try {
+    const realRepo = fs.realpathSync(repoPath);
+    const realPath = fs.realpathSync(fullPath);
+    if (!pathInside(realRepo, realPath)) throw new Error("source resolves outside the repository");
+    const raw = fs.readFileSync(fullPath);
+    exactUtf8(raw, file);
+    return { ok: true, source: { path: file, sha256: sha256(raw), bytes: raw.length }, error: null };
+  } catch (error) {
+    return { ok: false, source: null, error: { file, code: "source-read-failed", message: error.message } };
+  }
+}
+
+function implementationSourcePaths(repoPath, profile, doc) {
+  const sourceDocs = Array.isArray(doc.frontmatter.source_docs) ? doc.frontmatter.source_docs : [];
+  const sourceSpecs = unique([
+    ...(Array.isArray(doc.frontmatter.source_specs) ? doc.frontmatter.source_specs : []),
+    ...(typeof doc.frontmatter.source_spec === "string" && doc.frontmatter.source_spec !== "null"
+      ? [doc.frontmatter.source_spec]
+      : []),
+  ]);
+  if (profile.source_reference_mode === "repo-relative-normative-file") {
+    return { ok: true, paths: unique([...sourceDocs, ...sourceSpecs]), errors: [] };
+  }
+  const specFiles = walk(path.join(repoPath, profile.spec_root ?? "docs/specs"))
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => normalizedRepoPath(path.relative(repoPath, file)));
+  const specPathsById = new Map();
+  for (const file of specFiles) {
+    const parsed = readDocAt(repoPath, file);
+    if (typeof parsed.frontmatter.id === "string") specPathsById.set(parsed.frontmatter.id, file);
+  }
+  const missing = sourceSpecs.filter((id) => !specPathsById.has(id));
+  return {
+    ok: missing.length === 0,
+    paths: unique([...sourceDocs, ...sourceSpecs.map((id) => specPathsById.get(id)).filter(Boolean)]),
+    errors: missing.map((id) => ({ file: id, code: "source-reference-missing", message: "source spec id does not resolve to repo markdown" })),
+  };
 }
 
 function bodySectionLines(body, heading) {
@@ -4744,13 +5223,13 @@ function markdownTitle(body) {
   return line.replace(/^#\s+/, "").replace(/^Ticket:\s*/i, "").trim();
 }
 
-function capabilityPolicyCheckCommand(repoPath, workflowId, stepId, capabilityId) {
+function capabilityPolicyCheckCommand(workflowId, stepId, capabilityId) {
   const parts = [
-    "ctx-aide",
+    "ctxa",
     "tools",
     "check",
     "--repo",
-    repoPath,
+    ".",
     ...(workflowId ? ["--workflow", workflowId] : []),
     ...(stepId ? ["--step", stepId] : []),
     "--capability",
@@ -4815,14 +5294,14 @@ function implementationCapabilityPolicy(repoPath, doc) {
       },
       required: decisions,
       check_commands: requiredCapabilities.map((capabilityId) =>
-        capabilityPolicyCheckCommand(repoPath, workflowId, stepId, capabilityId),
+        capabilityPolicyCheckCommand(workflowId, stepId, capabilityId),
       ),
       policy_command: [
-        "ctx-aide",
+        "ctxa",
         "tools",
         "policy",
         "--repo",
-        repoPath,
+        ".",
         ...(workflowId ? ["--workflow", workflowId] : []),
         ...(stepId ? ["--step", stepId] : []),
         "--json",
@@ -4852,6 +5331,10 @@ function implementationPlan() {
   if (!fs.existsSync(path.join(repoPath, ticketPath))) {
     return { ok: false, scope: "adoption implementation-plan", errors: [{ file: ticketArg, message: "ticket file does not exist" }] };
   }
+  const contextIndex = contextIndexAt(repoPath, profile);
+  if (!contextIndex.ok) {
+    return { ok: false, scope: "adoption implementation-plan", errors: contextIndex.errors };
+  }
   const doc = readDocAt(repoPath, ticketPath);
   const inferredTitle = doc.frontmatter.title ?? markdownTitle(doc.body) ?? "";
   const task = nestedFrontmatterValue(doc, "context_query", "task") ?? inferredTitle;
@@ -4866,7 +5349,7 @@ function implementationPlan() {
     ...(Array.isArray(doc.frontmatter.source_docs) ? doc.frontmatter.source_docs : []),
     ...(Array.isArray(doc.frontmatter.source_specs) ? doc.frontmatter.source_specs : []),
   ]);
-  const entries = targetContextEntries(repoPath)
+  const entries = contextIndex.entries
     .map((entry) => {
       const explicit = explicitContextIds.includes(entry.id);
       const scores = targetPaths.length > 0 ? targetPaths.map((targetPath) => scoreEntry(entry, targetPath, task)) : [scoreEntry(entry, "", task)];
@@ -4881,15 +5364,28 @@ function implementationPlan() {
       id: entry.id,
       kind: entry.kind,
       status: entry.status,
-      title: entry.title,
+      title: agentSafeText(entry.title),
       markdown_path: entry.markdown_path,
       score: entry.score,
-      reasons: entry.reasons,
-      summary: entry.summary,
-      positive_rules: entry.positive_rules,
-      negative_rules: entry.negative_rules,
-      body: includeBody ? boundedText(entry.body, 2000) : undefined,
+      reasons: entry.reasons.map(agentSafeText),
+      summary: agentSafeText(entry.summary),
+      positive_rules: entry.positive_rules.map(agentSafeText),
+      negative_rules: entry.negative_rules.map(agentSafeText),
+      source_digest: entry.source_digest,
+      source_bytes: entry.source_bytes,
+      body: includeBody ? agentSafeText(boundedText(entry.body, 2000)) : undefined,
     }));
+  const implementationSources = implementationSourcePaths(repoPath, profile, doc);
+  if (!implementationSources.ok) {
+    return { ok: false, scope: "adoption implementation-plan", errors: implementationSources.errors };
+  }
+  const exactSources = [ticketPath, ...implementationSources.paths]
+    .map((file) => exactRepoSource(repoPath, file));
+  const sourceErrors = exactSources.filter((result) => !result.ok).map((result) => result.error);
+  if (sourceErrors.length > 0) {
+    return { ok: false, scope: "adoption implementation-plan", errors: sourceErrors };
+  }
+  const additionalSources = exactSources.map((result) => result.source);
   const validationCommands = unique([
     ...nestedFrontmatterList(doc, "validation", "automated"),
     ...bodySectionLines(doc.body, "Validation")
@@ -4904,7 +5400,7 @@ function implementationPlan() {
     return {
       ok: false,
       scope: "adoption implementation-plan",
-      repo: repoPath,
+      repo: ".",
       ticket: {
         file: ticketPath,
         id: doc.frontmatter.id ?? doc.frontmatter.ticket_id ?? null,
@@ -4918,8 +5414,17 @@ function implementationPlan() {
   return {
     ok: true,
     scope: "adoption implementation-plan",
-    repo: repoPath,
+    repo: ".",
     explicit_context_loading: true,
+    request_digest: sha256(canonicalJson({
+      version: 1,
+      ticket: additionalSources[0],
+      task,
+      target_paths: targetPaths,
+      profile_digest: runtimeProfileResolution?.digest ?? null,
+      source_set_digest: contextIndex.source_set_digest,
+    })),
+    provenance: provenanceEnvelope(contextIndex, entries, additionalSources),
     ticket: {
       file: ticketPath,
       id: doc.frontmatter.id ?? doc.frontmatter.ticket_id ?? null,

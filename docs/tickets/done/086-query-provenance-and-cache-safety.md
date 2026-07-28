@@ -1,6 +1,6 @@
 ---
 id: ticket.context.086
-status: ready
+status: done
 title: Bind queries and caches to source provenance
 ticket_pack: pack.vakos-adoption-readiness-2026-07-27
 milestones:
@@ -43,8 +43,8 @@ validation:
     - node tools/ctx-aide/ctx-aide.mjs query --repo <fixture> --profile vakos --path flake.nix --task "change Nix development tooling" --json
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: current-change
+  completed_at: 2026-07-27
 ---
 
 # Bind Queries And Caches To Source Provenance
@@ -134,7 +134,11 @@ the cursor is not an authorization token and source digests are revalidated.
 
 ## Completion
 
-- Status: ready.
-- Commit: pending.
-- Verification evidence: pending.
+- Status: done.
+- Commit: current-change.
+- Verification evidence: full CLI tests, `make validate`, spec/ticket/pack
+  checks, package dry-run, and syntax/diff checks pass. Clean, unrelated-dirty,
+  relevant-dirty, stale-cursor, tampered-cursor, stale-precondition, exact
+  retry, and two-process cache-race fixtures pass for JSON and SQLite where
+  available. Source/path exclusions and secret redaction are asserted.
 - Follow-up tickets: vakOS adoption/Nix packaging after source qualification.

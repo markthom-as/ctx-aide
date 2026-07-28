@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import {
   buildScreenshotReviewState,
@@ -88,6 +89,24 @@ async function pipeJson(args, expectedExitCode) {
   return JSON.parse(parserStdout);
 }
 
+async function spawnedJson(args, cwd = fixture) {
+  const child = spawn(process.execPath, [ctxAide, ...args, "--json"], {
+    cwd,
+    env: process.env,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let stdout = "";
+  let stderr = "";
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
+  child.stdout.on("data", (chunk) => { stdout += chunk; });
+  child.stderr.on("data", (chunk) => { stderr += chunk; });
+  const exitCode = await new Promise((resolve) => child.on("close", resolve));
+  assert.equal(exitCode, 0, stderr || stdout);
+  assert.equal(stderr, "");
+  return JSON.parse(stdout);
+}
+
 const helpOutput = execFileSync(process.execPath, [ctxAide, "--help"], {
   cwd: fixture,
   encoding: "utf8",
@@ -129,7 +148,7 @@ assert.equal(adoptionJsonHelp.scope, "help adoption");
 assert.equal(adoptionJsonHelp.commands.some((entry) => entry.id === "setup" && entry.mutating === true), true);
 const commandManifest = run(["command", "manifest"]);
 assert.equal(commandManifest.ok, true);
-assert.equal(commandManifest.manifest_version, 3);
+assert.equal(commandManifest.manifest_version, 4);
 assert.equal(commandManifest.groups.some((group) => group.id === "adoption"), true);
 assert.equal(commandManifest.groups.some((group) => group.id === "skills"), true);
 assert.equal(commandManifest.commands.some((entry) => entry.id === "command.manifest" && entry.mutating === false), true);
@@ -1658,6 +1677,208 @@ if (commandExists("rg")) {
   assert.equal(rgDiscovery.matches[0].file.replace(/^\.\//, ""), "src/auth.js");
 }
 
+const provenanceTarget = path.join(fixture, "provenance-target");
+fs.mkdirSync(path.join(provenanceTarget, "docs/context/flows"), { recursive: true });
+fs.mkdirSync(path.join(provenanceTarget, "docs/context/generated"), { recursive: true });
+fs.mkdirSync(path.join(provenanceTarget, "docs/context/routes"), { recursive: true });
+function provenanceContext(id, title, rule) {
+  return `---
+id: flow.${id}
+kind: flow
+context_scan: true
+status: active
+title: ${title}
+routes: []
+files:
+  - src/core.rs
+components: []
+flows:
+  - flow.${id}
+tags:
+  - provenance
+positive_rules:
+  - ${rule}
+negative_rules:
+  - Do not trust generated caches as source.
+load_when:
+  path_matches:
+    - src/**
+  task_terms:
+    - provenance
+updated: 2026-07-27
+---
+
+# ${title}
+
+## Purpose
+
+${rule}
+
+## Current Decisions
+
+- Markdown remains canonical.
+
+## Positive Rules
+
+- ${rule}
+
+## Negative Rules
+
+- Do not trust generated caches as source.
+
+## Implementation Rules
+
+- Bind results to exact bytes.
+`;
+}
+for (const [id, title, rule] of [
+  ["one", "Provenance One", "Return exact source digests without exposing sk-test-secret-value-123456."],
+  ["two", "Provenance Two", "Bind cursors to source state."],
+  ["three", "Provenance Three", "Reject stale cache replacement."],
+]) {
+  fs.writeFileSync(path.join(provenanceTarget, `docs/context/flows/${id}.md`), provenanceContext(id, title, rule));
+}
+fs.writeFileSync(path.join(provenanceTarget, "docs/context/generated/poison.md"), provenanceContext("poison", "Generated Poison", "Never load this generated source."));
+fs.writeFileSync(path.join(provenanceTarget, "docs/context/routes/secrets.md"), provenanceContext("secret", "Secret Poison", "sk-test-secret-value-must-not-leak"));
+fs.writeFileSync(path.join(provenanceTarget, "unrelated.txt"), "clean\n");
+execFileSync("git", ["-C", provenanceTarget, "init", "-q"]);
+execFileSync("git", ["-C", provenanceTarget, "add", "."]);
+execFileSync("git", [
+  "-C",
+  provenanceTarget,
+  "-c",
+  "user.name=CTX Aide Test",
+  "-c",
+  "user.email=ctx-aide@example.invalid",
+  "commit",
+  "-qm",
+  "fixture",
+]);
+fs.writeFileSync(path.join(provenanceTarget, "unrelated.txt"), "dirty but unrelated\n");
+
+const provenanceQueryArgs = [
+  "query",
+  "--repo",
+  provenanceTarget,
+  "--path",
+  "src/core.rs",
+  "--task",
+  "provenance cache safety",
+  "--agent",
+  "codex",
+  "--budget",
+  "300",
+];
+const provenanceQuery = run(provenanceQueryArgs);
+assert.equal(provenanceQuery.ok, true);
+assert.equal(provenanceQuery.provenance.repository.root, ".");
+assert.match(provenanceQuery.provenance.repository.head, /^[0-9a-f]{40}$/);
+assert.equal(provenanceQuery.provenance.repository.relevant_dirty.dirty, false);
+assert.equal(provenanceQuery.provenance.index.source_count, 3);
+assert.equal(provenanceQuery.provenance.index.generated_cache.status, "missing");
+assert.equal(provenanceQuery.budget.estimator.id, "entry-json-utf8-bytes-div4-ceil");
+assert.equal(provenanceQuery.budget.used_tokens <= provenanceQuery.budget.requested_tokens, true);
+assert.equal(provenanceQuery.cursor.next !== null, true);
+assert.equal(provenanceQuery.entries.length > 0, true);
+assert.equal(provenanceQuery.entries.every((entry) => /^[0-9a-f]{64}$/.test(entry.source_digest)), true);
+assert.equal(JSON.stringify(provenanceQuery).includes(provenanceTarget), false);
+assert.equal(JSON.stringify(provenanceQuery).includes("sk-test-secret"), false);
+const firstQuerySource = provenanceQuery.provenance.returned_sources[0];
+assert.equal(
+  firstQuerySource.sha256,
+  createHash("sha256").update(fs.readFileSync(path.join(provenanceTarget, firstQuerySource.path))).digest("hex"),
+);
+
+const continuedQuery = run([...provenanceQueryArgs, "--cursor", provenanceQuery.cursor.next]);
+assert.equal(continuedQuery.ok, true);
+assert.equal(continuedQuery.query_digest, provenanceQuery.query_digest);
+assert.equal(continuedQuery.budget.offset, provenanceQuery.entries.length);
+assert.equal(continuedQuery.entries[0].id === provenanceQuery.entries[0].id, false);
+const invalidCursor = run([...provenanceQueryArgs, "--cursor", `x${provenanceQuery.cursor.next.slice(1)}`], { allowFailure: true });
+assert.equal(invalidCursor.ok, false);
+assert.equal(invalidCursor.errors[0].code, "invalid-cursor");
+
+const provenanceImpact = run([
+  "impact",
+  "--repo",
+  provenanceTarget,
+  "--path",
+  "src/core.rs",
+  "--task",
+  "provenance cache safety",
+]);
+assert.equal(provenanceImpact.ok, true);
+assert.match(provenanceImpact.request_digest, /^[0-9a-f]{64}$/);
+assert.equal(provenanceImpact.entries.every((entry) => entry.source_digest), true);
+assert.equal(provenanceImpact.provenance.index.source_set_digest, provenanceQuery.provenance.index.source_set_digest);
+
+const provenanceScanPreview = run(["scan", "--repo", provenanceTarget]);
+assert.equal(provenanceScanPreview.ok, true);
+assert.equal(provenanceScanPreview.changes[0].action, "planned");
+const provenanceScan = run([
+  "scan",
+  "--repo",
+  provenanceTarget,
+  "--source-digest",
+  provenanceScanPreview.source_set_digest,
+  "--write",
+]);
+assert.equal(provenanceScan.ok, true);
+assert.equal(provenanceScan.changes[0].action, "replaced");
+assert.equal(provenanceScan.provenance.index.generated_cache.status, "fresh");
+const provenanceManifestPath = path.join(provenanceTarget, provenanceScan.manifest_path);
+const provenanceManifestBytes = fs.readFileSync(provenanceManifestPath);
+assert.equal(provenanceManifestBytes.toString("utf8").includes("sk-test-secret-value-123456"), false);
+const repeatedProvenanceScan = run(["scan", "--repo", provenanceTarget, "--write"]);
+assert.equal(repeatedProvenanceScan.ok, true);
+assert.equal(repeatedProvenanceScan.changes[0].action, "unchanged");
+assert.deepEqual(fs.readFileSync(provenanceManifestPath), provenanceManifestBytes);
+if (commandExists("sqlite3")) {
+  assert.equal(repeatedProvenanceScan.changes.find((change) => change.file.endsWith("context.sqlite")).action, "unchanged");
+}
+
+fs.appendFileSync(path.join(provenanceTarget, "docs/context/flows/two.md"), "\nRelevant dirty source.\n");
+const dirtyProvenanceQuery = run(provenanceQueryArgs);
+assert.equal(dirtyProvenanceQuery.ok, true);
+assert.equal(dirtyProvenanceQuery.provenance.repository.relevant_dirty.dirty, true);
+assert.deepEqual(dirtyProvenanceQuery.provenance.repository.relevant_dirty.paths, ["docs/context/flows/two.md"]);
+assert.notEqual(dirtyProvenanceQuery.query_digest, provenanceQuery.query_digest);
+assert.equal(dirtyProvenanceQuery.provenance.index.generated_cache.status, "stale");
+const staleCursor = run([...provenanceQueryArgs, "--cursor", provenanceQuery.cursor.next], { allowFailure: true });
+assert.equal(staleCursor.ok, false);
+assert.equal(staleCursor.errors[0].code, "stale-cursor");
+const staleScan = run([
+  "scan",
+  "--repo",
+  provenanceTarget,
+  "--source-digest",
+  provenanceScanPreview.source_set_digest,
+  "--write",
+], { allowFailure: true });
+assert.equal(staleScan.ok, false);
+assert.equal(staleScan.errors[0].code, "stale-source-precondition");
+assert.deepEqual(fs.readFileSync(provenanceManifestPath), provenanceManifestBytes);
+const concurrentScanArgs = [
+  "scan",
+  "--repo",
+  provenanceTarget,
+  "--source-digest",
+  dirtyProvenanceQuery.provenance.index.source_set_digest,
+  "--write",
+];
+const concurrentScans = await Promise.all([
+  spawnedJson(concurrentScanArgs),
+  spawnedJson(concurrentScanArgs),
+]);
+assert.equal(concurrentScans.every((result) => result.ok), true);
+assert.equal(concurrentScans.every((result) => result.source_set_digest === dirtyProvenanceQuery.provenance.index.source_set_digest), true);
+const concurrentManifest = JSON.parse(fs.readFileSync(provenanceManifestPath, "utf8"));
+assert.equal(concurrentManifest.source_set_digest, dirtyProvenanceQuery.provenance.index.source_set_digest);
+assert.equal(
+  fs.readdirSync(path.dirname(provenanceManifestPath)).some((file) => file.endsWith(".tmp")),
+  false,
+);
+
 const vakosTarget = path.join(fixture, "vakos-target");
 fs.mkdirSync(path.join(vakosTarget, "tickets"), { recursive: true });
 for (const normativeSource of [
@@ -1736,8 +1957,9 @@ for (const result of [vakosManifest, vakosSchemaList, vakosProfileSchema, vakosL
   assert.equal(result.profile_contract.digest, vakosPreview.profile_contract.digest);
   assert.deepEqual(result.profile_contract.roots, vakosPreview.profile_contract.roots);
 }
-assert.equal(vakosManifest.manifest_version, 3);
+assert.equal(vakosManifest.manifest_version, 4);
 assert.equal(vakosSchemaList.schemas.some((schema) => schema.id === "ctxa.adoption-profile/v2"), true);
+assert.equal(vakosSchemaList.schemas.some((schema) => schema.id === "ctxa.source-provenance/v1"), true);
 assert.equal(vakosProfileSchema.sha256, vakosManifest.profile_contract.schema_digest);
 
 const vakosTicket = run([
@@ -1786,6 +2008,10 @@ assert.equal(vakosPlan.ok, true);
 assert.deepEqual(vakosPlan.normative_sources, [{ file: "CTX_AIDE_SPEC.md", allowed: true }]);
 assert.equal(vakosPlan.context_ids.includes("architecture.profile-contract"), true);
 assert.equal(vakosPlan.target_paths.includes("CTX_AIDE_SPEC.md"), true);
+assert.match(vakosPlan.request_digest, /^[0-9a-f]{64}$/);
+assert.equal(vakosPlan.provenance.returned_sources.some((source) => source.path === vakosTicket.ticket.file), true);
+assert.equal(vakosPlan.provenance.returned_sources.some((source) => source.path === "CTX_AIDE_SPEC.md"), true);
+assert.equal(JSON.stringify(vakosPlan).includes(vakosTarget), false, JSON.stringify(vakosPlan, null, 2));
 
 const vakosStatus = run(["adoption", "status", "--repo", vakosTarget, "--profile", "vakos"]);
 assert.equal(vakosStatus.ok, true);

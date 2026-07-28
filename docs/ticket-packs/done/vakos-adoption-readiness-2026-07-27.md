@@ -1,6 +1,6 @@
 ---
 id: pack.vakos-adoption-readiness-2026-07-27
-status: active
+status: done
 title: vakOS Adoption Readiness
 milestones:
   - milestone.vakos-adoption-readiness
@@ -28,8 +28,14 @@ parallel_groups:
 blocked_by: []
 created: 2026-07-27
 completion:
-  completed_at: null
-  final_validation: []
+  completed_at: 2026-07-27
+  final_validation:
+    - npm test
+    - make validate
+    - node tools/ctx-aide/ctx-aide.mjs spec check --json
+    - node tools/ctx-aide/ctx-aide.mjs ticket check --json
+    - node tools/ctx-aide/ctx-aide.mjs pack check --json
+    - npm pack --dry-run --json
 ---
 
 # vakOS Adoption Readiness
@@ -57,7 +63,9 @@ are bounded and revision-linked.
   and atomic explicit generated writes are implemented.
 - `ticket.context.085`: done; authoritative data-driven target profiles,
   vakOS root truth, migration-safe tickets, and enforced command policy ship.
-- `ticket.context.086`: ready; follows 085.
+- `ticket.context.086`: done; exact provenance, real budget accounting,
+  revision-bound cursors, secret/path exclusion, and compare-before-replace
+  generated caches ship.
 
 ## Execution Plan
 
@@ -90,6 +98,8 @@ are bounded and revision-linked.
 
 ## Completion
 
-- Completed tickets: `ticket.context.084`, `ticket.context.085`.
-- Remaining tickets: `ticket.context.086`.
-- Final validation: pending.
+- Completed tickets: `ticket.context.084`, `ticket.context.085`,
+  `ticket.context.086`.
+- Remaining tickets: none.
+- Final validation: `npm test`, `make validate`, spec/ticket/pack checks,
+  package dry-run, syntax checks, and `git diff --check` all pass.
