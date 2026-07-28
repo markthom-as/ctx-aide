@@ -45,7 +45,7 @@ parallel_groups:
       - ticket.context.044
 blocked_by:
   - Production hardening pack must close or explicitly waive unresolved launch blockers.
-  - No-Cargo and no-npm alpha posture must close in their owning tickets.
+  - No-npm alpha posture must close in ticket.context.066.
   - Fresh safety and full validation must pass before the public remote is created.
 created: 2026-07-01
 completion:
@@ -83,7 +83,7 @@ Prepare CTX Aide, under the `ctx-aide` repo and tooling namespace, for a credibl
 - Completed sequence: `ticket.context.040` through `043` and `054` through `059` are done, including public name, safety audit, README/demo proof, ctx-aide namespace rename, removal of legacy naming aliases, `ctxa` as the single installed binary, build/install scripts, and formatted top-level help.
 - Remaining sequence: `ticket.context.044` is the only ticket in this pack still
   blocked. Owner `markthom-as` and MIT licensing are resolved; it waits for the
-  no-Cargo/no-npm tickets and production-hardening gate closure.
+  no-npm ticket and production-hardening gate closure.
 - Shared-file coordination: `README.md`, release docs, and repo metadata must be coordinated by a single agent if the launch gate is later executed.
 - Worktree strategy: use a clean worktree for any future launch-gate execution so public-visibility changes cannot absorb unrelated local edits.
 - Merge queue strategy: keep the launch gate as one scoped commit after every prerequisite is done or explicitly waived in markdown.

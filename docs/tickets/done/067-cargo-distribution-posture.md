@@ -1,6 +1,6 @@
 ---
 id: ticket.context.067
-status: needs-questions
+status: done
 title: Decide Cargo distribution posture
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -45,8 +45,8 @@ validation:
   smoke: []
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: self
+  completed_at: 2026-07-28
 ---
 
 # Decide Cargo Distribution Posture
@@ -79,10 +79,13 @@ The repository currently has no `Cargo.toml` and no Rust crate. It is runnable t
 
 ## Frozen Decisions
 
-- Decision: current state is npm/Node only.
-- Rationale: no Cargo package exists.
-- Decision: Cargo remains blocked until the owner chooses one of the explicit postures.
-- Rationale: a crate shape affects maintenance and user expectations.
+- Decision: the alpha has no Cargo target.
+- Rationale: CTX Aide is a working Node CLI, Nix can package its immutable
+  source directly, and a Rust shim would hide rather than remove the Node
+  runtime.
+- Decision: a real Rust implementation or explicit shim requires a future
+  product/architecture ticket with measurable user value.
+- Rationale: crates.io presence is not itself an alpha capability.
 
 ## Implementation Rules
 
@@ -116,7 +119,10 @@ This ticket needs a user/owner answer before implementation. The safest default 
 
 ## Completion
 
-- Status: needs-questions
-- Commit: pending
-- Verification evidence: pending
-- Follow-up tickets: Cargo implementation ticket only if a Cargo target is chosen.
+- Status: done.
+- Commit: self; resolve with post-commit ticket validation.
+- Verification evidence: README, publication readiness, launch gate, and pack
+  status consistently record no Cargo target for alpha; no Cargo.toml or Rust
+  shim was added.
+- Follow-up tickets: none for alpha; a future Cargo implementation requires a
+  new product/architecture ticket.

@@ -51,8 +51,8 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 - Registry posture: no npm or Cargo publication for alpha.
 - Support posture: no SLA; use GitHub issues and private vulnerability reporting
   after launch.
-- Launch status: owner and license are resolved; final cutover still waits for
-  the no-Cargo/no-npm tickets and fresh safety validation.
+- Launch status: owner, license, and no-Cargo posture are resolved; final
+  cutover still waits for the no-npm ticket and fresh safety validation.
 
 ## Positive Rules
 
@@ -119,8 +119,8 @@ git push -u origin main
 
 - Verify the MIT license/package metadata before public launch.
 - Update README links only after the public URL is verified.
-- Keep this gate blocked until the no-npm/no-Cargo decisions and fresh safety
-  validation are complete.
+- Keep this gate blocked until the no-npm decision and fresh safety validation
+  are complete.
 
 ## Validation
 

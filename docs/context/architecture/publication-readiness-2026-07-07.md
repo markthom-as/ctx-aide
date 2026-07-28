@@ -60,7 +60,8 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
   intentional because npm publication is not part of the alpha.
 - npm owner/publication: deferred; no registry package is approved for alpha.
 - Build/install status: `npm run build` verifies the package payload and writes a local tarball; `npm run install:local` installs `ctxa` into an ignored local prefix for smoke testing.
-- Cargo status: no Rust crate exists in this repository. crates.io publication is blocked until a Cargo package shape is designed and implemented.
+- Cargo status: no Cargo target for alpha. Nix packages the Node CLI directly;
+  a Rust shim or rewrite requires a future product/architecture ticket.
 - Support posture: community issue discussion and private GitHub vulnerability
   reporting after launch, with no response-time or support SLA.
 - Cost delta: `$0/month`. This work changes docs and local package metadata only.
@@ -119,7 +120,8 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 
 - `package.json` intentionally keeps `private: true`; npm publication is not
   approved for the alpha.
-- There is no `Cargo.toml`, Rust crate, or crates.io package target. A future ticket must decide whether Cargo should publish a Rust implementation, a Rust shim that invokes Node, or no Cargo package at all.
+- There is no `Cargo.toml`, Rust crate, or crates.io package target by explicit
+  alpha decision. This is a non-goal, not a release blocker.
 - There is no public GitHub remote in this checkout. Public URLs, badges, repository metadata, and external profile links remain blocked by the GitHub launch gate.
 - CI is checked in but not enabled on any public remote from this checkout. Public repositories are free for ordinary GitHub Actions usage; private repositories may consume included account minutes.
 - The final public-release cutover remains blocked until the no-Cargo/no-npm
@@ -166,7 +168,9 @@ If npm publication is proposed after alpha, its ticket must include:
 - Decision to remove `private: true`.
 - `npm publish --dry-run` evidence before any real publish.
 
-If Cargo publication is proposed after alpha, its ticket must include:
+If Cargo distribution is proposed after alpha, its ticket must first justify a
+real Rust implementation or an explicit Node-runtime shim. Its publication
+ticket must then include:
 
 - Crate purpose: Rust implementation, Rust shim, or no Cargo target.
 - `Cargo.toml`, package files, version policy, license metadata, and README mapping.

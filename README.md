@@ -117,7 +117,9 @@ ctxa --help
 
 `npm run install:global` is available for an explicit global install into the active npm prefix. These commands install from a local path only. Registry publishing, package scope, and remote install instructions are gated by the public-release launch decisions.
 
-CTX Aide is currently runnable through Node/npm. It is not currently a Rust/Cargo package because this repository does not contain a `Cargo.toml` or Rust crate.
+CTX Aide is a Node CLI for the alpha. It intentionally has no Rust/Cargo
+package: Nix consumes the immutable source directly, and a shim would add
+runtime and maintenance ambiguity without user value.
 
 For the fuller local smoke path:
 
