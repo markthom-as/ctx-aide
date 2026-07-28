@@ -55,7 +55,7 @@ parallel_groups:
       - ticket.context.066
       - ticket.context.070
 blocked_by:
-  - npm no-publish posture must close in ticket.context.066.
+  - Final public cutover ticket.context.070 waits for ticket.context.044 and fresh validation.
 created: 2026-07-07
 completion:
   completed_at: null
@@ -81,7 +81,7 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 - `ticket.context.063`: done
 - `ticket.context.064`: done
 - `ticket.context.065`: done
-- `ticket.context.066`: blocked
+- `ticket.context.066`: done
 - `ticket.context.067`: done
 - `ticket.context.068`: done
 - `ticket.context.069`: done
@@ -112,7 +112,6 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 
 ## Completion
 
-- Completed tickets: `ticket.context.061`, `ticket.context.067`, `ticket.context.071`, `ticket.context.072`, `ticket.context.064`, `ticket.context.062`, `ticket.context.068`, `ticket.context.063`, `ticket.context.060`, `ticket.context.065`, `ticket.context.069`.
-- Remaining tickets: `ticket.context.066`, `ticket.context.070`.
-- Final validation: blocked on the explicit no-npm alpha closeout and public
-  cutover.
+- Completed tickets: `ticket.context.061`, `ticket.context.066`, `ticket.context.067`, `ticket.context.071`, `ticket.context.072`, `ticket.context.064`, `ticket.context.062`, `ticket.context.068`, `ticket.context.063`, `ticket.context.060`, `ticket.context.065`, `ticket.context.069`.
+- Remaining tickets: `ticket.context.070`.
+- Final validation: blocked only on public cutover.

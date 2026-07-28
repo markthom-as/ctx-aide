@@ -58,7 +58,8 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 - Source posture: public GitHub alpha after the final cutover gate.
 - Package status: local package metadata is prepared; `private: true` remains
   intentional because npm publication is not part of the alpha.
-- npm owner/publication: deferred; no registry package is approved for alpha.
+- npm owner/publication: no npm package for alpha; ownership and publication are
+  intentionally deferred.
 - Build/install status: `npm run build` verifies the package payload and writes a local tarball; `npm run install:local` installs `ctxa` into an ignored local prefix for smoke testing.
 - Cargo status: no Cargo target for alpha. Nix packages the Node CLI directly;
   a Rust shim or rewrite requires a future product/architecture ticket.
@@ -118,8 +119,8 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 
 ## What Is Not Ready
 
-- `package.json` intentionally keeps `private: true`; npm publication is not
-  approved for the alpha.
+- `package.json` intentionally keeps `private: true`; npm publication is an
+  explicit alpha non-goal.
 - There is no `Cargo.toml`, Rust crate, or crates.io package target by explicit
   alpha decision. This is a non-goal, not a release blocker.
 - There is no public GitHub remote in this checkout. Public URLs, badges, repository metadata, and external profile links remain blocked by the GitHub launch gate.

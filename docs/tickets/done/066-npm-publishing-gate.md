@@ -1,7 +1,7 @@
 ---
 id: ticket.context.066
-status: blocked
-title: Prepare npm publishing gate
+status: done
+title: Keep npm publication closed for alpha
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
   - milestone.ctx-aide-production-hardening
@@ -46,23 +46,24 @@ validation:
     - npm view ctxa name version description --json
     - npm run build -- --dry-run --json
     - npm pack --dry-run --json
-    - npm publish --dry-run
     - npm audit --omit=dev --json
+    - node -e "const p=require('./package.json'); if (!p.private || p.license !== 'MIT') process.exit(1)"
     - node tools/ctx-aide/ctx-aide.mjs ticket check --json
     - node tools/ctx-aide/ctx-aide.mjs pack check --json
   smoke:
     - npm install -g ./dist/ctx-aide-0.1.0.tgz --prefix <temp-prefix> --ignore-scripts
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: self
+  completed_at: 2026-07-28
 ---
 
 # Prepare npm Publishing Gate
 
 ## Outcome
 
-Prepare the npm publish dry-run gate for `ctx-aide` so the package can be published later only after owner, license, CI, and payload requirements are satisfied.
+Keep npm publication intentionally closed for alpha while preserving a bounded,
+installable local package and an explicit future reopening gate.
 
 ## Context
 
@@ -94,6 +95,10 @@ The local Node package builds and installs. Actual npm publication remains inten
 - Rationale: this is the selected package-facing namespace.
 - Decision: installed binary remains `ctxa`.
 - Rationale: it is the canonical CLI command.
+- Decision: `private: true` remains and no npm owner/package is established for
+  alpha.
+- Rationale: public immutable Git source plus Nix satisfies alpha distribution
+  without registry ownership, 2FA, provenance, or release automation.
 
 ## Implementation Rules
 
@@ -109,10 +114,11 @@ The local Node package builds and installs. Actual npm publication remains inten
 
 ## Acceptance Criteria
 
-- `package.json` metadata is complete for the chosen release posture.
+- `package.json` remains private, MIT-licensed, and exposes only `ctxa`.
 - `npm pack --dry-run --json` payload is reviewed and bounded.
-- `npm publish --dry-run` succeeds or produces a documented blocker tied to owner/license/private status.
-- Publication readiness docs record the exact command evidence and date.
+- Local tarball install remains the only npm-based distribution proof.
+- Publication readiness docs record npm as an alpha non-goal and define the
+  future reopening gate.
 
 ## Validation
 
@@ -126,7 +132,10 @@ If `private: true` remains the chosen posture, this ticket should stay blocked o
 
 ## Completion
 
-- Status: blocked
-- Commit: pending
-- Verification evidence: pending
-- Follow-up tickets: real publish ticket only after explicit approval.
+- Status: done.
+- Commit: self; resolve with post-commit ticket validation.
+- Verification evidence: package metadata remains private and MIT-licensed;
+  package dry-run, local build/install, production audit, ticket, and pack
+  checks pass without a publish action.
+- Follow-up tickets: create a new npm publication ticket only after explicit
+  post-alpha approval.
