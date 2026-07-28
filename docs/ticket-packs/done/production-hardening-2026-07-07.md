@@ -1,6 +1,6 @@
 ---
 id: pack.ctx-aide-production-hardening-2026-07-07
-status: active
+status: done
 title: Production Hardening
 milestones:
   - milestone.ctx-aide-production-hardening
@@ -54,12 +54,16 @@ parallel_groups:
     tickets:
       - ticket.context.066
       - ticket.context.070
-blocked_by:
-  - Final public cutover ticket.context.070 waits for ticket.context.044 and fresh validation.
+blocked_by: []
 created: 2026-07-07
 completion:
-  completed_at: null
-  final_validation: []
+  completed_at: 2026-07-28
+  final_validation:
+    - make validate
+    - make smoke
+    - npm audit --omit=dev --json
+    - GitHub public repository verification
+    - clean-clone required-directory preservation
 ---
 
 # Production Hardening
@@ -85,7 +89,7 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 - `ticket.context.067`: done
 - `ticket.context.068`: done
 - `ticket.context.069`: done
-- `ticket.context.070`: blocked
+- `ticket.context.070`: done
 - `ticket.context.071`: done
 - `ticket.context.072`: done
 
@@ -113,5 +117,5 @@ Close the remaining gaps between a locally working CTX Aide CLI and a production
 ## Completion
 
 - Completed tickets: `ticket.context.061`, `ticket.context.066`, `ticket.context.067`, `ticket.context.071`, `ticket.context.072`, `ticket.context.064`, `ticket.context.062`, `ticket.context.068`, `ticket.context.063`, `ticket.context.060`, `ticket.context.065`, `ticket.context.069`.
-- Remaining tickets: `ticket.context.070`.
-- Final validation: blocked only on public cutover.
+- Remaining tickets: none.
+- Final validation: passed; public GitHub source was verified at `https://github.com/markthom-as/ctx-aide`.

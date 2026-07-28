@@ -1,18 +1,16 @@
 # Security Policy
 
-CTX Aide is currently a private, unpublished public-release candidate. It has no public package release, no public GitHub remote in this checkout, and no external support SLA.
+CTX Aide is a public-source alpha. It has no public npm or Cargo package and no external support SLA.
 
 ## Supported Versions
 
-There are no supported public releases yet. Security review should target the current repository state and any future public release candidate identified by a maintainer.
+There is no stable supported release line yet. Security review should target the current `main` branch or an alpha revision identified by a maintainer.
 
 ## Reporting a Vulnerability
 
 Do not post exploit details, secrets, private URLs, session cookies, or access tokens in a public issue.
 
-When a public GitHub remote exists and private vulnerability reporting is enabled, use GitHub Security Advisories or GitHub private vulnerability reporting for security reports.
-
-Until that channel exists, coordinate through the repository owner or maintainer using the existing private project channel. If you only have access to public issues, open a minimal issue that says a private security report channel is needed, without including exploit details.
+Use [GitHub private vulnerability reporting](https://github.com/markthom-as/ctx-aide/security/advisories/new) for security reports. The channel is enabled on the public repository.
 
 ## Handling Expectations
 
@@ -23,7 +21,7 @@ Until that channel exists, coordinate through the repository owner or maintainer
 
 ## Current Security Gates
 
-Before public launch or package publication, rerun the repository safety scans and validation gates documented in:
+Before a future registry publication or tagged release, rerun the repository safety scans and validation gates documented in:
 
 - `docs/context/architecture/public-release-safety-audit-2026-07-05.md`
 - `docs/context/architecture/publication-readiness-2026-07-07.md`

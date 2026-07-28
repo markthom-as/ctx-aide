@@ -4,7 +4,7 @@ CTX Aide is a local-first workflow system for coding agents. It keeps context, s
 
 At its core, this repo is a repo-native operating system for coding-agent work: markdown context, specs, tickets, validation, and handoff rules that let agents implement safely from durable repo truth instead of chat history.
 
-The repository directory, package-facing namespace, local skill, and config filenames are `ctx-aide`; the installed CLI command is `ctxa`. The source is MIT-licensed for a public GitHub alpha under `markthom-as/ctx-aide`. The npm package remains intentionally private and unpublished.
+The repository directory, package-facing namespace, local skill, and config filenames are `ctx-aide`; the installed CLI command is `ctxa`. The source is an MIT-licensed public GitHub alpha at [markthom-as/ctx-aide](https://github.com/markthom-as/ctx-aide). The npm package remains intentionally private and unpublished.
 
 No paid infrastructure is required. Markdown is canonical, generated agent packs are lightweight artifacts, and SQLite indexes are local rebuildable caches.
 
@@ -45,6 +45,8 @@ Coding agents are strongest when they can work from stable project truth instead
 Run the core checks from a fresh checkout with Node.js 20+, Python 3, `make`, and Semble available on `PATH` or through `uvx`:
 
 ```sh
+git clone https://github.com/markthom-as/ctx-aide.git
+cd ctx-aide
 npm ci
 node tools/ctx-aide/ctx-aide.mjs scan --json
 node tools/ctx-aide/ctx-aide.mjs query --path README.md --task "understand CTX Aide public release" --agent codex --budget 1200 --json
@@ -184,7 +186,7 @@ Target repos bootstrapped by CTX Aide get their own config files. The source rep
 
 ## Status
 
-CTX Aide is not a hosted product. It is a working local developer-productivity system and a public-release candidate. The alpha source posture is public GitHub under `markthom-as/ctx-aide` with the MIT license. npm publication, Cargo distribution, hosted services, and paid infrastructure are not part of the alpha release.
+CTX Aide is not a hosted product. It is a working local developer-productivity system with a public alpha source release. The alpha lives at [markthom-as/ctx-aide](https://github.com/markthom-as/ctx-aide) under the MIT license. npm publication, Cargo distribution, hosted services, and paid infrastructure are not part of the alpha release.
 
 ## Goals
 

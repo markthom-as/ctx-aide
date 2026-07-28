@@ -17,7 +17,7 @@ blocks: []
 scope:
   routes: []
   files:
-    - docs/ticket-packs/active/production-hardening-2026-07-07.md
+    - docs/ticket-packs/done/production-hardening-2026-07-07.md
     - docs/ticket-packs/done/public-release-2026-07-01.md
     - docs/tickets/blocked/044-github-public-launch-gate.md
     - docs/tickets/blocked/060-close-onboarding-setup-pack.md

@@ -23,7 +23,7 @@ positive_rules:
   - Keep accidental registry publishing blocked; public source does not imply registry publication.
 negative_rules:
   - Do not claim npm or crates.io publish readiness while package.json is private or no Cargo.toml exists.
-  - Do not publish to npm, crates.io, or GitHub from this repo without a fresh launch ticket and validation evidence.
+  - Do not publish to npm or crates.io, or create a hosted release, without a fresh launch ticket and validation evidence.
 load_when:
   path_matches:
     - README.md
@@ -55,7 +55,7 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 - Intended installed binary name: `ctxa`.
 - GitHub owner/repository: `markthom-as/ctx-aide`.
 - Source license: MIT, recorded in `LICENSE` and package metadata.
-- Source posture: public GitHub alpha after the final cutover gate.
+- Source posture: public GitHub alpha at `https://github.com/markthom-as/ctx-aide`.
 - Package status: local package metadata is prepared; `private: true` remains
   intentional because npm publication is not part of the alpha.
 - npm owner/publication: no npm package for alpha; ownership and publication are
@@ -63,9 +63,9 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 - Build/install status: `npm run build` verifies the package payload and writes a local tarball; `npm run install:local` installs `ctxa` into an ignored local prefix for smoke testing.
 - Cargo status: no Cargo target for alpha. Nix packages the Node CLI directly;
   a Rust shim or rewrite requires a future product/architecture ticket.
-- Support posture: community issue discussion and private GitHub vulnerability
-  reporting after launch, with no response-time or support SLA.
-- Cost delta: `$0/month`. This work changes docs and local package metadata only.
+- Support posture: community issue discussion and enabled private GitHub vulnerability
+  reporting, with no response-time or support SLA.
+- Cost delta: `$0/month`. The public repository uses no paid infrastructure.
 
 ## Positive Rules
 
@@ -78,7 +78,7 @@ Record the current public-readiness state for CTX Aide so outside-facing docs, p
 
 - Do not claim npm or crates.io publish readiness while `package.json` is
   private or no `Cargo.toml` exists.
-- Do not publish to npm, crates.io, or GitHub from this repo without a fresh launch ticket and validation evidence.
+- Do not publish to npm or crates.io, or create a hosted release, without a fresh launch ticket and validation evidence.
 - Do not turn the public-source decision into registry publication authority.
 
 ## Implementation Rules
@@ -107,6 +107,7 @@ Registry state can change. Recheck immediately before any publishing ticket clai
 - The repository now includes MIT licensing and public hygiene docs:
   `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`, GitHub issue
   templates, and a pull request template.
+- The public source repository is verified at `https://github.com/markthom-as/ctx-aide`, with `main` as the default branch, MIT detection, public metadata, and private vulnerability reporting enabled.
 - `.github/workflows/ci.yml` records the CI release gate for Node 20, package dry-run, local install smoke, markdown checks, repo validation, smoke checks, and diff cleanliness.
 - `package.json` uses the intended npm package name `ctx-aide`.
 - The npm package payload is constrained with an explicit `files` allowlist instead of relying on `.gitignore` fallback.
@@ -123,11 +124,8 @@ Registry state can change. Recheck immediately before any publishing ticket clai
   explicit alpha non-goal.
 - There is no `Cargo.toml`, Rust crate, or crates.io package target by explicit
   alpha decision. This is a non-goal, not a release blocker.
-- There is no public GitHub remote in this checkout. Public URLs, badges, repository metadata, and external profile links remain blocked by the GitHub launch gate.
-- CI is checked in but not enabled on any public remote from this checkout. Public repositories are free for ordinary GitHub Actions usage; private repositories may consume included account minutes.
-- The final public-release cutover remains blocked until the no-Cargo/no-npm
-  alpha decisions are closed in their owning tickets and the launch safety gate
-  passes.
+- There is no public npm package, Cargo crate, hosted service, binary cache, or support SLA.
+- GitHub Actions is enabled on the public repository; workflow completion remains normal post-push evidence, not authority to publish registries.
 
 ## Public Criticism Checklist
 

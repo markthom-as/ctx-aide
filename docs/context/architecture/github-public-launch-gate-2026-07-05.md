@@ -36,7 +36,7 @@ updated: 2026-07-28
 
 ## Purpose
 
-Prepare the final public-release gate for CTX Aide without changing GitHub visibility or creating paid infrastructure before required decisions are explicit.
+Record the completed public-release gate and verified zero-cost GitHub alpha cutover for CTX Aide.
 
 ## Current Decisions
 
@@ -45,20 +45,19 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 - Internal repository and command name: `ctx-aide`.
 - Recommended GitHub repository name: `ctx-aide`.
 - Cost delta for the prepared launch path: `$0`. The documented path uses local validation and a standard public GitHub repository only. No AWS, Vercel, Fly, hosted database, queue, paid observability, or deployment resource is created.
-- Current remote state: no git remote is configured in this checkout.
+- Current remote state: `origin` is `https://github.com/markthom-as/ctx-aide.git`; the reviewed history was pushed to public `main`.
 - GitHub owner/repository: `markthom-as/ctx-aide`.
 - License: MIT.
 - Registry posture: no npm or Cargo publication for alpha.
 - Support posture: no SLA; use GitHub issues and private vulnerability reporting
   after launch.
-- Launch status: the local gate passed on 2026-07-28; `ticket.context.070` owns
-  public repository creation, push, metadata verification, and link updates.
+- Launch status: complete on 2026-07-28 under `ticket.context.070`.
 
 ## Positive Rules
 
 - Use the completed public-release tickets as launch evidence.
 - Rerun safety scans after any new launch metadata changes.
-- Keep external links pending until a public GitHub URL exists and is verified.
+- Keep public links tied to the verified canonical GitHub URL.
 
 ## Negative Rules
 
@@ -74,7 +73,7 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 - `ticket.context.042`: done in commit `f076b06`, polished README positioning and quickstart.
 - `ticket.context.043`: done in commit `ee18ddc`, added the public demo walkthrough.
 
-## Proposed GitHub Metadata
+## Verified GitHub Metadata
 
 - Owner/org: `markthom-as`.
 - Repository name: `ctx-aide`.
@@ -82,9 +81,17 @@ Prepare the final public-release gate for CTX Aide without changing GitHub visib
 - Description: `Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.`
 - Topics: `ai-agents`, `developer-tools`, `codex`, `claude`, `markdown`, `workflow`, `tickets`, `ctx-aide`, `local-first`, `validation`.
 - Homepage: none until a public docs or project page exists.
-- Visibility: public at final cutover.
+- Visibility: public.
 - License: MIT.
-- Public URL: pending `ticket.context.070` remote creation and verification.
+- Public URL: `https://github.com/markthom-as/ctx-aide`.
+
+## Cutover Evidence
+
+- Initial reviewed source push: `b02420fb3fe2a95145d8d47227a3f700a0e7c3df` on `main`.
+- GitHub reports the repository as public with `main` as the default branch and the MIT license detected.
+- Private vulnerability reporting is enabled.
+- Only the intended `main` branch was created; npm and Cargo registries were not mutated.
+- Infrastructure cost delta remains `$0/month`.
 
 ## Launch Commands After Approval
 
@@ -119,7 +126,7 @@ git push -u origin main
 
 - Verify the MIT license/package metadata before public launch.
 - Update README links only after the public URL is verified.
-- Keep external repository creation and visibility changes in `ticket.context.070`.
+- Require a fresh ticket before any future registry publication, hosted service, paid infrastructure, or visibility change.
 
 ## Validation
 

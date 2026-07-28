@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "description": "Repo-local context, markdown tickets, validation gates, and agent handoff for coding-agent workflows.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markthom-as/ctx-aide.git"
+  },
+  "bugs": {
+    "url": "https://github.com/markthom-as/ctx-aide/issues"
+  },
+  "homepage": "https://github.com/markthom-as/ctx-aide#readme",
   "type": "module",
   "bin": {
     "ctxa": "./tools/ctx-aide/ctx-aide.mjs"

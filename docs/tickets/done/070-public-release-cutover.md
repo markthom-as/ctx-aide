@@ -1,6 +1,6 @@
 ---
 id: ticket.context.070
-status: blocked
+status: done
 title: Run final public release cutover
 ticket_pack: pack.ctx-aide-production-hardening-2026-07-07
 milestones:
@@ -56,16 +56,16 @@ validation:
     - npm run install:local -- --json
     - npm audit --omit=dev --json
     - npm pack --dry-run --json
-    - npm publish --dry-run
+    - gh repo view markthom-as/ctx-aide --json nameWithOwner,visibility,url,defaultBranchRef,isPrivate,description,repositoryTopics,licenseInfo
     - make validate
     - make smoke
   smoke:
-    - Verify public GitHub URL only after owner-approved visibility change.
-    - Verify npm package page only after owner-approved publish.
+    - Verify the public GitHub URL after the owner-approved visibility change.
+    - Verify private vulnerability reporting is enabled.
   screenshots: []
 completion:
-  commit: pending
-  completed_at: null
+  commit: self
+  completed_at: 2026-07-28
 ---
 
 # Run Final Public Release Cutover
@@ -76,7 +76,7 @@ Execute the final owner-approved public release cutover after all production-har
 
 ## Context
 
-This is not an implementation ticket yet. It is the final cutover gate and should remain blocked until every prerequisite is complete and the owner explicitly approves public visibility or package publication.
+The user selected the recommended alpha posture: public immutable source under MIT, with npm, Cargo, hosted services, and paid infrastructure deferred.
 
 ## Positive Rules
 
@@ -100,14 +100,14 @@ This is not an implementation ticket yet. It is the final cutover gate and shoul
 
 ## Frozen Decisions
 
-- Decision: this ticket is blocked by design.
-- Rationale: public release is an irreversible external-state change relative to local docs.
+- Decision: publish `markthom-as/ctx-aide` as public MIT source at a `$0/month` infrastructure delta.
+- Rationale: the user authorized the recommended alpha posture after the launch gate and safety checks passed.
 - Decision: npm and Cargo publication are independent approvals.
 - Rationale: GitHub visibility, npm package publication, and crates.io publication can ship separately.
 
 ## Implementation Rules
 
-- Required approach: verify all prerequisites, rerun final validation, request explicit approval for each external mutation, perform only approved actions, verify resulting public surfaces, and update docs.
+- Required approach: verify all prerequisites, rerun final validation, perform only the approved public-source mutation, verify the resulting public surface, and update docs.
 - Existing components/helpers to use: GitHub launch gate, publication readiness note, production hardening pack status, npm build/install scripts, and safety audit.
 - Anti-patterns to avoid: batch-publishing multiple channels without separate approval, stale registry checks, or launch notes that omit known limitations.
 - Stop and escalate if: any validation fails, approval is incomplete, cost is introduced, or an external account action is ambiguous.
@@ -137,7 +137,7 @@ This ticket should be the last step. If any prerequisite is still blocked, keep 
 
 ## Completion
 
-- Status: blocked
-- Commit: pending
-- Verification evidence: pending
-- Follow-up tickets: post-release fixes only after launch evidence exists.
+- Status: done
+- Commit: self
+- Verification evidence: `https://github.com/markthom-as/ctx-aide` is public with default branch `main`, MIT detection, the approved description/topics, and private vulnerability reporting enabled. The initial reviewed source revision `b02420fb3fe2a95145d8d47227a3f700a0e7c3df` was pushed without npm, Cargo, hosted-service, or paid-infrastructure mutations. The first hosted CI run exposed that Git does not preserve the required empty `docs/tickets/draft` directory; this cutover commit adds its tracked placeholder so clean clones satisfy the same lint contract as the development checkout.
+- Follow-up tickets: `ticket.context.087` qualifies the immutable source contract for downstream Nix consumers.

@@ -18,7 +18,7 @@ scope:
   routes: []
   files:
     - docs/ticket-packs/active/user-friendly-adoption-onboarding-2026-07-05.md
-    - docs/ticket-packs/active/production-hardening-2026-07-07.md
+    - docs/ticket-packs/done/production-hardening-2026-07-07.md
     - docs/tickets/blocked/044-github-public-launch-gate.md
     - docs/tickets/ready/046-guided-ctxa-setup-onboarding.md
     - docs/tickets/ready/047-astrotechne-web-engine-profiles.md
