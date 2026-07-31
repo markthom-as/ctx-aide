@@ -10,7 +10,7 @@ There is no stable supported release line yet. Security review should target the
 
 Do not post exploit details, secrets, private URLs, session cookies, or access tokens in a public issue.
 
-Use [GitHub private vulnerability reporting](https://github.com/markthom-as/ctx-aide/security/advisories/new) for security reports. The channel is enabled on the public repository.
+Use [GitHub private vulnerability reporting](https://github.com/opertus-systems/ctx-aide/security/advisories/new) for security reports. The channel is enabled on the public repository.
 
 ## Handling Expectations
 

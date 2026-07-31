@@ -4,15 +4,15 @@ This document is the source and redistribution contract for consumers such as va
 
 ## Qualified Alpha Revision
 
-- Repository: `https://github.com/markthom-as/ctx-aide`
-- Git URL: `https://github.com/markthom-as/ctx-aide.git`
+- Repository: `https://github.com/opertus-systems/ctx-aide`
+- Git URL: `https://github.com/opertus-systems/ctx-aide.git`
 - Qualified revision: `d440a524b52a9e5e5b624ffd937331bae659a937`
 - Git tree: `e1906962bbe58b7857c8544c6f7eab3adc656713`
 - Discovery tag: `v0.1.0-alpha.1`
 - Annotated tag object: `0e56328329b09f4dbfe1cd563cc0165a4cf03232`
 - Raw `git archive --format=tar` SHA-256: `108a613fd5d260b1658cbff85f4949055b2c34674f919ae4ac66fd89de4f582f`
 - Derived npm tarball SHA-256: `c37dcf29271ddb404acb1ed507678818898a0903b45545c5ead26048b91b8b85`
-- Green hosted validation: `https://github.com/markthom-as/ctx-aide/actions/runs/30391660122`
+- Green hosted validation: `https://github.com/opertus-systems/ctx-aide/actions/runs/30391660122`
 
 The full 40-character commit is authoritative. The tag and `main` branch are discovery aids and must not be used alone as a reproducibility boundary. The archive and package hashes are evidence for this revision; a Nix consumer must also commit the NAR hash produced by its chosen fetcher in `flake.lock` or the derivation.
 
@@ -67,7 +67,7 @@ The qualified revision was cloned from the public URL into a clean temporary dir
 Representative verification:
 
 ```sh
-git clone --no-checkout https://github.com/markthom-as/ctx-aide.git
+git clone --no-checkout https://github.com/opertus-systems/ctx-aide.git
 git -C ctx-aide checkout --detach d440a524b52a9e5e5b624ffd937331bae659a937
 (cd ctx-aide && npm_config_offline=true npm ci --offline --ignore-scripts --no-audit --no-fund)
 npm_config_offline=true node ctx-aide/scripts/build.mjs --pack-destination /tmp/ctx-aide-artifacts --json
